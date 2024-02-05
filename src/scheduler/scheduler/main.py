@@ -14,7 +14,7 @@ class Scheduler(Node):
             self.job_callback,
             10
         )
-
+    
     def job_callback(self, msg):
         self.get_logger().info(f'Received job:\n ID: {msg.job_id}')
         self.get_logger().info(f'Job type: {msg.job_type}')
