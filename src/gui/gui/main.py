@@ -1,37 +1,53 @@
 import rclpy
 from rclpy.node import Node
+import sys
 
-import Interface_ui as ui
+import gui.Interface_ui as ui
 
 # import main windows and qt stuff
-from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QApplication
+from PySide6 import QtCore, QtWidgets, QtGui
 
 
-class MainWindow(QMainWindow, ui.Ui_MainWindow):
-    def __init__(self):
-        super().__init__()
+class Interface(QMainWindow, ui.Ui_MainWindow):
+    def __init__(self, rosnode, parent=None):
+        super(Interface, self).__init__(parent)
         self.setupUi(self)
-        self.setWindowTitle('Scheduler')
-        self.setWindowFlags(Qt.WindowStaysOnTopHint)
-        self.show()
+        self.rosnode = rosnode
+        self.pushButton.clicked.connect(self.rosnode.start)
+        self.pushButton_2.clicked.connect(self.rosnode.stop)
+
+         
+
+    
 
 
-class GUI(Node):
+class InterfaceNode(Node):
     def __init__(self):
         super().__init__('gui')
         self.get_logger().info('GUI node has been started')
 
-        self.app = QApplication([])
-        self.window = MainWindow()
-        self.app.exec_()
+        self.interface = Interface(self)
+        self.interface.show()
+
+    def start(self):
+        self.get_logger().info('Start button has been pressed')
+        self.interface.label.setText('Start button has been pressed')
+
+    def stop(self):
+        self.get_logger().info('Stop button has been pressed')
+        self.interface.label.setText('Stop button has been pressed')
 
 
 def main(args=None):
     rclpy.init(args=args)
-    gui = GUI()
-    rclpy.spin(gui)
-    gui.destroy_node()
+
+    app = QtWidgets.QApplication(sys.argv)
+    node = InterfaceNode()
+    app.exec_()
+
+    rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
 

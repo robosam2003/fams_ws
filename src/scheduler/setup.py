@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'scheduler = scheduler.scheduler.main:main',
+            'scheduler = scheduler.main:main',
         ],
     },
 )
