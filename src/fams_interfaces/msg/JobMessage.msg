@@ -11,9 +11,9 @@ uint8 priority
 SubProcess[] subprocesses
 
 # The times of the subprocesses
-uint64 subprocess_start_time
+uint64[] subprocess_start_times
 
-uint64 subprocess_end_time
+uint64[] subprocess_end_times
 
 uint64 job_start_time
 

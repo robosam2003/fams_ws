@@ -8,6 +8,3 @@ uint32 sub_process_id
 
 # Operation type
 string operation_type
-
-# Operation name
-string operation_name
