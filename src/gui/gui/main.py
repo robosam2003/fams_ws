@@ -19,6 +19,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow):
         self.rosnode = rosnode
         self.pushButton.clicked.connect(self.rosnode.start)
 
+        self.destroyed.connect(self.rosnode.destroy_node)
+
 
 class InterfaceNode(Node):
     def __init__(self):
@@ -33,15 +35,15 @@ class InterfaceNode(Node):
         self.interface = Interface(self)
         self.interface.show()
 
-        # On window close, destroy the node
-        self.interface.destroyed.connect(self.destroy_node)
+        # When the window is closed, destroy the node and stop the application
 
     def start(self):
         self.interface.label.setText('Generating and publishing a job message...')
 
         msg = JobMessage()
-        msg.job_id = 1
+        msg.job_id = random.randint(1, 100000)
         msg.priority = 1
+        msg.part_id = random.randint(1, 100)
 
         sub1 = SubProcess()
         sub1.sub_process_id = random.randint(1, 100)
@@ -53,7 +55,7 @@ class InterfaceNode(Node):
 
         msg.subprocess_start_times = [int(time.time()), int(time.time()) + 10]
         msg.subprocess_end_times = [int(time.time()) + 5, int(time.time()) + 15]
-        msg.status = 'ACTIVE'
+        msg.status = 'PENDING'
 
         # Publish the message
         self.job_publisher.publish(msg)

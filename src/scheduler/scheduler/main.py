@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from fams_interfaces.msg import JobMessage, SubProcess
+from fams_interfaces.msg import JobMessage, SubProcess, Part, SystemState
 from rosidl_runtime_py import *
 
 
@@ -17,6 +17,7 @@ class Scheduler(Node):
             self.job_message_callback,
             10 # QoS profile
         )
+
     
     def job_message_callback(self, msg):
         self.save_job_to_log(msg)
@@ -27,14 +28,14 @@ class Scheduler(Node):
         with open(self.job_log_path, 'a') as f:
             csv = message_to_csv(msg)
             f.write(csv)
-            f.write('\n')
-        
+            f.write('\n')  
 
 
-class Job:
+class Job: # TODO: Move Job class to utils package?
     def __init__(self):
         self.job_id = None
         self.priority = None
+        self.part_id = None
         self.num_subprocesses = None
         self.subprocesses = []
         self.subprocess_start_times = []
@@ -46,7 +47,12 @@ class Job:
     def from_msg(self, msg):
         self.job_id = msg.job_id
         self.priority = msg.priority
-        self.subprocesses = [SubProcess(sub_process.sub_process_id, sub_process.operation_type) for sub_process in msg.subprocesses]
+        self.part_id = msg.part_id
+        for sub_process in msg.subprocesses:
+            s = SubProcess()
+            s.sub_process_id = sub_process.sub_process_id
+            s.operation_type = sub_process.operation_type
+            self.subprocesses.append(s)
         self.subprocess_start_times = msg.subprocess_start_times
         self.subprocess_end_times = msg.subprocess_end_times
         self.job_start_time = msg.job_start_time
@@ -58,24 +64,22 @@ class Job:
         l = csv_string.split(',')
         self.job_id = int(l[0])
         self.priority = int(l[1])
+        self.part_id = int(l[2])
         
-        self.num_subprocesses = (len(l[2:]) - 3) // 2 # There are two parameters for each subprocess
+        self.num_subprocesses = (len(l[3:]) - 3) // 2 # There are two parameters for each subprocess
         for i in range(self.num_subprocesses):
-            sub_process = SubProcess(l[2+self.num_subprocesses*i], l[2+self.num_subprocesses*i+1]) # Order is sub_process_id, operation_type
+            sub_process = SubProcess()
+            sub_process.sub_process_id = int(l[3+2*i])
+            sub_process.operation_type = l[3+2*i+1] # Order is sub_process_id, operation_type, sub_process_id, operation_type, ...
             self.subprocesses.append(sub_process)
-        self.subprocess_start_times = l[2+self.num_subprocesses:2+2*self.num_subprocesses]
-        self.subprocess_end_times = l[2+2*self.num_subprocesses:2+3*self.num_subprocesses]
+        self.subprocess_start_times = l[3+self.num_subprocesses*2:3+3*self.num_subprocesses]
+        self.subprocess_end_times = l[3+3*self.num_subprocesses:3+4*self.num_subprocesses]
         self.job_start_time = l[-3]
         self.job_end_time = l[-2]
         self.status = l[-1]
     
-        
-                    
-
-        
 
 
-    
 
 def main(args=None):
     rclpy.init(args=args)

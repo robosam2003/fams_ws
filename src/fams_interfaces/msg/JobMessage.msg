@@ -7,6 +7,9 @@ uint32 job_id
 # Job priority
 uint8 priority
 
+# Part ID
+uint32 part_id
+
 # Sub processes involved in the job
 SubProcess[] subprocesses
 
@@ -19,5 +22,5 @@ uint64 job_start_time
 
 uint64 job_end_time
 
-# The status of the job - Can be "ACTIVE", "COMPLETED", "FAILED""
+# The status of the job - Can be "IN PROGRESS", "FINISHED", "PENDING", "FAILED"
 string status
