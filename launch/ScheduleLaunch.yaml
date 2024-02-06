@@ -1,0 +1,14 @@
+launch:
+
+- node:
+    pkg: "gui"
+    exec: "gui"
+    name: "gui"
+    namespace: "fams"
+
+- node:
+    pkg: "scheduler"
+    exec: "scheduler"
+    name: "scheduler"
+    namespace: "fams"
+

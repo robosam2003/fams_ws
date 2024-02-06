@@ -10,7 +10,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-    ],
+        ('lib/' + package_name, [package_name + '/JobLog.csv']), # Add JSON file to the package
+        ('lib/' + package_name, [package_name + '/message_converter.py']),     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='robosam',

@@ -53,7 +53,7 @@ class InterfaceNode(Node):
 
         msg.subprocess_start_times = [int(time.time()), int(time.time()) + 10]
         msg.subprocess_end_times = [int(time.time()) + 5, int(time.time()) + 15]
-        msg.status = 'pending'
+        msg.status = 'ACTIVE'
 
         # Publish the message
         self.job_publisher.publish(msg)

@@ -19,5 +19,5 @@ uint64 job_start_time
 
 uint64 job_end_time
 
-# The status of the job
+# The status of the job - Can be "ACTIVE", "COMPLETED", "FAILED""
 string status
