@@ -22,6 +22,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/JobMessage.msg"
   "msg/SubProcess.msg"
   "msg/Part.msg"
+  "msg/Workstation.msg"
+  "msg/MobileRobot.msg"
   "msg/SystemState.msg"
   DEPENDENCIES std_msgs geometry_msgs
 )

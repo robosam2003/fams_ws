@@ -11,7 +11,8 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('lib/' + package_name, [package_name + '/JobLog.csv']), # Add JSON file to the package
-        ('lib/' + package_name, [package_name + '/message_converter.py']),     ],
+        ('lib/' + package_name, [package_name + '/message_converter.py']),     
+    ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='robosam',
@@ -21,7 +22,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'scheduler = scheduler.main:main',
+            'scheduler = scheduler.scheduler:main',
         ],
     },
 )

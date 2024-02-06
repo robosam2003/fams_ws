@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
          # Make sure that local python files are included
-        ('lib/' + package_name, [package_name + '/main.py', package_name + '/Interface_ui.py']),
+        ('lib/' + package_name, [package_name + '/Interface_ui.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,7 +22,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'gui = gui.main:main',
+            'gui = gui.gui:main',
         ],
     },
 )

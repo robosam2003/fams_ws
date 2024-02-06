@@ -7,8 +7,8 @@ uint32 job_id
 # Job priority
 uint8 priority
 
-# Part ID
-uint32 part_id
+# Part
+Part part
 
 # Sub processes involved in the job
 SubProcess[] subprocesses
