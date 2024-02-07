@@ -13,14 +13,9 @@ Part part
 # Sub processes involved in the job
 SubProcess[] subprocesses
 
-# The times of the subprocesses
-uint64[] subprocess_start_times
+uint64 start_time
 
-uint64[] subprocess_end_times
-
-uint64 job_start_time
-
-uint64 job_end_time
+uint64 end_time
 
 # The status of the job - Can be "IN PROGRESS", "FINISHED", "PENDING", "FAILED"
 string status

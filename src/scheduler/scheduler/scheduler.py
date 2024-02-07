@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from fams_interfaces.msg import JobMessage, SubProcess, Part, SystemState
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState
 from rosidl_runtime_py import *
 
 
@@ -8,11 +8,11 @@ from rosidl_runtime_py import *
 class Scheduler(Node):
     def __init__(self):
         super().__init__('scheduler')
-        self.job_log_path = "/home/robosam/fams_ws/src/scheduler/scheduler/JobLog.csv"
+        self.job_log_path = "./src/scheduler/scheduler/JobLog.csv"  # Relative so that it works on any machine
         self.get_logger().info('Scheduler node has been started')
 
         self.job_subscriber = self.create_subscription(
-            JobMessage,
+            Job,
             'job', # Topic name
             self.job_message_callback,
             10 # QoS profile
@@ -32,10 +32,59 @@ class Scheduler(Node):
 
         self.system_state = SystemState()
 
-    
+        self.active_job_list = []
+        self.update_active_job_list() # Update active job list from job log
+
+    def update_active_job_list(self):
+        # For all the jobs in the job log, if they are IN PROGRESS or PENDING, add them to the active job list
+        with open(self.job_log_path, "r") as f:
+            for line in f:
+                if "IN PROGRESS" in line or "PENDING" in line:
+                    job = self.csv_to_job(line)
+                    self.active_job_list.append(job)
+        self.get_logger().info('Active job list has been updated, with ' + str(len(self.active_job_list)) + ' jobs')
+
+    def csv_to_job(self, csv_string) -> Job:
+        # Convert csv string to Job message
+        job = Job()
+        csv_list = csv_string.split(',')
+
+        job.job_id = int(csv_list[0])
+        job.priority = int(csv_list[1])
+
+        part = Part()
+        part.part_id = int(csv_list[2])
+        part.location = int(csv_list[3])
+        part.current_subprocess_id = int(csv_list[4])
+        part.job_id = int(csv_list[5])
+        job.part = part
+
+        part_obj_size = 4 # Number of parameters in the Part object
+        sub_obj_size = 4 # Number of parameters in the SubProcess object
+        sub_start_id = 2 + part_obj_size
+        n_sub = (len(csv_list) - part_obj_size - 5) // sub_obj_size
+        for i in range(n_sub):
+            sub = SubProcess()
+            sub.sub_process_id = int(csv_list[sub_start_id + sub_obj_size*i])
+            sub.operation_type = str(csv_list[sub_start_id + sub_obj_size*i + 1])
+            sub.start_time = int(csv_list[sub_start_id + sub_obj_size*i + 2])
+            sub.end_time = int(csv_list[sub_start_id + sub_obj_size*i + 3])
+            job.subprocesses.append(sub)
+        
+        job.start_time = int(csv_list[-3])
+        job.end_time = int(csv_list[-2])
+        job.status = str(csv_list[-1])
+
+        return job
+
     def job_message_callback(self, msg):
         self.save_job_to_log(msg) # Add Job to Job Log
         self.get_logger().info('Job message has been added to the job log')
+
+        if msg.status == 'PENDING' or msg.status == 'IN PROGRESS':
+            self.active_job_list.append(msg)
+            self.get_logger().info('Job message has been added to the active job list, which now has ' + str(len(self.active_job_list)) + ' jobs')
+
         self.system_state.parts.append(msg.part) # Add parts to system state parts list
         self.state_publisher.publish(self.system_state) # Publish /SystemState message
 
@@ -55,7 +104,7 @@ class Scheduler(Node):
         for part in self.system_state.parts: # Sort parts with no current subprocesses into a priority list
             if part.current_subprocess_id == 0:
                 priority_list.append(part)
-        priority_list.sort(key=lambda x: (x.job_id, x.start_time)) # Sort by job_id and start_time
+        priority_list.sort(key=lambda x: x.job_id) # Sort by job_id and start_time
         free_workstations = [workstation for workstation in self.system_state.workstations if workstation.status == 'FREE']
         # Go down the priority list, matching subprocesses with workstations that are both free and can perform the correct part operations
         # TODO
@@ -69,52 +118,6 @@ class Scheduler(Node):
         
 
 
-class Job: # TODO: Move Job class to utils package?
-    def __init__(self):
-        self.job_id = None
-        self.priority = None
-        self.part_id = None
-        self.num_subprocesses = None
-        self.subprocesses = []
-        self.subprocess_start_times = []
-        self.subprocess_end_times = []
-        self.job_start_time = None
-        self.job_end_time = None
-        self.status = None
-    
-    # def from_msg(self, msg):
-        # self.job_id = msg.job_id
-        # self.priority = msg.priority
-        # self.part_id = msg.part_id
-        # for sub_process in msg.subprocesses:
-        #     s = SubProcess()
-        #     s.sub_process_id = sub_process.sub_process_id
-        #     s.operation_type = sub_process.operation_type
-        #     self.subprocesses.append(s)
-        # self.subprocess_start_times = msg.subprocess_start_times
-        # self.subprocess_end_times = msg.subprocess_end_times
-        # self.job_start_time = msg.job_start_time
-        # self.job_end_time = msg.job_end_time
-        # self.status = msg.status
-
-    # def from_csv(self, csv_string): # TODO: Update when message structure is finalised
-        # # Parse the CSV string and set the attributes of the Job object
-        # l = csv_string.split(',')
-        # self.job_id = int(l[0])
-        # self.priority = int(l[1])
-        # self.part_id = int(l[2])
-        
-        # self.num_subprocesses = (len(l[3:]) - 3) // 2 # There are two parameters for each subprocess
-        # for i in range(self.num_subprocesses):
-        #     sub_process = SubProcess()
-        #     sub_process.sub_process_id = int(l[3+2*i])
-        #     sub_process.operation_type = l[3+2*i+1] # Order is sub_process_id, operation_type, sub_process_id, operation_type, ...
-        #     self.subprocesses.append(sub_process)
-        # self.subprocess_start_times = l[3+self.num_subprocesses*2:3+3*self.num_subprocesses]
-        # self.subprocess_end_times = l[3+3*self.num_subprocesses:3+4*self.num_subprocesses]
-        # self.job_start_time = l[-3]
-        # self.job_end_time = l[-2]
-        # self.status = l[-1]
     
 
 

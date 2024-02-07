@@ -19,7 +19,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/JobMessage.msg"
+  "msg/Job.msg"
   "msg/SubProcess.msg"
   "msg/Part.msg"
   "msg/Workstation.msg"

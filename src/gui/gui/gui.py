@@ -5,7 +5,7 @@ import sys
 import gui.Interface_ui as ui
 import time
 import random
-from fams_interfaces.msg import JobMessage, SubProcess, Part, SystemState
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState
 
 # import main windows and qt stuff
 from PySide6.QtWidgets import QMainWindow, QApplication
@@ -27,7 +27,7 @@ class InterfaceNode(Node):
         super().__init__('gui')
         self.get_logger().info('GUI node has been started')
         self.job_publisher = self.create_publisher(
-            JobMessage,
+            Job,
             'job',
             10
         )
@@ -40,7 +40,7 @@ class InterfaceNode(Node):
     def start(self):
         self.interface.label.setText('Generating and publishing a job message...')
 
-        job = JobMessage()
+        job = Job()
         job.job_id = random.randint(1, 100000)
         job.priority = 1
         part = Part()
@@ -53,13 +53,17 @@ class InterfaceNode(Node):
         sub1 = SubProcess()
         sub1.sub_process_id = random.randint(1, 100)
         sub1.operation_type = 'milling'
+        sub1.start_time = int(time.time())
+        sub1.end_time = 0
         sub2 = SubProcess()
         sub2.sub_process_id = random.randint(1, 100)
         sub2.operation_type = 'drilling'
+        sub2.start_time = int(time.time()) + 50
+        sub2.end_time = 0
         job.subprocesses = [sub1, sub2]
-
-        job.subprocess_start_times = [int(time.time()), int(time.time()) + 10]
-        job.subprocess_end_times = [int(time.time()) + 5, int(time.time()) + 15]
+        job.start_time = sub1.start_time
+        job.end_time = 0
+        
         job.status = 'PENDING'
 
         # Publish the message
