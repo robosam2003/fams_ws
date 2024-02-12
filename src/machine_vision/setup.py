@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mobile_control'
+package_name = 'machine_vision'
 
 setup(
     name=package_name,
@@ -14,14 +14,12 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='uos',
-    maintainer_email='uos@todo.todo',
+    maintainer_email='bdsharvey1@sheffield.ac.uk',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': [
-            "tst_node = mobile_control.my_first_node:main",
-            "drw_crl = mobile_control.draw_circle:main"
+        'console_scripts': ['img_publisher = machine_vision.image_publisher:main','img_subscriber= machine_vision.image_subscriber:main'
         ],
     },
 )
