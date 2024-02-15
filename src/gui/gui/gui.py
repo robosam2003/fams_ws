@@ -68,7 +68,12 @@ class InterfaceNode(Node):
 
         # Publish the message
         self.job_publisher.publish(job)
+
+        
+
         self.get_logger().info('Job message has been published')
+
+
         self.interface.label.setText('Job message has been published')
 
 
