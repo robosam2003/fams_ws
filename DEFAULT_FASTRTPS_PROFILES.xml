@@ -19,25 +19,15 @@
                      </locator>
                      <locator>
                          <udpv4> 
-                         <address>192.168.22.159</address>
+                         <address>172.30.58.176</address>
                          </udpv4>
                      </locator>
                      <locator>
                          <udpv4>
-                         <address>192.168.22.91</address>
+                         <address>172.30.58.222</address>
                          </udpv4>
                      </locator>
-                     <locator>
-                         <udpv4>
-                         <address>192.168.22.183</address>
-                         </udpv4>
-                     </locator>
-                     <locator>
-                         <udpv4>
-                         <address>192.168.22.96</address>
-                         </udpv4>
-                     </locator>
-                 </initialPeersList>
+		</initialPeersList>
              </builtin>
          </rtps>
      </participant>
