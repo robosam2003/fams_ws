@@ -1,4 +1,7 @@
 /.vscode
+/.idea
 /build
 /install
 /log
+src/gui/gui/__pycache__
+src/*/*/__pycache__

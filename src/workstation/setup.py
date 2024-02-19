@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'scheduler'
+package_name = 'workstation'
 
 setup(
     name=package_name,
@@ -10,8 +10,6 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('lib/' + package_name, [package_name + '/JobLog.csv']), # Add JSON file to the package
-        ('lib/' + package_name, [package_name + '/message_converter.py']),     
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'scheduler = scheduler.scheduler:main',
+            'workstation_controller = workstation.workstation_controller:main',
+            
         ],
     },
 )

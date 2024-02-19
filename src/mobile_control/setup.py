@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'scheduler'
+package_name = 'mobile_control'
 
 setup(
     name=package_name,
@@ -10,19 +10,18 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('lib/' + package_name, [package_name + '/JobLog.csv']), # Add JSON file to the package
-        ('lib/' + package_name, [package_name + '/message_converter.py']),     
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='robosam',
-    maintainer_email='robosam2003@gmail.com',
+    maintainer='uos',
+    maintainer_email='uos@todo.todo',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'scheduler = scheduler.scheduler:main',
+            "tst_node = mobile_control.my_first_node:main",
+            "drw_crl = mobile_control.draw_circle:main"
         ],
     },
 )

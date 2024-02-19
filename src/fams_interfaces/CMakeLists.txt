@@ -7,7 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
+# uncomment the following section in order to fill in 
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
@@ -16,6 +16,19 @@ find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 
+
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/Job.msg"
+  "msg/SubProcess.msg"
+  "msg/Part.msg"
+  "msg/Workstation.msg"
+  "msg/MobileRobot.msg"
+  "msg/SystemState.msg"
+  DEPENDENCIES std_msgs geometry_msgs
+)
+
+ament_export_dependencies(rosidl_default_runtime)
 
 
 if(BUILD_TESTING)
