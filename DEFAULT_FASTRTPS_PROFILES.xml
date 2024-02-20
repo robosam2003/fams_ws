@@ -37,6 +37,13 @@
                          <address>192.168.22.96</address>
                          </udpv4>
                      </locator>
+
+                     <locator>
+                         <udpv4>
+                         <address>143.167.229.44</address>
+                         </udpv4>
+                     </locator>
+                     <locator
                  </initialPeersList>
              </builtin>
          </rtps>
