@@ -104,10 +104,23 @@ class Scheduler(Node):
         for part in self.system_state.parts: # Sort parts with no current subprocesses into a priority list
             if part.current_subprocess_id == 0:
                 priority_list.append(part)
-        priority_list.sort(key=lambda x: x.job_id) # Sort by job_id and start_time
+        job_priority_mapping = {job.job_id: job.priority for job in self.active_job_list} # This is a dictionary that maps job_id to priority
+        job_start_time_mapping = {job.job_id: job.start_time for job in self.active_job_list}
+
+        priority_list = sorted(priority_list, key=lambda part: (job_priority_mapping[part.job_id], job_start_time_mapping[part.job_id])) # Sort the priority list by priority first and then start time
+         
+
         free_workstations = [workstation for workstation in self.system_state.workstations if workstation.status == 'FREE']
         # Go down the priority list, matching subprocesses with workstations that are both free and can perform the correct part operations
-        # TODO
+    
+        schedule_worstations = []
+        # for part in priority_list:
+        #     for workstation in free_workstations:
+        #         if workstation.operation_type == part.operation_type:
+        #             schedule_worstations.append(workstation)
+        #             free_workstations.remove(workstation)
+        #             break
+            
 
         # Create Schedule message from these matches
         # TODO
