@@ -14,21 +14,52 @@ calibrate_path = '/home/uos/fams_ws/src/machine_vision/machine_vision/Calibrate'
 images = os.listdir(calibrate_path)
 for fname in images:
     print(fname)
-    path = os.join(calibrate_path, fname)
+    path = os.path.join(calibrate_path, fname)
     img = cv.imread(path)
-    window_name='window'
-    cv.imshow(window_name,img)
-    cv.waitkey(500)
-    # gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    # # Find the chess board corners
-    # ret, corners = cv.findChessboardCorners(gray, (7,7), None)
-    # # If found, add object points, image points (after refining them)
-    # if ret == True:
-    #     objpoints.append(objp)
-    #     corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
-    #     imgpoints.append(corners2)
-    #     # Draw and display the corners
-    #     cv.drawChessboardCorners(img, (7,6), corners2, ret)
-    #     cv.imshow('img', img)
-    #     cv.waitKey(500)
+
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # Find the chess board corners
+    ret, corners = cv.findChessboardCorners(gray, (7,6), None)
+    # If found, add object points, image points (after refining them)
+    if ret == True:
+        objpoints.append(objp)
+        corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
+        imgpoints.append(corners2)
+        # Draw and display the corners
+        cv.drawChessboardCorners(img, (7,6), corners2, ret)
+        cv.imshow('img', img)
+        cv.waitKey(100)
 cv.destroyAllWindows()
+
+ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+# print(mtx)
+# print(dist)
+# print(rvecs)
+# print(tvecs)
+
+calibrate_path1 = '/home/uos/fams_ws/src/machine_vision/machine_vision/Calibrate'
+images1 = os.listdir(calibrate_path1)
+path1 = os.path.join(calibrate_path1, 'cal1.jpg')
+img1 = cv.imread(path1)
+
+
+
+h,  w = img1.shape[:2]
+newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+
+# undistort
+dst = cv.undistort(img1, mtx, dist, None, newcameramtx)
+# crop the image
+x, y, w, h = roi
+dst = dst[y:y+h, x:x+w]
+a= cv.imwrite('calibresult.jpg', dst)
+cv.imshow('undistorted',a)
+cv.waitKey(2000)
+
+mean_error = 0
+for i in range(len(objpoints)):
+    imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+    error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2)/len(imgpoints2)
+    mean_error += error
+print( "total error: {}".format(mean_error/len(objpoints)) )

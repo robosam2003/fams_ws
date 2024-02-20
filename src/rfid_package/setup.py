@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'machine_vision'
+package_name = 'rfid_package'
 
 setup(
     name=package_name,
@@ -14,12 +14,12 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='uos',
-    maintainer_email='bdsharvey1@sheffield.ac.uk',
+    maintainer_email='apartab1@sheffield.ac.uk',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': ['img_publisher = machine_vision.image_publisher:main','img_subscriber= machine_vision.image_subscriber:main','aruco=machine_vision.ArUco:main'
+        'console_scripts': [
         ],
     },
 )
