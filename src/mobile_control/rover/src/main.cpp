@@ -1,3 +1,18 @@
+/*
+Author: Tobias McNeil
+Started: 19/02/24
+Last Edited: 21/02/24
+
+Purpose: To control 4WD mecanum robots. Contains a test function to check direction of motor hookups
+Contains a basic wasdqe control for orthogonal and rotation control via the keyboard
+Should contain funciton to take input of an x and y and then run the motors to it's best guess of where that is.
+May have encoder functionality later
+
+19/02/24: Successful hookup of motors
+20/02/24: Successful control via serial monitor of Arduino and ROS
+*/
+
+
 #include <Arduino.h>
 // include the SPI library:
 #include <SPI.h>
@@ -120,11 +135,28 @@ digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled
 
 void loop() {
 	
+    /*
+    maths: Mecanum wheel diameter = 100mm
+    262*359 arena size
+    414*350*100
+    so (0,0) frame is (207,175) into the robot's footspace
+    Circumference = pi*100 mm = 314.15 ish
+    so one rotation of wheels travels maximum 314 mm 
+
+    estimate average slippage then create a rough file,
+    then work on encoders. 
+    */
+
+   motorTest();
+
+    //Keyboard control via Serial monitor
+    /*
 	if (Serial.available()){
 		char direction = Serial.read();
 		motorContorl(direction);
   }
-	delay(1000);
+	delay(100);
+    */
 }
 
 	// put function definitions here:
@@ -134,32 +166,32 @@ void motorContorl(char direction){
 	{
 	case 'w' :
 		dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
-  		pwm1 = 50; pwm2 = 50; pwm3 = 50; pwm4 = 50;	
+  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
 
 		break;
 	case 's' :
 		dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
-  		pwm1 = 50; pwm2 = 50; pwm3 = 50; pwm4 = 50;	
+  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
 
 		break;
 	case 'a' :
 		dir1 = 0; dir2 = 1; dir3 = 0; dir4 = 1; //0 = forwards, 1 = backwards
-  		pwm1 = 50; pwm2 = 50; pwm3 = 50; pwm4 = 50;	
+  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
 
 		break;
 	case 'd' :
 		dir1 = 1; dir2 = 0; dir3 = 1; dir4 = 0; //0 = forwards, 1 = backwards
-  		pwm1 = 50; pwm2 = 50; pwm3 = 50; pwm4 = 50;	
+  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
 
 		break;
 	case 'q' :
 		dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
-  		pwm1 = 50; pwm2 = 50; pwm3 = 50; pwm4 = 50;	
+  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
 
 		break;
 	case 'e' :
 		dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
-  		pwm1 = 50; pwm2 = 50; pwm3 = 50; pwm4 = 50;	
+  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
 
 		break;
 	case 'b' :
@@ -185,8 +217,8 @@ void motorContorl(char direction){
 
 void motorTest(){
 	dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
-  	pwm1 = 100; pwm2 = 100; pwm3 = 100; pwm4 = 100;	
-
+  	pwm1 = 100; pwm2 = 10; pwm3 = 250; pwm4 = 250;	
+/*
 	delay(1000);
  	digitalWrite(DIR_M1, dir1);
     analogWrite(PWM_M1, pwm1);
@@ -202,20 +234,21 @@ void motorTest(){
 	dir2 = 1;
 	digitalWrite(DIR_M2, dir2);
     analogWrite(PWM_M2, pwm1);
-
-	delay(1000);
+*/
+	//delay(1000);
  	digitalWrite(DIR_M3, dir3);
     analogWrite(PWM_M3, pwm1);
-	delay(1000);
+	/*delay(1000);
 	dir3 = 1;
 	digitalWrite(DIR_M3, dir3);
     analogWrite(PWM_M3, pwm1);
-
-	delay(1000);
+*/
+	//delay(1000);
  	digitalWrite(DIR_M4, dir4);
     analogWrite(PWM_M4, pwm1);
-	delay(1000);
+	/*delay(1000);
 	dir4 = 1;
 	digitalWrite(DIR_M4, dir4);
     analogWrite(PWM_M4, pwm1);
+    */
 }
