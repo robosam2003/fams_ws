@@ -52,12 +52,12 @@ class InterfaceNode(Node):
 
         sub1 = SubProcess()
         sub1.sub_process_id = random.randint(1, 100)
-        sub1.operation_type = 'milling'
+        sub1.operation_type = 'MILLING'
         sub1.start_time = int(time.time())
         sub1.end_time = 0
         sub2 = SubProcess()
         sub2.sub_process_id = random.randint(1, 100)
-        sub2.operation_type = 'drilling'
+        sub2.operation_type = 'DRILLING'
         sub2.start_time = int(time.time()) + 50
         sub2.end_time = 0
         job.subprocesses = [sub1, sub2]

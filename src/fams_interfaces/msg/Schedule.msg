@@ -1,5 +1,5 @@
-uint32[] part_ids
+Part[] parts
 
-uint32[] subprocess_ids
+SubProcess[] subprocesses
 
-uint32[] workstation_ids
+Workstation[] workstations
