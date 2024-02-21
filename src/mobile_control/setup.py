@@ -20,8 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "tst_node = mobile_control.my_first_node:main",
-            "drw_crl = mobile_control.draw_circle:main"
+            "mobile_robot = mobile_control.mobile_robot:main",
+            "keyboard_controller = mobile_control.keyboard_control:main",
         ],
     },
 )

@@ -19,7 +19,10 @@ setup(
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': ['img_publisher = machine_vision.image_publisher:main','img_subscriber= machine_vision.image_subscriber:main','aruco=machine_vision.ArUco:main'
+        'console_scripts': [
+            'img_publisher = machine_vision.image_publisher:main',
+            'img_subscriber= machine_vision.image_subscriber:main',
+            'aruco=machine_vision.ArUco:main'
         ],
     },
 )

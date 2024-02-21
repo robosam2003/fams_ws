@@ -27,13 +27,14 @@
                          <address>172.30.58.222</address>
                          </udpv4>
                      </locator>
-
                      <locator>
                          <udpv4>
-                         <address>143.167.229.44</address>
+                         <address>143.167.228.36</address>
                          </udpv4>
                      </locator>
-                     <locator
+                     <locator>
+                         <udpv4>
+                         <address>192.168.22.183</address>
                  </initialPeersList>
              </builtin>
          </rtps>
