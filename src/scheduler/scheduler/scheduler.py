@@ -97,7 +97,7 @@ class Scheduler(Node):
         with open(self.job_log_path, 'a') as f:
             csv = message_to_csv(msg)
             f.write(csv)
-            f.write('\n')  
+            f.write('\n')
 
     def system_state_callback(self, msg):
         self.get_logger().info('System state message received')
