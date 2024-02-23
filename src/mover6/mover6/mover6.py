@@ -31,7 +31,7 @@ class RecMsg():
             if self.error_code & key:
                 self.error += "\n" + ERROR_DICT[key]
         self.velocity = self.data[1]
-        self.position = self.data[2] + (self.data[3] << 8) - 32768
+        self.position = self.data[2] + (self.data[3] << 8)
         self.shunt = self.data[4]
         self.timestamp = self.data[5]
         self.div_value = self.data[6]
@@ -88,27 +88,32 @@ class mover6():
                     angle_command = self.joint_positions[joint-1] - 50
                 elif self.joint_positions[joint-1] < 32768:
                     angle_command = self.joint_positions[joint-1] + 50
-            
+                angle_command = 0
                 # angle_command = self.joint_positions[joint-1]
                 self.joint_to_position(joint, angle_command)
                 rec_msg = self.recv()
                 # Parse the message and update the joint position
                 joint_pos = rec_msg.position
-                time.sleep(2/1000) # When 
                 self.joint_positions[joint-1] = joint_pos
+                if rec_msg.error != "":
+                    # reset the axis
+                    self.reset_axis(joint)
+
+                time.sleep(2/1000) 
+                    
             time.sleep(0.05) # 20Hz
 
 
     def joint_to_position(self, joint_no, pos_deg):
         id = joint_no*16  # (it's in hex)
-        vel = 130  # 127 is zero
+        vel = 130  # 127 is zero     # TODO: I don't think this is included - see the example string. 
         # break the position into two bytes
         pos = 32768 + int(pos_deg*int(32786/180))
         pos_low = pos & 0xff
         pos_high = (pos >> 8) & 0xff       
         timestamp = 0x51
         digital_output = 0x00 
-        data = [self.SET_POS_COMMAND, vel, pos_high, pos_low, timestamp, digital_output]
+        data = [self.SET_POS_COMMAND, pos_high, pos_low, timestamp, digital_output]
         self.send(id, data)
         # print(f"Sent: {data}")
         print("Set Joint", joint_no, "to position: ", pos_deg)
