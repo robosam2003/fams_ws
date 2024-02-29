@@ -1,6 +1,7 @@
 from audioop import error
 import time
 import can
+import struct
 # import keyboard
 
 
@@ -40,26 +41,45 @@ class RecMsg():
         for key in ERROR_DICT:
             if self.error_code & key:
                 self.error += "\n" + ERROR_DICT[key]
-        self.velocity = self.data[1]
-        self.pos_high = self.data[2]
-        self.pos_low = self.data[3]
-        self.position = (self.pos_high << 8) + self.pos_low
-        self.shunt = self.data[4]
+        # self.velocity = self.data[1]
+        self.pos0 = self.data[1]
+        self.pos1 = self.data[2]
+        self.pos2 = self.data[3]
+        self.pos3 = self.data[4]
+        # 32 bit, signed position 
+        self.position = (self.pos0 << 24) + (self.pos1 << 16) + (self.pos2 << 8) + self.pos3
+        # Interpret the position as a signed 32 bit integer
+        if self.position > 0x7fffffff:
+            self.position = -0x100000000 + self.position
+        self.position_deg = int(self.position)
+        # self.velocity = self.data[5]
         self.timestamp = self.data[5]
-        self.div_value = self.data[6]
-        self.digital_input = self.data[7]
+        self.shunt = self.data[6]
+        # self.div_value = self.data[6]
+        self.digital_output = self.data[7]
 
  
     def __str__(self):
         data = [hex(i) for i in self.data]
         data_str = " ".join(data)
-        return f"ID: {hex(self.id)}, Velocity: \033[34m{self.velocity}\033[0m, Position: \033[32m{self.position} ({hex(self.pos_high)}, {hex(self.pos_low)}) \033[0m, Data: {data_str}"
+        return f"ID: {hex(self.id)}, \033[0m, Position: \033[32m{self.position_deg} ({self.position}) ({hex(self.pos0)} {hex(self.pos1)} {hex(self.pos2)} {hex(self.pos3)}) \033[0m, Data: {data_str}"
 
 class mover6():
     # These are the CANv1 commands (16 bit)
     SET_POS_COMMAND = 0x04
     SET_VEL_COMMAND = 0x05
-    MAX_LAG = 0
+    SET_POS_COMMAND_32 = 0x14
+    SET_VEL_COMMAND_32 = 0x15
+
+    MAX_LAG = 0  # Disabled
+
+    tics_per_degree = [-65.87,
+                        -65.87,
+                        65.87,
+                        -69.71,
+                        3.2,
+                        3.2]
+                        
 
     def __init__(self):
         self.bitrate = 500000
@@ -67,7 +87,7 @@ class mover6():
         self.bus_type = "socketcan"
         self.bus = can.interface.Bus(channel=self.interface, bustype=self.bus_type, bitrate=self.bitrate)
 
-        self.joint_positions = [32768]*6
+        self.joint_positions = [0]*6
         # self.enable_all_axes()
         self.main_loop()
 
@@ -95,14 +115,15 @@ class mover6():
         # 5. Set the parameters
         for joint in range(1, max_joint+1):
             # self.set_max_lag(joint, self.MAX_LAG)
-            self.set_pos_pid(joint, 0.1, 0.05, 0)
+            self.set_pos_pid(joint, 0.1, 0.1, 0)
             time.sleep(2/1000)
             self.set_vel_pid(joint, 0.5, 0, 0)
             time.sleep(2/1000)
             self.set_tic_scale(joint, 1)
             time.sleep(2/1000)
-            self.set_zero_position(joint)
+            # self.set_zero_position(joint)
             time.sleep(2/1000)
+        time.sleep(0.5)
             
         # 4. Enable all joints
 
@@ -115,51 +136,21 @@ class mover6():
 
         
         i = 0
-        reference = 7000 # This
+        
+        reference = -45 # This is in degrees
+        tick_tock = -1
+        # reference = int(reference / (122146/-20000))
         position_command = reference
-        while True:
-            # if keyboard.is_pressed('q'):
-            #     break
-            # elif keyboard.is_pressed('w'):
-            #     position_command += 10
-            # elif keyboard.is_pressed('s'):
-            #     position_command -= 10
-            
+        while True:          
+            # if i % 100 == 0:
+            #     if abs(reference) > 10000:
+            #         tick_tock *= -1
+            #     reference += 1000*tick_tock
             
             for joint in range(1, max_joint+1):
                 # for all the joints, slowly move to the zero position
 
-                # velocity_command = -30
-                # # kp = 1
-                # if i % 10 == 0:
-                #     if self.joint_positions[joint-1] - reference < 100:
-                #         position_command = reference
-                #     if self.joint_positions[joint-1] > reference:
-                #         position_command = self.joint_positions[joint-1] - 10
-                #     elif self.joint_positions[joint-1] < reference:
-                #         position_command = self.joint_positions[joint-1] + 10
-                    
-                # error = reference - self.joint_positions[joint-1]
-                # if abs(error) > 100:
-                #     # calculate the error
-                #     position_command = int(self.joint_positions[joint-1] - 0.01*error)
-                # else:
-                #     print("Joint", joint, "is at the reference position")
-                    
-
-
-                # velocity_command = 10
-                # angle_command = self.joint_positions[joint-1]
-                # self.set_velocity(joint, velocity_command)
-                # rec_msg = self.recv()
-                # # Parse the message and update the joint position
-                # joint_pos = rec_msg.position
-                # self.joint_positions[joint-1] = joint_pos
-                # if rec_msg.error != "":
-                #     # reset the axis
-                #     self.reset_axis(joint)
-
-                self.set_position(joint, position_command)
+                self.set_position_32bit(joint, reference)
                 rec_msg = self.recv()
                 # # Parse the message and update the joint position
                 joint_pos = rec_msg.position
@@ -171,9 +162,8 @@ class mover6():
                 #     self.reset_axis(joint)
 
                 time.sleep(2/1000) 
-                i += 1
-                    
-            time.sleep(0.05) # 20Hz
+            i += 1
+            time.sleep(1/20) # 20Hz
 
     def set_position_using_velocity(self, joint_no, pos_deg):
         # A loop that does Proportional control to move to the desired position, using velocity control
@@ -193,6 +183,19 @@ class mover6():
             error = pos_deg - current_pos # Error.
             # 2. Calculate the velocity command
             vel = 0.01*error # Kp = 0.01
+
+    def set_position_32bit(self, joint_no, pos_deg):
+        id = joint_no*16
+        # break the position into four bytes - big endian
+        
+        tics = int(pos_deg*self.tics_per_degree[joint_no-1])
+        pos0, pos1, pos2, pos3 = struct.pack('>i', tics)
+
+        timestamp = 0x51
+        digital_output = 0x00
+        data = [self.SET_POS_COMMAND_32, pos0, pos1, pos2, pos3, timestamp, digital_output]
+        self.send(id, data)
+        print("Set Joint", joint_no, "to position: ", pos_deg, "degrees     Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
 
     def set_position(self, joint_no, pos):
         id = joint_no*16  # (it's in hex)
