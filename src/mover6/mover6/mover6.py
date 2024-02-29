@@ -1,6 +1,16 @@
+from audioop import error
 import time
 import can
+# import keyboard
 
+
+"""
+Initialisation Commands:
+sudo modprobe peak_usb
+sudo modprobe peak_pci
+sudo ip link set can0 up type can bitrate 500000
+
+"""
 
 def _get_message(msg):
     print("Received: ", msg)
@@ -31,7 +41,9 @@ class RecMsg():
             if self.error_code & key:
                 self.error += "\n" + ERROR_DICT[key]
         self.velocity = self.data[1]
-        self.position = self.data[2] + (self.data[3] << 8)
+        self.pos_high = self.data[2]
+        self.pos_low = self.data[3]
+        self.position = (self.pos_high << 8) + self.pos_low
         self.shunt = self.data[4]
         self.timestamp = self.data[5]
         self.div_value = self.data[6]
@@ -41,13 +53,13 @@ class RecMsg():
     def __str__(self):
         data = [hex(i) for i in self.data]
         data_str = " ".join(data)
-        return f"ID: {hex(self.id)}, Velocity: \033[34m{self.velocity}\033[0m, Position: \033[32m{self.position}\033[0m, Data: {data_str}"
-
+        return f"ID: {hex(self.id)}, Velocity: \033[34m{self.velocity}\033[0m, Position: \033[32m{self.position} ({hex(self.pos_high)}, {hex(self.pos_low)}) \033[0m, Data: {data_str}"
 
 class mover6():
     # These are the CANv1 commands (16 bit)
     SET_POS_COMMAND = 0x04
     SET_VEL_COMMAND = 0x05
+    MAX_LAG = 0
 
     def __init__(self):
         self.bitrate = 500000
@@ -61,11 +73,15 @@ class mover6():
 
 
     def main_loop(self):
+
+
         max_joint = 1
         # 2. Start the main loop and send position command cyclically 
         for joint in range(1, max_joint+1):
-            self.joint_to_position(joint, self.joint_positions[joint-1])
+            # Set the max lag
+            self.set_position(joint, self.joint_positions[joint-1])
             rec_msg = self.recv()
+
             # Parse the message and update the joint position
             joint_pos = rec_msg.position
             time.sleep(2/1000) # When 
@@ -75,55 +91,224 @@ class mover6():
         for joint in range(1, max_joint+1):
             self.reset_axis(joint)
             time.sleep(2/1000)
+
+        # 5. Set the parameters
+        for joint in range(1, max_joint+1):
+            # self.set_max_lag(joint, self.MAX_LAG)
+            self.set_pos_pid(joint, 0.1, 0.05, 0)
+            time.sleep(2/1000)
+            self.set_vel_pid(joint, 0.5, 0, 0)
+            time.sleep(2/1000)
+            self.set_tic_scale(joint, 1)
+            time.sleep(2/1000)
+            self.set_zero_position(joint)
+            time.sleep(2/1000)
+            
         # 4. Enable all joints
+
         for joint in range(1, max_joint+1):
             self.enable_axis(joint)
             time.sleep(2/1000)
         
+        # Read the keyboard input using the keyboard library
+
+
+        
+        i = 0
+        reference = 7000 # This
+        position_command = reference
         while True:
+            # if keyboard.is_pressed('q'):
+            #     break
+            # elif keyboard.is_pressed('w'):
+            #     position_command += 10
+            # elif keyboard.is_pressed('s'):
+            #     position_command -= 10
+            
+            
             for joint in range(1, max_joint+1):
                 # for all the joints, slowly move to the zero position
-                angle_command = 32768
-                if self.joint_positions[joint-1] > 32768:
-                    angle_command = self.joint_positions[joint-1] - 50
-                elif self.joint_positions[joint-1] < 32768:
-                    angle_command = self.joint_positions[joint-1] + 50
-                angle_command = 0
+
+                # velocity_command = -30
+                # # kp = 1
+                # if i % 10 == 0:
+                #     if self.joint_positions[joint-1] - reference < 100:
+                #         position_command = reference
+                #     if self.joint_positions[joint-1] > reference:
+                #         position_command = self.joint_positions[joint-1] - 10
+                #     elif self.joint_positions[joint-1] < reference:
+                #         position_command = self.joint_positions[joint-1] + 10
+                    
+                # error = reference - self.joint_positions[joint-1]
+                # if abs(error) > 100:
+                #     # calculate the error
+                #     position_command = int(self.joint_positions[joint-1] - 0.01*error)
+                # else:
+                #     print("Joint", joint, "is at the reference position")
+                    
+
+
+                # velocity_command = 10
                 # angle_command = self.joint_positions[joint-1]
-                self.joint_to_position(joint, angle_command)
+                # self.set_velocity(joint, velocity_command)
+                # rec_msg = self.recv()
+                # # Parse the message and update the joint position
+                # joint_pos = rec_msg.position
+                # self.joint_positions[joint-1] = joint_pos
+                # if rec_msg.error != "":
+                #     # reset the axis
+                #     self.reset_axis(joint)
+
+                self.set_position(joint, position_command)
                 rec_msg = self.recv()
-                # Parse the message and update the joint position
+                # # Parse the message and update the joint position
                 joint_pos = rec_msg.position
                 self.joint_positions[joint-1] = joint_pos
-                if rec_msg.error != "":
-                    # reset the axis
-                    self.reset_axis(joint)
+                print("Joint", joint, "is at position: ", joint_pos)
+                # self.joint_positions[joint-1] = joint_pos
+                # if rec_msg.error != "":
+                #     # reset the axis
+                #     self.reset_axis(joint)
 
                 time.sleep(2/1000) 
+                i += 1
                     
             time.sleep(0.05) # 20Hz
 
+    def set_position_using_velocity(self, joint_no, pos_deg):
+        # A loop that does Proportional control to move to the desired position, using velocity control
+        # 1. Get the current position
+        # 2. Calculate the error
+        # 3. Calculate the velocity command
+        # 4. Send the velocity command
+        vel = 0
 
-    def joint_to_position(self, joint_no, pos_deg):
+
+        while self.joint_positions[joint_no-1] - pos_deg > 10:
+            # 1. Get the current position and send the velocity command
+            self.set_velocity(joint_no, vel)
+            rec_msg = self.recv()
+            current_pos = rec_msg.position
+            self.joint_positions[joint_no-1] = current_pos
+            error = pos_deg - current_pos # Error.
+            # 2. Calculate the velocity command
+            vel = 0.01*error # Kp = 0.01
+
+    def set_position(self, joint_no, pos):
         id = joint_no*16  # (it's in hex)
-        vel = 130  # 127 is zero     # TODO: I don't think this is included - see the example string. 
+        vel = 0x80  # 127 is zero     # TODO: I don't think this is included - see the example string. 
         # break the position into two bytes
-        pos = 32768 + int(pos_deg*int(32786/180))
+        # pos = 32768 + int(pos_deg*int(32786/180))
         pos_low = pos & 0xff
-        pos_high = (pos >> 8) & 0xff       
+        pos_high = (pos >> 8) & 0xff    
         timestamp = 0x51
         digital_output = 0x00 
         data = [self.SET_POS_COMMAND, pos_high, pos_low, timestamp, digital_output]
         self.send(id, data)
         # print(f"Sent: {data}")
-        print("Set Joint", joint_no, "to position: ", pos_deg)
+        print("Set Joint", joint_no, "to position: ", pos, "   Hex:  ", hex(pos_high), hex(pos_low))
 
+    def set_velocity(self, joint_no, vel): # vel is in the range -127 to 127
+        id = joint_no*16  # (it's in hex)
+         #velocity is 0-255 (127 is zero)
+        if vel < -127: # Saturation
+            vel = -127
+        if vel > 127:
+            vel = 127
+        vel = int(vel) + 127
 
+        timestamp = 0x52
+        data = [self.SET_VEL_COMMAND, vel, timestamp]
+        self.send(id, data)
+        print("Set Joint", joint_no, "to velocity: ", vel)
+        
+    def set_max_lag(self, joint_no, max_lag):
+        id = joint_no*16 # (it's in hex)
+        # max_lag is split into two bytes
+        max_lag_low = max_lag & 0xff
+        max_lag_high = (max_lag >> 8) & 0xff
+        data = [0x02, 0x31, max_lag_high, max_lag_low] 
+        self.send(id, data)
 
+    def set_pos_pid(self, joint_no, k_p, k_i, k_d):
+        id = joint_no*16
+        # Split the PID values into two bytes
+        # Scale the PID values by 1000
+        k_p = int(k_p*1000)
+        k_i = int(k_i*1000)
+        k_d = int(k_d*1000)
 
+        k_p_low = k_p & 0xff
+        k_p_high = (k_p >> 8) & 0xff
+        k_i_low = k_i & 0xff
+        k_i_high = (k_i >> 8) & 0xff
+        k_d_low = k_d & 0xff
+        k_d_high = (k_d >> 8) & 0xff
 
+        # set the proportional gain
+        data = [0x02, 0x40, k_p_high, k_p_low]
+        self.send(id, data)
+        time.sleep(2/1000)
+        print("Set the proportional gain")
+        # set the integral gain
+        data = [0x02, 0x41, k_i_high, k_i_low]
+        self.send(id, data)
+        time.sleep(2/1000)
+        print("Set the integral gain")
+        # set the derivative gain
+        data = [0x02, 0x42, k_d_high, k_d_low]
+        self.send(id, data)
+        time.sleep(2/1000)
+        print("Set the derivative gain")
 
-    
+    def set_vel_pid(self, joint_no, k_p, k_i, k_d):
+        id = joint_no*16
+        # Split the PID values into two bytes
+        # Scale the PID values by 1000
+        k_p = int(k_p*1000)
+        k_i = int(k_i*1000)
+        k_d = int(k_d*1000)
+
+        k_p_low = k_p & 0xff
+        k_p_high = (k_p >> 8) & 0xff
+        k_i_low = k_i & 0xff
+        k_i_high = (k_i >> 8) & 0xff
+        k_d_low = k_d & 0xff
+        k_d_high = (k_d >> 8) & 0xff
+
+        # set the proportional gain
+        data = [0x02, 0x44, k_p_high, k_p_low]
+        self.send(id, data)
+        time.sleep(2/1000)
+        print("Set the proportional gain")
+        # set the integral gain
+        data = [0x02, 0x45, k_i_high, k_i_low]
+        self.send(id, data)
+        time.sleep(2/1000)
+        print("Set the integral gain")
+        # set the derivative gain
+        data = [0x02, 0x46, k_d_high, k_d_low]
+        self.send(id, data)
+        time.sleep(2/1000)
+        print("Set the derivative gain")
+
+    def set_tic_scale(self, joint_no, tics_per_count):
+        id = joint_no*16
+        # Tics per count is one byte
+        tics_per_count = tics_per_count & 0xff
+
+        data = [0x02, 0x69, tics_per_count]
+        self.send(id, data)
+        print("Set the tics per count to: ", tics_per_count)
+
+    def set_zero_position(self, joint_no):
+        id = joint_no*16
+        data = [0x01, 0x08, 0x00, 0x00]
+        self.send(id, data)
+        time.sleep(2/1000)
+        self.send(id, data) # Have to send it twice to 
+        print("Set the zero position")
+
     def send(self, id, data):
         message = can.Message(arbitration_id=id, data=data, is_extended_id=False)
         self.bus.send(message)
