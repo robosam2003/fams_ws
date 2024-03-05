@@ -14,48 +14,158 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_2">
-    <item row="0" column="0">
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QPushButton" name="pushButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Generate Random Job Message</string>
-        </property>
-       </widget>
+   <layout class="QFormLayout" name="formLayout_2">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="stopButton">
+      <property name="text">
+       <string>stop</string>
+      </property>
+      <property name="icon">
+       <iconset theme="media-playback-stop"/>
+      </property>
+      <property name="autoRepeat">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>job id</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="job_id"/>
+    </item>
+    <item row="7" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>part id</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1">
+     <widget class="QLineEdit" name="part_id"/>
+    </item>
+    <item row="9" column="0">
+     <widget class="QLabel" name="label10">
+      <property name="text">
+       <string>partLocation</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="1">
+     <widget class="QLineEdit" name="partLocation"/>
+    </item>
+    <item row="11" column="0" colspan="2">
+     <layout class="QFormLayout" name="formLayout"/>
+    </item>
+    <item row="12" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>subprocessesID</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="1">
+     <widget class="QLineEdit" name="subID">
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="13" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>operationType</string>
+      </property>
+     </widget>
+    </item>
+    <item row="13" column="1">
+     <widget class="QLineEdit" name="opType"/>
+    </item>
+    <item row="14" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>startTime</string>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="1">
+     <widget class="QLineEdit" name="subStartTime"/>
+    </item>
+    <item row="15" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>endTime</string>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="1">
+     <widget class="QLineEdit" name="subEndTime"/>
+    </item>
+    <item row="16" column="1">
+     <widget class="QPushButton" name="addToList">
+      <property name="text">
+       <string>add to list</string>
+      </property>
+     </widget>
+    </item>
+    <item row="17" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>start</string>
+      </property>
+     </widget>
+    </item>
+    <item row="17" column="1">
+     <widget class="QLineEdit" name="startTime"/>
+    </item>
+    <item row="20" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>end</string>
+      </property>
+     </widget>
+    </item>
+    <item row="20" column="1">
+     <widget class="QLineEdit" name="endTime"/>
+    </item>
+    <item row="23" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>priority</string>
+      </property>
+     </widget>
+    </item>
+    <item row="23" column="1">
+     <widget class="QComboBox" name="priority">
+      <item>
+       <property name="text">
+        <string>1</string>
+       </property>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>2</string>
+       </property>
       </item>
-     </layout>
+      <item>
+       <property name="text">
+        <string>3</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="24" column="1">
+     <widget class="QPushButton" name="addJobButton">
+      <property name="text">
+       <string>add job</string>
+      </property>
+     </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>22</height>
-    </rect>
-   </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
