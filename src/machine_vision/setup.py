@@ -20,9 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'img_publisher = machine_vision.image_publisher:main',
+            'loc_publisher = machine_vision.location_publisher:main',
             'img_subscriber= machine_vision.image_subscriber:main',
             'aruco=machine_vision.ArUco:main'
+            'loc = machine_vision.localiser:main'
         ],
     },
 )
