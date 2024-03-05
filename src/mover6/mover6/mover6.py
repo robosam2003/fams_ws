@@ -4,13 +4,13 @@ import time
 import rclpy
 from rclpy.node import Node
 import subprocess
-from sensor_msgs.msg import JointState
+from fams_interfaces.msg import Mover6Control
 
 """
-Initialisation Commands:
-sudo modprobe peak_usb
-sudo modprobe peak_pci
-sudo ip link set can0 up type can bitrate 500000
+Before running this program, run: 
+    sudo modprobe peak_usb
+    sudo modprobe peak_pci
+    sudo ip link set can0 up type can bitrate 500000
 
 """
 
@@ -28,7 +28,7 @@ class mover6(Node):
                         65.87,
                         -69.71,
                         3.2,
-                        3.2]   
+                        3.2]
     
     MIN_MAX_POS_DEG = [(-150, 150),
                         (-30, 60),
@@ -39,19 +39,19 @@ class mover6(Node):
 
     def __init__(self):
         # Need to run the CAN interface before we do anything
-        subprocess.run(["sudo", "modprobe", "peak_usb"])    
-        subprocess.run(["sudo", "modprobe", "peak_pci"])
-        subprocess.run(["sudo", "ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"])
-        time.sleep(1)
+        # subprocess.run(["sudo", "modprobe", "peak_usb"])    
+        # subprocess.run(["sudo", "modprobe", "peak_pci"])
+        # subprocess.run(["sudo", "ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"])
+        # time.sleep(1)
 
         # Node init
         super().__init__('mover6')
 
         # Setup robot joint state publisher subscription
         self.joint_positions_subscription = self.create_subscription(
-            JointState,
-            'joint_states',
-            self.joint_states_callback,
+            Mover6Control,
+            'mover6_control',
+            self.mover6_control_callback,
             10
         )
 
@@ -64,6 +64,8 @@ class mover6(Node):
                                              self.MIN_MAX_POS_DEG[i][0],  # Min position
                                              self.MIN_MAX_POS_DEG[i][1])  # Max position
                                              for i in range(0, self.num_joints)]  # List conprehension to create the joints
+        
+        self.desired_joint_angles = [0, 0, 0, 0, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
 
         self.main_loop()
 
@@ -72,16 +74,18 @@ class mover6(Node):
         # =======================================
         # ================ Setup ================
         # =======================================
+        
         max_joint = 1 # Just for testing, don't want to move all the joints at once while developing. 
+        
         # 2. Start the main loop and send position command cyclically 
         for joint in self.joints[0:max_joint]:
-            # Single pulse to mark position
+            # Single pulse to mark position - Send to "current" position
             joint.set_position(joint, joint.position_deg)
             rec_msg = self.can_bus.recv()
 
             # Parse the message and update the joint position
             joint.update_position(rec_msg)
-            time.sleep(2/1000) # 2ms wait between each joint
+            time.sleep(2/1000) # 2ms wait between each joint command
 
         # 3. Reset all joints: 
         for joint in self.joints[0:max_joint]:
@@ -98,7 +102,7 @@ class mover6(Node):
             time.sleep(2/1000)
             joint.set_tic_scale(1)
             time.sleep(2/1000)
-            # self.set_zero_position(joint)
+            # self.set_zero_position(joint) # This is for when you want to start up in the zero position
             time.sleep(2/1000)
         time.sleep(0.5)
             
@@ -107,26 +111,35 @@ class mover6(Node):
             self.enable()
             time.sleep(2/1000)    
 
-        i = 0
-        reference = -45 # This is in degrees
-        tick_tock = -1
-        # reference = int(reference / (122146/-20000))
-        position_command = reference
         # ===========================================
         # ================ Main Loop ================
         # ===========================================
-        while True:                      
+        i = 0 # Loop counter
+        while True:
             for joint in range(1, max_joint+1):
+                reference = self.desired_joint_angles[joint-1]
                 self.set_position_32bit(joint, reference)
                 rec_msg = self.recv()
                 # # Parse the message and update the joint position
                 joint_pos = rec_msg.position
                 self.joint_positions[joint-1] = joint_pos
                 print("Joint", joint, "is at position: ", joint_pos)
-
                 time.sleep(2/1000) 
             i += 1
             time.sleep(1/20) # 20Hz
+
+    def mover6_control_callback(self, msg):
+        # Set the desired joint angles to the received joint angles
+        self.desired_joint_angles = msg.joint_angles
+        # Saturate the desired joint angles to the joint limits
+        for i in range(0, self.num_joints):
+            if self.desired_joint_angles[i] > self.MIN_MAX_POS_DEG[i][1]:
+                self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][1]
+            elif self.desired_joint_angles[i] < self.MIN_MAX_POS_DEG[i][0]:
+                self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][0]
+        print("Received: ", self.desired_joint_angles)
+        
+
 
     def shutdown(self):
         self.can_bus.shutdown()
