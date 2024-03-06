@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <EnableInterrupt.h>
-#include <string.h>
 
 // Encoder Pins
 #define M1PinA  A8
@@ -47,20 +46,13 @@ volatile int pos1, pos2, pos3, pos4;
 volatile int posprev1, posprev2, posprev3, posprev4;
 float vt, err1, err2, err3, err4, u1, u2, u3, u4;
 
-char dataStr[35] = "";
-char store1[8];char store2[8];char store3[8];char store4[8];
-
-void motorContorl(char direction);
+void motorContorl();
+void controlLoop();
 
 void doM1EncoderA();
-void doM1EncoderB();
 void doM2EncoderA();
-void doM2EncoderB();
 void doM3EncoderA();
-void doM3EncoderB();
 void doM4EncoderA();
-void doM4EncoderB();
-void Padding(int encoder);
 
 void setup() {
   unsigned int configWord;
@@ -160,15 +152,11 @@ void setup() {
   digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled
 
   enableInterrupt(M1PinA, doM1EncoderA, CHANGE);
-  //enableInterrupt(M1PinB, doM1EncoderB, RISING);
   enableInterrupt(M2PinA, doM2EncoderA, CHANGE);
-  //enableInterrupt(M2PinB, doM2EncoderB, RISING);
   enableInterrupt(M3PinA, doM3EncoderA, CHANGE);
-  //enableInterrupt(M3PinB, doM3EncoderB, RISING);
   enableInterrupt(M4PinA, doM4EncoderA, CHANGE);
-  //enableInterrupt(M4PinB, doM4EncoderB, RISING);
 
-  Serial.print("M1_Velocity");Serial.print(",");
+  Serial.print("M1_Velocity");Serial.print(","); //Establishes headers of .csv file
   Serial.print("M2_Velocity");Serial.print(",");
   Serial.print("M3_Velocity");Serial.print(",");
   Serial.println("M4_Velocity");
@@ -177,11 +165,48 @@ void setup() {
 void loop() {
   //Output gear to encoder is a 1:64 gearbox
   //Wheel diameter is 100 mm
-  dataStr[0] = 0;
-  store1[0] = 0;store1[1] = 0;store1[2] = 0;store1[3] = 0;store1[4] = 0;store1[5] = 0;store1[6] = 0;
-  store2[0] = 0;store2[1] = 0;store2[2] = 0;store2[3] = 0;store2[4] = 0;store2[5] = 0;store2[6] = 0;
-  store3[0] = 0;store3[1] = 0;store3[2] = 0;store3[3] = 0;store3[4] = 0;store3[5] = 0;store3[6] = 0;
-  store4[0] = 0;store4[1] = 0;store4[2] = 0;store4[3] = 0;store4[4] = 0;store4[5] = 0;store4[6] = 0;
+  vt = 50;
+  while(micros()<1.0e7){
+    if(micros()<2.0e6){
+      vt = 0;
+    }
+    else if(micros()<4.0e6){
+      vt = 500;
+    }
+    else if(micros()<6.0e6){
+      vt = 0;
+    }
+    else if(micros()<8.0){
+      vt = 1000;
+    }
+    else{
+      vt = 0;
+    }
+    controlLoop();
+    motorContorl();
+
+    Serial.print(velocity_i1);Serial.print(",");
+    Serial.print(velocity_i2);Serial.print(",");
+    Serial.print(velocity_i3);Serial.print(",");
+    Serial.println(velocity_i4);
+  }
+}
+
+void motorContorl(){
+	digitalWrite(DIR_M1, dir1);
+  analogWrite(PWM_M1, pwm1);
+
+	digitalWrite(DIR_M2, dir2);
+	analogWrite(PWM_M2, pwm2);
+
+	digitalWrite(DIR_M3, dir3);
+	analogWrite(PWM_M3, pwm3);
+
+	digitalWrite(DIR_M4, dir4);
+	analogWrite(PWM_M4, pwm4);
+}
+
+void controlLoop(){
   //Retireving current encoder positions
   noInterrupts();
   pos1 = M1encoderPos;
@@ -190,7 +215,6 @@ void loop() {
   pos4 = M4encoderPos;
   interrupts();
   //Creates a time value to be referenced as the window of measurement
-  
   currT = micros();
   deltaT = ((float) (currT-prevT))/1.0e6;//Calculates window of measurement in seconds
   velocity_i1 = (pos1 - posprev1)/deltaT;//Calculates difference in value of current and prev encoder pos
@@ -240,87 +264,12 @@ void loop() {
   if(pwm4>255){
     pwm4 = 255;
   }
-  
-  //pwm1 = 150, pwm2 = 150, pwm3 = 150, pwm4 = 150;
-
-  digitalWrite(DIR_M1, dir1);
-  analogWrite(PWM_M1, pwm1);
-
-	digitalWrite(DIR_M2, dir2);
-	analogWrite(PWM_M2, pwm2);
-
-	digitalWrite(DIR_M3, dir3);
-	analogWrite(PWM_M3, pwm3);
-
-	digitalWrite(DIR_M4, dir4);
-	analogWrite(PWM_M4, pwm4);
 
   prevpwm1 = pwm1;
   prevpwm2 = pwm2; 
   prevpwm3 = pwm3; 
   prevpwm4 = pwm4;
-  
-  Serial.print(velocity_i1);Serial.print(",");
-  Serial.print(velocity_i2);Serial.print(",");
-  Serial.print(velocity_i3);Serial.print(",");
-  Serial.println(velocity_i4);
-  
-}
 
-
-void motorContorl(char direction){
-	
-	switch (direction)
-	{
-	case 'w' :
-		dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
-  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
-
-		break;
-	case 's' :
-		dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
-  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
-
-		break;
-	case 'a' :
-		dir1 = 0; dir2 = 1; dir3 = 0; dir4 = 1; //0 = forwards, 1 = backwards
-  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
-
-		break;
-	case 'd' :
-		dir1 = 1; dir2 = 0; dir3 = 1; dir4 = 0; //0 = forwards, 1 = backwards
-  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
-
-		break;
-	case 'q' :
-		dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
-  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
-
-		break;
-	case 'e' :
-		dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
-  		pwm1 = 150; pwm2 = 150; pwm3 = 150; pwm4 = 150;	
-
-		break;
-	case 'b' :
-		pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0;
-		break;
-	default:
-		
-		break;
-	}
-	
-	digitalWrite(DIR_M1, dir1);
-    analogWrite(PWM_M1, pwm1);
-
-	digitalWrite(DIR_M2, dir2);
-	analogWrite(PWM_M2, pwm2);
-
-	digitalWrite(DIR_M3, dir3);
-	analogWrite(PWM_M3, pwm3);
-
-	digitalWrite(DIR_M4, dir4);
-	analogWrite(PWM_M4, pwm4);
 }
 
 void doM1EncoderA() {
@@ -329,110 +278,24 @@ void doM1EncoderA() {
     M1encoderPos = M1encoderPos + 1;
   }
 }
-void doM1EncoderB() {
-  // look for a low-to-high on channel B
-  if (digitalRead(M1PinB) == HIGH) {
-    // check channel A to see which way encoder is turning
-    if (digitalRead(M1PinA) == HIGH) {
-      M1encoderPos = M1encoderPos + 1;         // CW
-    }
-    else {
-      M1encoderPos = M1encoderPos - 1;         // CCW
-    }
-  }
-  // Look for a high-to-low on channel B
-  else {
-    // check channel B to see which way encoder is turning
-    if (digitalRead(M1PinA) == LOW) {
-      M1encoderPos = M1encoderPos + 1;          // CW
-    }
-    else {
-      M1encoderPos = M1encoderPos - 1;          // CCW
-    }
-  }
-}
+
 void doM2EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M2PinA) == HIGH) {
     M2encoderPos = M2encoderPos + 1;
   }
 }
-void doM2EncoderB() {
-  // look for a low-to-high on channel B
-  if (digitalRead(M2PinB) == HIGH) {
-    // check channel A to see which way encoder is turning
-    if (digitalRead(M2PinA) == HIGH) {
-      M2encoderPos = M2encoderPos + 1;         // CW
-    }
-    else {
-      M2encoderPos = M2encoderPos - 1;         // CCW
-    }
-  }
-  // Look for a high-to-low on channel B
-  else {
-    // check channel B to see which way encoder is turning
-    if (digitalRead(M2PinA) == LOW) {
-      M2encoderPos = M2encoderPos + 1;          // CW
-    }
-    else {
-      M2encoderPos = M2encoderPos - 1;          // CCW
-    }
-  }
-}
+
 void doM3EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M3PinA) == HIGH) {
     M3encoderPos = M3encoderPos + 1;
   }
 }
-void doM3EncoderB() {
-  // look for a low-to-high on channel B
-  if (digitalRead(M3PinB) == HIGH) {
-    // check channel A to see which way encoder is turning
-    if (digitalRead(M3PinA) == HIGH) {
-      M3encoderPos = M3encoderPos + 1;         // CW
-    }
-    else {
-      M3encoderPos = M3encoderPos - 1;         // CCW
-    }
-  }
-  // Look for a high-to-low on channel B
-  else {
-    // check channel B to see which way encoder is turning
-    if (digitalRead(M3PinA) == LOW) {
-      M3encoderPos = M3encoderPos + 1;          // CW
-    }
-    else {
-      M3encoderPos = M3encoderPos - 1;          // CCW
-    }
-  }
-}
+
 void doM4EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M4PinA) == HIGH) {
     M4encoderPos = M4encoderPos + 1;
   }
 }
-void doM4EncoderB() {
-  // look for a low-to-high on channel B
-  if (digitalRead(M4PinB) == HIGH) {
-    // check channel A to see which way encoder is turning
-    if (digitalRead(M4PinA) == HIGH) {
-      M4encoderPos = M4encoderPos + 1;         // CW
-    }
-    else {
-      M4encoderPos = M4encoderPos - 1;         // CCW
-    }
-  }
-  // Look for a high-to-low on channel B
-  else {
-    // check channel B to see which way encoder is turning
-    if (digitalRead(M4PinA) == LOW) {
-      M4encoderPos = M4encoderPos + 1;          // CW
-    }
-    else {
-      M4encoderPos = M4encoderPos - 1;          // CCW
-    }
-  }
-}
-
