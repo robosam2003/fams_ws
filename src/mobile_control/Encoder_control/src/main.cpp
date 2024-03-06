@@ -193,9 +193,9 @@ void loop() {
   
   //pwm1 = 150, pwm2 = 150, pwm3 = 150, pwm4 = 150;
 
-  vt = 500;  //Target velocity, somewhere between 0 and 1500
+  vt = 1000;  //Target velocity, somewhere between 0 and 1500
   
-  float Kp = 2;
+  float Kp = 1;
 
   err1 = vt - velocity_i1;//Units of relative to current target pings per window
   err2 = vt - velocity_i2;
@@ -247,6 +247,9 @@ void loop() {
   prevpwm3 = pwm3; 
   prevpwm4 = pwm4;
 
+  
+
+  /*
   Serial.print("|M1|");Serial.print(velocity_i1);Serial.print(",");
   Serial.print("|M2|");Serial.print(velocity_i2);Serial.print(",");
   Serial.print("|M3|");Serial.print(velocity_i3);Serial.print(",");
@@ -261,6 +264,7 @@ void loop() {
   Serial.print("|M2|");Serial.print(err2);Serial.print(",");
   Serial.print("|M3|");Serial.print(err3);Serial.print(",");
   Serial.print("|M4|");Serial.println(err4);
+  */
 }
 
 
