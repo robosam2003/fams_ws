@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <EnableInterrupt.h>
+#include <string.h>
 
 // Encoder Pins
 #define M1PinA  A8
@@ -13,7 +14,7 @@
 #define M4PinB  A15
 // L9958 slave select pins for SPI
 #define SS_M4 14
-#define SS_M3 13
+#define SS_M3 13 
 #define SS_M2 12
 #define SS_M1 11
 // L9958 DIRection pins
@@ -46,6 +47,9 @@ volatile int pos1, pos2, pos3, pos4;
 volatile int posprev1, posprev2, posprev3, posprev4;
 float vt, err1, err2, err3, err4, u1, u2, u3, u4;
 
+char dataStr[35] = "";
+char store1[8];char store2[8];char store3[8];char store4[8];
+
 void motorContorl(char direction);
 
 void doM1EncoderA();
@@ -59,116 +63,125 @@ void doM4EncoderB();
 void Padding(int encoder);
 
 void setup() {
-    unsigned int configWord;
-    
-    pinMode(M1PinA, INPUT);
-    pinMode(M1PinB, INPUT);
-    pinMode(M2PinA, INPUT);
-    pinMode(M2PinB, INPUT);
-    pinMode(M3PinA, INPUT);
-    pinMode(M3PinB, INPUT);
-    pinMode(M4PinA, INPUT);
-    pinMode(M4PinB, INPUT);
+  unsigned int configWord;
+  
+  pinMode(M1PinA, INPUT);
+  pinMode(M1PinB, INPUT);
+  pinMode(M2PinA, INPUT);
+  pinMode(M2PinB, INPUT);
+  pinMode(M3PinA, INPUT);
+  pinMode(M3PinB, INPUT);
+  pinMode(M4PinA, INPUT);
+  pinMode(M4PinB, INPUT);
 
-    /*
-    |2|------|3|
-      |   |  |		Hookup diagram of wheels
-      |  \ / |
-      --------
-    |1|-------|4| 
-    
-    */
+  /*
+  |2|------|3|
+    |   |  |		Hookup diagram of wheels
+    |  \ / |
+    --------
+  |1|-------|4| 
+  
+  */
 
-    // put your setup code here, to run once:
-    pinMode(SS_M1, OUTPUT); digitalWrite(SS_M1, LOW);  // HIGH = not selected
-    pinMode(SS_M2, OUTPUT); digitalWrite(SS_M2, LOW);
-    pinMode(SS_M3, OUTPUT); digitalWrite(SS_M3, LOW);
-    pinMode(SS_M4, OUTPUT); digitalWrite(SS_M4, LOW);
+  // put your setup code here, to run once:
+  pinMode(SS_M1, OUTPUT); digitalWrite(SS_M1, LOW);  // HIGH = not selected
+  pinMode(SS_M2, OUTPUT); digitalWrite(SS_M2, LOW);
+  pinMode(SS_M3, OUTPUT); digitalWrite(SS_M3, LOW);
+  pinMode(SS_M4, OUTPUT); digitalWrite(SS_M4, LOW);
 
-    // L9958 DIRection pins
-    pinMode(DIR_M1, OUTPUT);
-    pinMode(DIR_M2, OUTPUT);
-    pinMode(DIR_M3, OUTPUT);
-    pinMode(DIR_M4, OUTPUT);
+  // L9958 DIRection pins
+  pinMode(DIR_M1, OUTPUT);
+  pinMode(DIR_M2, OUTPUT);
+  pinMode(DIR_M3, OUTPUT);
+  pinMode(DIR_M4, OUTPUT);
 
-    // L9958 PWM pins
-    pinMode(PWM_M1, OUTPUT);  digitalWrite(PWM_M1, LOW);
-    pinMode(PWM_M2, OUTPUT);  digitalWrite(PWM_M2, LOW);    // Timer1
-    pinMode(PWM_M3, OUTPUT);  digitalWrite(PWM_M3, LOW);
-    pinMode(PWM_M4, OUTPUT);  digitalWrite(PWM_M4, LOW);    // Timer0
+  // L9958 PWM pins
+  pinMode(PWM_M1, OUTPUT);  digitalWrite(PWM_M1, LOW);
+  pinMode(PWM_M2, OUTPUT);  digitalWrite(PWM_M2, LOW);    // Timer1
+  pinMode(PWM_M3, OUTPUT);  digitalWrite(PWM_M3, LOW);
+  pinMode(PWM_M4, OUTPUT);  digitalWrite(PWM_M4, LOW);    // Timer0
 
-    // L9958 Enable for all 4 motors
-    pinMode(ENABLE_MOTORS, OUTPUT); 
-    digitalWrite(ENABLE_MOTORS, HIGH);  // HIGH = disabled
-    Serial.begin(115200);
-    /******* Set up L9958 chips *********
-     ' L9958 Config Register
-    ' Bit
-    '0 - RES
-    '1 - DR - reset
-    '2 - CL_1 - curr limit
-    '3 - CL_2 - curr_limit
-    '4 - RES
-    '5 - RES
-    '6 - RES
-    '7 - RES
-    '8 - VSR - voltage slew rate (1 enables slew limit, 0 disables)
-    '9 - ISR - current slew rate (1 enables slew limit, 0 disables)
-    '10 - ISR_DIS - current slew disable
-    '11 - OL_ON - open load enable
-    '12 - RES
-    '13 - RES
-    '14 - 0 - always zero
-    '15 - 0 - always zero
-    */  // set to max current limit and disable ISR slew limiting
-    configWord = 0b0000010000001100;
+  // L9958 Enable for all 4 motors
+  pinMode(ENABLE_MOTORS, OUTPUT); 
+  digitalWrite(ENABLE_MOTORS, HIGH);  // HIGH = disabled
+  Serial.begin(115200);
+  /******* Set up L9958 chips *********
+   ' L9958 Config Register
+  ' Bit
+  '0 - RES
+  '1 - DR - reset
+  '2 - CL_1 - curr limit
+  '3 - CL_2 - curr_limit
+  '4 - RES
+  '5 - RES
+  '6 - RES
+  '7 - RES
+  '8 - VSR - voltage slew rate (1 enables slew limit, 0 disables)
+  '9 - ISR - current slew rate (1 enables slew limit, 0 disables)
+  '10 - ISR_DIS - current slew disable
+  '11 - OL_ON - open load enable
+  '12 - RES
+  '13 - RES
+  '14 - 0 - always zero
+  '15 - 0 - always zero
+  */  // set to max current limit and disable ISR slew limiting
+  configWord = 0b0000010000001100;
 
-    SPI.begin();
-    SPI.setBitOrder(LSBFIRST);
-    SPI.setDataMode(SPI_MODE1);  // clock pol = low, phase = high
+  SPI.begin();
+  SPI.setBitOrder(LSBFIRST);
+  SPI.setDataMode(SPI_MODE1);  // clock pol = low, phase = high
 
-    // Motor 1
-    digitalWrite(SS_M1, LOW);
-    SPI.transfer(lowByte(configWord));
-    SPI.transfer(highByte(configWord));
-    digitalWrite(SS_M1, HIGH);
-    // Motor 2
-    digitalWrite(SS_M2, LOW);
-    SPI.transfer(lowByte(configWord));
-    SPI.transfer(highByte(configWord));
-    digitalWrite(SS_M2, HIGH);
-    // Motor 3
-    digitalWrite(SS_M3, LOW);
-    SPI.transfer(lowByte(configWord));
-    SPI.transfer(highByte(configWord));
-    digitalWrite(SS_M3, HIGH);
-    // Motor 4
-    digitalWrite(SS_M4, LOW);
-    SPI.transfer(lowByte(configWord));
-    SPI.transfer(highByte(configWord));
-    digitalWrite(SS_M4, HIGH);
+  // Motor 1
+  digitalWrite(SS_M1, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M1, HIGH);
+  // Motor 2
+  digitalWrite(SS_M2, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M2, HIGH);
+  // Motor 3
+  digitalWrite(SS_M3, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M3, HIGH);
+  // Motor 4
+  digitalWrite(SS_M4, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M4, HIGH);
 
-    //Set initial actuator settings to pull at 0 speed for safety
-    dir1 = 0; dir2 = 1; dir3 = 0; dir4 = 1; // Set direction 1 is forward, 0 is reverse, 1 also is minus
-    pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0; // Set speed (0-255)
-    prevpwm1 = 0, prevpwm2 = 0, prevpwm3 = 0, prevpwm4 = 0;
+  //Set initial actuator settings to pull at 0 speed for safety
+  dir1 = 0; dir2 = 1; dir3 = 0; dir4 = 1; // Set direction 1 is forward, 0 is reverse, 1 also is minus
+  pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0; // Set speed (0-255)
+  prevpwm1 = 0, prevpwm2 = 0, prevpwm3 = 0, prevpwm4 = 0;
 
-    digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled
- 
-    enableInterrupt(M1PinA, doM1EncoderA, CHANGE);
-    //enableInterrupt(M1PinB, doM1EncoderB, RISING);
-    enableInterrupt(M2PinA, doM2EncoderA, CHANGE);
-    //enableInterrupt(M2PinB, doM2EncoderB, RISING);
-    enableInterrupt(M3PinA, doM3EncoderA, CHANGE);
-    //enableInterrupt(M3PinB, doM3EncoderB, RISING);
-    enableInterrupt(M4PinA, doM4EncoderA, CHANGE);
-    //enableInterrupt(M4PinB, doM4EncoderB, RISING);
+  digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled
+
+  enableInterrupt(M1PinA, doM1EncoderA, CHANGE);
+  //enableInterrupt(M1PinB, doM1EncoderB, RISING);
+  enableInterrupt(M2PinA, doM2EncoderA, CHANGE);
+  //enableInterrupt(M2PinB, doM2EncoderB, RISING);
+  enableInterrupt(M3PinA, doM3EncoderA, CHANGE);
+  //enableInterrupt(M3PinB, doM3EncoderB, RISING);
+  enableInterrupt(M4PinA, doM4EncoderA, CHANGE);
+  //enableInterrupt(M4PinB, doM4EncoderB, RISING);
+
+  Serial.print("M1_Velocity");Serial.print(",");
+  Serial.print("M2_Velocity");Serial.print(",");
+  Serial.print("M3_Velocity");Serial.print(",");
+  Serial.println("M4_Velocity");
 }
 
 void loop() {
   //Output gear to encoder is a 1:64 gearbox
   //Wheel diameter is 100 mm
-  
+  dataStr[0] = 0;
+  store1[0] = 0;store1[1] = 0;store1[2] = 0;store1[3] = 0;store1[4] = 0;store1[5] = 0;store1[6] = 0;
+  store2[0] = 0;store2[1] = 0;store2[2] = 0;store2[3] = 0;store2[4] = 0;store2[5] = 0;store2[6] = 0;
+  store3[0] = 0;store3[1] = 0;store3[2] = 0;store3[3] = 0;store3[4] = 0;store3[5] = 0;store3[6] = 0;
+  store4[0] = 0;store4[1] = 0;store4[2] = 0;store4[3] = 0;store4[4] = 0;store4[5] = 0;store4[6] = 0;
   //Retireving current encoder positions
   noInterrupts();
   pos1 = M1encoderPos;
@@ -195,7 +208,7 @@ void loop() {
 
   vt = 1000;  //Target velocity, somewhere between 0 and 1500
   
-  float Kp = 1;
+  float Kp = 0.5;
 
   err1 = vt - velocity_i1;//Units of relative to current target pings per window
   err2 = vt - velocity_i2;
@@ -246,25 +259,12 @@ void loop() {
   prevpwm2 = pwm2; 
   prevpwm3 = pwm3; 
   prevpwm4 = pwm4;
-
   
-
-  /*
-  Serial.print("|M1|");Serial.print(velocity_i1);Serial.print(",");
-  Serial.print("|M2|");Serial.print(velocity_i2);Serial.print(",");
-  Serial.print("|M3|");Serial.print(velocity_i3);Serial.print(",");
-  Serial.print("|M4|");Serial.print(velocity_i4);Serial.print(" | ");
-
-  Serial.print("|M1|");Serial.print(pwm1);Serial.print(",");
-  Serial.print("|M2|");Serial.print(pwm2);Serial.print(",");
-  Serial.print("|M3|");Serial.print(pwm3);Serial.print(",");
-  Serial.print("|M4|");Serial.print(pwm4);Serial.print(" | ");
-
-  Serial.print("|M1|");Serial.print(err1);Serial.print(",");
-  Serial.print("|M2|");Serial.print(err2);Serial.print(",");
-  Serial.print("|M3|");Serial.print(err3);Serial.print(",");
-  Serial.print("|M4|");Serial.println(err4);
-  */
+  Serial.print(velocity_i1);Serial.print(",");
+  Serial.print(velocity_i2);Serial.print(",");
+  Serial.print(velocity_i3);Serial.print(",");
+  Serial.println(velocity_i4);
+  
 }
 
 
