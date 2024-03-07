@@ -145,7 +145,7 @@ void setup() {
   digitalWrite(SS_M4, HIGH);
 
   //Set initial actuator settings to pull at 0 speed for safety
-  dir1 = 0; dir2 = 1; dir3 = 0; dir4 = 1; // Set direction 1 is forward, 0 is reverse, 1 also is minus
+  dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1; // Set direction 1 is forward, 0 is reverse, 1 also is minus
   pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0; // Set speed (0-255)
   prevpwm1 = 0, prevpwm2 = 0, prevpwm3 = 0, prevpwm4 = 0;
 
@@ -159,36 +159,63 @@ void setup() {
   Serial.print("M1_Velocity");Serial.print(","); //Establishes headers of .csv file
   Serial.print("M2_Velocity");Serial.print(",");
   Serial.print("M3_Velocity");Serial.print(",");
-  Serial.println("M4_Velocity");
+  Serial.print("M4_Velocity");Serial.print(",");
+  Serial.print("M1_PWM");Serial.print(",");
+  Serial.print("M2_PWM");Serial.print(",");
+  Serial.print("M3_PWM");Serial.print(",");
+  Serial.print("M4_PWM");Serial.print(",");
+  Serial.println("Target_Velocity");
 }
 
 void loop() {
   //Output gear to encoder is a 1:64 gearbox
   //Wheel diameter is 100 mm
-  vt = 50;
-  while(micros()<1.0e7){
-    if(micros()<2.0e6){
+  int time  = 0;
+  while(time<1000){
+    if(time<200){
       vt = 0;
     }
-    else if(micros()<4.0e6){
+    else if(time<400){
       vt = 500;
     }
-    else if(micros()<6.0e6){
-      vt = 0;
-    }
-    else if(micros()<8.0){
+    else if(time<600){
       vt = 1000;
     }
-    else{
-      vt = 0;
+    else if(time<800){
+      vt = 1500;
     }
+    else{
+      vt = 750;
+    }
+    
     controlLoop();
     motorContorl();
-
+    time = time + 1;
+    
     Serial.print(velocity_i1);Serial.print(",");
     Serial.print(velocity_i2);Serial.print(",");
     Serial.print(velocity_i3);Serial.print(",");
-    Serial.println(velocity_i4);
+    Serial.print(velocity_i4);Serial.print(",");
+    Serial.print(pwm1);Serial.print(",");
+    Serial.print(pwm2);Serial.print(",");
+    Serial.print(pwm3);Serial.print(",");
+    Serial.print(pwm4);Serial.print(",");
+    Serial.println(vt);
+    
+    /*
+
+    Serial.print("|M1|");Serial.print(pwm1);Serial.print(",");
+    Serial.print("|M2|");Serial.print(pwm2);Serial.print(",");
+    Serial.print("|M3|");Serial.print(pwm3);Serial.print(",");
+    Serial.print("|M4|");Serial.print(pwm4);Serial.print(" | ");
+
+    Serial.print("Target: ");Serial.print(time);
+
+    Serial.print("|M1|");Serial.print(err1);Serial.print(",");
+    Serial.print("|M2|");Serial.print(err2);Serial.print(",");
+    Serial.print("|M3|");Serial.print(err3);Serial.print(",");
+    Serial.print("|M4|");Serial.println(err4);
+    */
   }
 }
 
@@ -227,10 +254,6 @@ void controlLoop(){
   posprev3 = pos3;
   posprev4 = pos4;
   prevT = currT;//Sets new previous time
-  
-  //pwm1 = 150, pwm2 = 150, pwm3 = 150, pwm4 = 150;
-
-  vt = 1000;  //Target velocity, somewhere between 0 and 1500
   
   float Kp = 0.5;
 
