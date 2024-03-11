@@ -278,14 +278,26 @@ void controlLoop(){
   if(pwm1>255){
     pwm1 = 255;
   }
+  else if(pwm1 <= 0){
+    pwm1 = 0;
+  }
   if(pwm2>255){
     pwm2 = 255;
+  }
+  else if(pwm2 <= 0){
+    pwm2 = 0;
   }
   if(pwm3>255){
     pwm3 = 255;
   }
+  else if(pwm3 <= 0){
+    pwm3 = 0;
+  }
   if(pwm4>255){
     pwm4 = 255;
+  }
+  else if(pwm4 <= 0){
+    pwm4 = 0;
   }
 
   prevpwm1 = pwm1;
