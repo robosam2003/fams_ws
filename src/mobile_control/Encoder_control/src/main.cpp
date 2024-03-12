@@ -170,7 +170,7 @@ void setup() {
 void loop() {
   //Output gear to encoder is a 1:64 gearbox
   //Wheel diameter is 100 mm
-  int time  = 0;
+  /*int time  = 0;
   while(time<1000){
     if(time<200){
       vt = 0;
@@ -187,12 +187,12 @@ void loop() {
     else{
       vt = 750;
     }
-    
+    */
     controlLoop();
     motorContorl();
-    time = time + 1;
+    //time = time + 1;
     
-    Serial.print(velocity_i1);Serial.print(",");
+    /*Serial.print(velocity_i1);Serial.print(",");
     Serial.print(velocity_i2);Serial.print(",");
     Serial.print(velocity_i3);Serial.print(",");
     Serial.print(velocity_i4);Serial.print(",");
@@ -201,7 +201,7 @@ void loop() {
     Serial.print(pwm3);Serial.print(",");
     Serial.print(pwm4);Serial.print(",");
     Serial.println(vt);
-    
+    */
     /*
 
     Serial.print("|M1|");Serial.print(pwm1);Serial.print(",");
@@ -216,7 +216,7 @@ void loop() {
     Serial.print("|M3|");Serial.print(err3);Serial.print(",");
     Serial.print("|M4|");Serial.println(err4);
     */
-  }
+  //}
 }
 
 void motorContorl(){
@@ -256,6 +256,8 @@ void controlLoop(){
   prevT = currT;//Sets new previous time
   
   float Kp = 0.5;
+
+  vt = 1000;
 
   err1 = vt - velocity_i1;//Units of relative to current target pings per window
   err2 = vt - velocity_i2;
