@@ -142,10 +142,10 @@ class mover6(Node):
 
 
     def shutdown(self):
-        self.can_bus.shutdown()
+        self.can_bus.bus.shutdown()
 
     def __del__(self):
-        self.can_bus.shutdown()
+        self.can_bus.bus.shutdown()
 
 
 def main(args=None):
