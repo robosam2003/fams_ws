@@ -10,7 +10,7 @@ class MoverJoint():
     SET_VEL_COMMAND_32 = 0x15
 
     def __init__(self, joint_id, can_bus: PCanBus, tics_per_degree, min_pos_deg, max_pos_deg) -> None:
-        self.joint_id = joint_id
+        self.joint_id = int(joint_id)
         self.can_bus = can_bus
         self.tics_per_degree = tics_per_degree
         self.current_position = 0
@@ -34,7 +34,7 @@ class MoverJoint():
         # The id is the joint number times 16 (it's in hex)
         id = self.joint_id*16
         # Convert the position to tics
-        tics = int(pos_deg*self.tics_per_degree[self.joint_id-1])
+        tics = int(pos_deg*self.tics_per_degree)
         # Split the tics into 4
         pos0, pos1, pos2, pos3 = struct.pack('>i', tics)
         
@@ -144,6 +144,13 @@ class MoverJoint():
         time.sleep(2/1000)
         self.can_bus.send(id, data) # Have to send it twice to confirm
         print("Set the zero position")
+
+    def set_max_current(self, max_current):
+        id = self.joint_id*16
+        max_current = max_current & 0xff # Max current is one byte
+        data = [0x02, 0x32, max_current, 0x00]
+        self.can_bus.send(id, data)
+        print("Set the max current to: ", max_current)
 
 
     def reset(self):
