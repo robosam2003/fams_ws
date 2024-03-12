@@ -46,7 +46,7 @@ volatile int pos1, pos2, pos3, pos4;
 volatile int posprev1, posprev2, posprev3, posprev4;
 float vt, err1, err2, err3, err4, u1, u2, u3, u4;
 
-void motorContorl();
+void motorContorl(char direction);
 void controlLoop();
 
 void doM1EncoderA();
@@ -188,8 +188,9 @@ void loop() {
       vt = 750;
     }
     */
+    char direct = Serial.read();
     controlLoop();
-    motorContorl();
+    motorContorl(direct);
     //time = time + 1;
     
     /*Serial.print(velocity_i1);Serial.print(",");
@@ -219,9 +220,44 @@ void loop() {
   //}
 }
 
-void motorContorl(){
+void motorContorl(char direction){
+	
+	switch (direction)
+	{
+	case 'w' :
+		dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
+    vt = 1000;
+		break;
+	case 's' :
+		dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
+    vt = 1000;
+		break;
+	case 'a' :
+		dir1 = 0; dir2 = 1; dir3 = 0; dir4 = 1; //0 = forwards, 1 = backwards
+    vt = 1000;
+		break;
+	case 'd' :
+		dir1 = 1; dir2 = 0; dir3 = 1; dir4 = 0; //0 = forwards, 1 = backwards
+    vt = 1000;
+		break;
+	case 'q' :
+		dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
+    vt = 1000;
+		break;
+	case 'e' :
+		dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
+    vt = 1000;
+		break;
+	case 'b' :
+		vt = 0;
+		break;
+	default:
+		
+		break;
+	}
+	
 	digitalWrite(DIR_M1, dir1);
-  analogWrite(PWM_M1, pwm1);
+    analogWrite(PWM_M1, pwm1);
 
 	digitalWrite(DIR_M2, dir2);
 	analogWrite(PWM_M2, pwm2);
@@ -255,9 +291,7 @@ void controlLoop(){
   posprev4 = pos4;
   prevT = currT;//Sets new previous time
   
-  float Kp = 0.5;
-
-  vt = 1000;
+  float Kp = 0.1;
 
   err1 = vt - velocity_i1;//Units of relative to current target pings per window
   err2 = vt - velocity_i2;
