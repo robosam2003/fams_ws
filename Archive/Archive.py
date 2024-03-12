@@ -92,3 +92,38 @@ def convert_json_to_ros_message(self, json_string):
 #         # self.job_start_time = l[-3]
 #         # self.job_end_time = l[-2]
 #         # self.status = l[-1]
+
+
+
+    def set_position_using_velocity(self, joint_no, pos_deg):
+        # A loop that does Proportional control to move to the desired position, using velocity control
+        # 1. Get the current position
+        # 2. Calculate the error
+        # 3. Calculate the velocity command
+        # 4. Send the velocity command
+        vel = 0
+
+
+        while self.joint_positions[joint_no-1] - pos_deg > 10:
+            # 1. Get the current position and send the velocity command
+            self.set_velocity(joint_no, vel)
+            rec_msg = self.recv()
+            current_pos = rec_msg.position
+            self.joint_positions[joint_no-1] = current_pos
+            error = pos_deg - current_pos # Error.
+            # 2. Calculate the velocity command
+            vel = 0.01*error # Kp = 0.01
+
+    def set_position_OLD(self, pos):
+        id = self.joint_id*16  # (it's in hex)
+        vel = 0x80  # 127 is zero     # TODO: I don't think this is included - see the example string. 
+        # break the position into two bytes
+        # pos = 32768 + int(pos_deg*int(32786/180))
+        pos_low = pos & 0xff
+        pos_high = (pos >> 8) & 0xff    
+        timestamp = 0x51
+        digital_output = 0x00 
+        data = [self.SET_POS_COMMAND, pos_high, pos_low, timestamp, digital_output]
+        self.can_bus.send(id, data)
+        # print(f"Sent: {data}")
+        print("Set Joint", self.joint_id, "to position: ", pos, "   Hex:  ", hex(pos_high), hex(pos_low))

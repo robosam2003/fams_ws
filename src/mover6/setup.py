@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mobile_control'
+package_name = 'mover6'
 
 setup(
     name=package_name,
@@ -10,18 +10,21 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        # Add the moverjoint and pcanbus files
+        ('lib/' + package_name, [package_name + '/MoverJoint.py']),
+        ('lib/' + package_name, [package_name + '/PCanBus.py']),     
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='uos',
-    maintainer_email='uos@todo.todo',
+    maintainer='robosam',
+    maintainer_email='robosam2003@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "mobile_robot = mobile_control.mobile_robot:main",
-            "keyboard_controller = mobile_control.keyboard_control:main",
+            'mover6 = mover6.mover6:main',
+            'mover6_control_test = mover6.control_test:main',
         ],
     },
 )

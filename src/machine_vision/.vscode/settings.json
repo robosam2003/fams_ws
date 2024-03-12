@@ -1,10 +1,11 @@
 {
     "python.autoComplete.extraPaths": [
-        "/home/uos/fams_ws/build/scheduler",
+        "/home/uos/fams_ws/install/workstation/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/scheduler/lib/python3.10/site-packages",
-        "/home/uos/fams_ws/build/mobile_control",
+        "/home/uos/fams_ws/install/rfid_package/lib/python3.10/site-packages",
+        "/home/uos/fams_ws/install/mover6/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/mobile_control/lib/python3.10/site-packages",
-        "/home/uos/fams_ws/build/gui",
+        "/home/uos/fams_ws/install/machine_vision/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/gui/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/fams_interfaces/local/lib/python3.10/dist-packages",
         "/home/uos/ros2_ws/build/my_robot_controller",
@@ -13,11 +14,12 @@
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ],
     "python.analysis.extraPaths": [
-        "/home/uos/fams_ws/build/scheduler",
+        "/home/uos/fams_ws/install/workstation/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/scheduler/lib/python3.10/site-packages",
-        "/home/uos/fams_ws/build/mobile_control",
+        "/home/uos/fams_ws/install/rfid_package/lib/python3.10/site-packages",
+        "/home/uos/fams_ws/install/mover6/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/mobile_control/lib/python3.10/site-packages",
-        "/home/uos/fams_ws/build/gui",
+        "/home/uos/fams_ws/install/machine_vision/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/gui/lib/python3.10/site-packages",
         "/home/uos/fams_ws/install/fams_interfaces/local/lib/python3.10/dist-packages",
         "/home/uos/ros2_ws/build/my_robot_controller",

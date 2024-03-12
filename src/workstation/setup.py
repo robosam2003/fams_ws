@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mobile_control'
+package_name = 'workstation'
 
 setup(
     name=package_name,
@@ -13,15 +13,17 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='uos',
-    maintainer_email='uos@todo.todo',
+    maintainer='robosam',
+    maintainer_email='robosam2003@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "mobile_robot = mobile_control.mobile_robot:main",
-            "keyboard_controller = mobile_control.keyboard_control:main",
+            'workstation_controller = workstation.workstation_controller:main',
+            'workstation = workstation.workstation:main',
+            
+            
         ],
     },
 )

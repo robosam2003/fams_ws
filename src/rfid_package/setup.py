@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mobile_control'
+package_name = 'rfid_package'
 
 setup(
     name=package_name,
@@ -14,14 +14,12 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='uos',
-    maintainer_email='uos@todo.todo',
+    maintainer_email='apartab1@sheffield.ac.uk',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "mobile_robot = mobile_control.mobile_robot:main",
-            "keyboard_controller = mobile_control.keyboard_control:main",
         ],
     },
 )

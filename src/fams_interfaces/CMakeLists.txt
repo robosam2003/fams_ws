@@ -19,12 +19,15 @@ find_package(rosidl_default_generators REQUIRED)
 
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/BasicControl.msg"
   "msg/Job.msg"
-  "msg/SubProcess.msg"
-  "msg/Part.msg"
-  "msg/Workstation.msg"
   "msg/MobileRobot.msg"
+  "msg/Part.msg"
+  "msg/Schedule.msg"
+  "msg/SubProcess.msg"
   "msg/SystemState.msg"
+  "msg/Workstation.msg"
+  "msg/Mover6Control.msg"
   DEPENDENCIES std_msgs geometry_msgs
 )
 
