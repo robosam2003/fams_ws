@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'machine_vision'
+package_name = 'machine_vis'
 
 setup(
     name=package_name,
@@ -20,10 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'loc_publisher = machine_vision.location_publisher:main',
-            'img_subscriber= machine_vision.image_subscriber:main',
-            'aruco=machine_vision.ArUco:main'
-            'loc = machine_vision.localiser:main'
+            "marker = machine_vis.markers:main",
+            "Vid_sub = machine_vis.Vid_subscriber:main"
         ],
     },
 )

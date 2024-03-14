@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 
 
-# Basic ROS 2 program to publish real-time streaming 
-# video from your built-in webcam
-# Author:
-# - Addison Sears-Collins
-# - https://automaticaddison.com
+
    
 # Import the necessary libraries
 import rclpy # Python Client Library for ROS 2
@@ -15,6 +11,10 @@ from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Image
 import cv2 # OpenCV library
 import os
 import numpy as np
+from std_msgs.msg import Float32
+from fams_interfaces.msg import MobileRobot
+from rosidl_runtime_py import *
+
   
 class ArucoReader(Node):
 
@@ -25,19 +25,22 @@ class ArucoReader(Node):
     # Initiate the Node class's constructor and give it a name
     super().__init__('aruco_reader')
     self.get_logger().info('Aruco Reader Node Started')
-       
-    self.location_publisher = self.create_publisher("Mobile_Locations",locations)
-       
-    # We will publish a message every 0.1 seconds
-    timer_period = 0.1  # seconds
-       
+
+    self.location_A_publisher = self.create_publisher(MobileRobot,'mobile_A_location',10)
+    self.location_B_publisher = self.create_publisher(MobileRobot,'mobile_B_location',10)
+    self.video_publisher=self.create_publisher(Image,'video_stream',10)
+
+    
+
+    
+    
     # Create the timer
-    self.timer = self.create_timer(timer_period, self.timer_callback)
-          
+    # self.timer = self.create_timer(timer_period, self.timer_callback)
+
     # Create a VideoCapture object
     self.cap = cv2.VideoCapture(-1)
   
-    self.br = CvBridge()
+    
     self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
@@ -48,27 +51,17 @@ class ArucoReader(Node):
     distortion = np.array((1.73228514e-02, -7.03010353e-01, -7.57199459e-04,  6.85156948e-02, 8.77224638e-01))
     os.system('v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1')
     os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0')
+    self.main_loop(aruco_type, intrinsic_camera,distortion)
 
-    while self.cap.isOpened():
-	
-      os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=312')
-      os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=3700')
+  # def timer_callback(self):
+  #   msg=Float32MultiArray()
+  #   msg.data=locations
+  #   self.location_publisher.publish(locations)
 
-      ret, img = self.cap.read()
-      output, locations = self.pose_estimation(img, ARUCO_DICT[aruco_type], intrinsic_camera, distortion)
-      cv2.imshow('Estimated Pose', output)
-      self.location_publisher.publish(locations)
-        
-
-      key = cv2.waitKey(1) & 0xFF
-      if key == ord('q'):
-        break
-
-    self.cap.release()
-    cv2.destroyAllWindows()
+  
+    
 
   def pose_estimation(self, frame, aruco_dict_type, matrix_coefficients, distortion_coefficients):
-
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     cv2.aruco_dict = cv2.aruco.Dictionary_get(aruco_dict_type)
     parameters = cv2.aruco.DetectorParameters_create()
@@ -76,17 +69,71 @@ class ArucoReader(Node):
     corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, cv2.aruco_dict,parameters=parameters,
       cameraMatrix=matrix_coefficients,
       distCoeff=distortion_coefficients)
+    origin=[0.00649249, -0.01326193,  2.86440854]
 
     if len(corners) > 0:
       for i in range(0, len(ids)):
             
         rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.15, matrix_coefficients, distortion_coefficients)            
         cv2.aruco.drawDetectedMarkers(frame, corners,ids) 
-        origin=[0.00649249, -0.01326193,  2.86440854]
-        location=tvec-origin
+        locations=tvec-origin
+        x=round(locations[0,0,0],5)
+        y=round(locations[0,0,1],5)
+        z=round(locations[0,0,2],5)
+
+        if ids[i]==0:
+          location_msg=MobileRobot()
+          location_msg.mobile_robot_id=0
+          location_msg.physical_location=x,y,z
+          # self.location_A_publisher.publish(location_msg)
+          # self.get_logger().info('{}:{}'.format("Publishing",location_msg))
+        elif ids[i]==1:
+          location_msg=MobileRobot()
+          location_msg.mobile_robot_id=1
+          location_msg.physical_location=x,y,z
+          # self.location_B_publisher.publish(location_msg)
+          # self.get_logger().info('{}:{}'.format("Publishing",location_msg))
+
         cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.05)  
+    else:
+      locations=origin
+    return frame, locations
+
+  def main_loop(self,aruco_type,intrinsic_camera,distortion):
+    while self.cap.isOpened():
+	
+      os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=230')
+      os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=3700')
+      os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
+
+      ret, img = self.cap.read()
+      output, location = self.pose_estimation(img, ARUCO_DICT[aruco_type], intrinsic_camera, distortion)
+      cv2.imshow('Estimated Pose', output)
+
+      if ret == True:
+        # Print debugging information to the terminal
+        self.get_logger().info("Publishing Video Frame")
+             
+        # Publish the image.
+        # The 'cv2_to_imgmsg' method converts an OpenCV
+        # image to a ROS image message
+        self.br = CvBridge()
+        vid_msg=self.br.cv2_to_imgmsg(output)
+        self.video_publisher.publish(vid_msg)
+        
+      
+      
+
+      key = cv2.waitKey(1) & 0xFF
+      if key == ord('q'):
+        break
+
+    self.cap.release()
+    cv2.destroyAllWindows()
     
-    return frame, location
+
+
+  
 
 
 
