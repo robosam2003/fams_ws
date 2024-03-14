@@ -47,6 +47,7 @@ volatile int posprev1, posprev2, posprev3, posprev4;
 float vt, err1, err2, err3, err4, u1, u2, u3, u4;
 
 void motorContorl(char direction);
+void motor();
 void controlLoop();
 
 void doM1EncoderA();
@@ -170,7 +171,7 @@ void setup() {
 void loop() {
   //Output gear to encoder is a 1:64 gearbox
   //Wheel diameter is 100 mm
-  /*int time  = 0;
+  int time  = 0;
   while(time<1000){
     if(time<200){
       vt = 0;
@@ -187,13 +188,14 @@ void loop() {
     else{
       vt = 750;
     }
-    */
-    char direct = Serial.read();
-    controlLoop();
-    motorContorl(direct);
-    //time = time + 1;
     
-    /*Serial.print(velocity_i1);Serial.print(",");
+    //char direct = Serial.read();
+    controlLoop();
+    motor();
+    //motorContorl(direct);
+    time = time + 1;
+    
+    Serial.print(velocity_i1);Serial.print(",");
     Serial.print(velocity_i2);Serial.print(",");
     Serial.print(velocity_i3);Serial.print(",");
     Serial.print(velocity_i4);Serial.print(",");
@@ -202,7 +204,6 @@ void loop() {
     Serial.print(pwm3);Serial.print(",");
     Serial.print(pwm4);Serial.print(",");
     Serial.println(vt);
-    */
     /*
 
     Serial.print("|M1|");Serial.print(pwm1);Serial.print(",");
@@ -217,7 +218,21 @@ void loop() {
     Serial.print("|M3|");Serial.print(err3);Serial.print(",");
     Serial.print("|M4|");Serial.println(err4);
     */
-  //}
+  }
+}
+
+void motor(){
+  digitalWrite(DIR_M1, dir1);
+  analogWrite(PWM_M1, pwm1);
+
+	digitalWrite(DIR_M2, dir2);
+	analogWrite(PWM_M2, pwm2);
+
+	digitalWrite(DIR_M3, dir3);
+	analogWrite(PWM_M3, pwm3);
+
+	digitalWrite(DIR_M4, dir4);
+	analogWrite(PWM_M4, pwm4);
 }
 
 void motorContorl(char direction){
@@ -257,7 +272,7 @@ void motorContorl(char direction){
 	}
 	
 	digitalWrite(DIR_M1, dir1);
-    analogWrite(PWM_M1, pwm1);
+  analogWrite(PWM_M1, pwm1);
 
 	digitalWrite(DIR_M2, dir2);
 	analogWrite(PWM_M2, pwm2);
@@ -291,7 +306,7 @@ void controlLoop(){
   posprev4 = pos4;
   prevT = currT;//Sets new previous time
   
-  float Kp = 0.1;
+  float Kp = 0.5;
 
   err1 = vt - velocity_i1;//Units of relative to current target pings per window
   err2 = vt - velocity_i2;
