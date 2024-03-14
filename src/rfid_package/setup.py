@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "test_node = rfid_package.rfid_first_node:main" # test node is an executable name
         ],
     },
 )

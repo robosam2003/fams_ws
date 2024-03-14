@@ -65,22 +65,25 @@ class mover6(Node):
                                              self.MIN_MAX_POS_DEG[i][1])  # Max position
                                              for i in range(0, self.num_joints)]  # List conprehension to create the joints
         
-        self.desired_joint_angles = [0, 0, 0, 0, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
+        self.desired_joint_angles = [0, 0, 30, 90, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
+        # Setup a timer to run the main loop
+        self.max_joint = 4
+        self.setup()
+        timer = self.create_timer(0.05, self.main_loop)  # 20Hz
 
-        self.main_loop()
+        # self.main_loop()
 
-
-    def main_loop(self):  # The main loop maintains a 20Hz control cycle, necessary for the motor control boards (they will give a CAN error if not)
+    def setup(self):   
         # =======================================
         # ================ Setup ================
         # =======================================
         
-        max_joint = 1 # Just for testing, don't want to move all the joints at once while developing. 
+        max_joint = self.max_joint # Just for testing, don't want to move all the joints at once while developing. 
         
         # 2. Start the main loop and send position command cyclically 
         for joint in self.joints[0:max_joint]:
             # Single pulse to mark position - Send to "current" position
-            joint.set_position(joint, joint.position_deg)
+            joint.set_position(joint.current_position_deg)
             rec_msg = self.can_bus.recv()
 
             # Parse the message and update the joint position
@@ -102,31 +105,33 @@ class mover6(Node):
             time.sleep(2/1000)
             joint.set_tic_scale(1)
             time.sleep(2/1000)
-            # self.set_zero_position(joint) # This is for when you want to start up in the zero position
+            joint.set_max_current(0)
+            if joint.joint_id == 5 or joint.joint_id == 6:
+                joint.set_zero_position()
             time.sleep(2/1000)
         time.sleep(0.5)
             
         # 5. Enable all joints
         for joint in self.joints[0:max_joint]:
-            self.enable()
+            joint.enable()
             time.sleep(2/1000)    
 
+    def main_loop(self):  # The main loop maintains a 20Hz control cycle, necessary for the motor control boards (they will give a CAN error if not)
         # ===========================================
         # ================ Main Loop ================
         # ===========================================
-        i = 0 # Loop counter
-        while True:
-            for joint in range(1, max_joint+1):
-                reference = self.desired_joint_angles[joint-1]
-                self.set_position_32bit(joint, reference)
-                rec_msg = self.recv()
-                # # Parse the message and update the joint position
-                joint_pos = rec_msg.position
-                self.joint_positions[joint-1] = joint_pos
-                print("Joint", joint, "is at position: ", joint_pos)
-                time.sleep(2/1000) 
-            i += 1
-            time.sleep(1/20) # 20Hz
+        max_joint = self.max_joint # Just for testing, don't want to move all the joints at once while developing.
+        for joint in range(1, max_joint+1):
+            j = self.joints[joint-1]
+            reference = self.desired_joint_angles[joint-1]
+            j.set_position(reference)
+            rec_msg = self.can_bus.recv()
+            # # Parse the message and update the joint position
+            joint_pos = rec_msg.position
+            j.update_position(rec_msg)
+            
+            print("Joint", joint, "is at position: ", joint_pos)
+            time.sleep(2/1000) 
 
     def mover6_control_callback(self, msg):
         # Set the desired joint angles to the received joint angles
@@ -138,6 +143,7 @@ class mover6(Node):
             elif self.desired_joint_angles[i] < self.MIN_MAX_POS_DEG[i][0]:
                 self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][0]
         print("Received: ", self.desired_joint_angles)
+        # print(("RECIEVED \n")*100)
         
 
 

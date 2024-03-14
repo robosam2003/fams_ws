@@ -21,6 +21,7 @@ class PCanBus():
             print(f"Received: {rec_msg}")
         return rec_msg
     
+    
 
 class RecMsg32():
     def __init__(self, msg):
@@ -43,7 +44,7 @@ class RecMsg32():
         # Interpret the position as a signed 32 bit integer
         if self.position > 0x7fffffff:
             self.position = -0x100000000 + self.position
-        # self.position_deg = int(self.position)
+        self.position_deg = int(self.position)
         # self.velocity = self.data[5]
         self.timestamp = self.data[5]
         self.shunt = self.data[6]

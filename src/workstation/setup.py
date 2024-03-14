@@ -21,6 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             'workstation_controller = workstation.workstation_controller:main',
+            'workstation = workstation.workstation:main',
+            
             
         ],
     },
