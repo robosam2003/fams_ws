@@ -22,7 +22,7 @@ class MoverJoint():
     
     def update_position(self, rec_msg):
         self.current_position = rec_msg.position
-        self.current_position_deg = float(self.current_position/256) / self.tics_per_degree
+        self.current_position_deg = float(self.current_position) / self.tics_per_degree
         return self.current_position_deg
     
     def set_position_old(self, pos_deg):  # This is the old, 16 bit implementation
@@ -66,7 +66,8 @@ class MoverJoint():
         
         timestamp = 0x51
         digital_output = 0x00
-        data = [self.SET_POS_COMMAND_32, pos0, pos1, pos2, pos3, timestamp, digital_output]
+        velocity = 0x80
+        data = [self.SET_POS_COMMAND_32, velocity, pos0, pos1, pos2, pos3, timestamp, digital_output]
         self.can_bus.send(id, data)
         print("Set Joint", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
 
