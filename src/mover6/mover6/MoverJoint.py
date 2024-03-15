@@ -22,16 +22,41 @@ class MoverJoint():
     
     def update_position(self, rec_msg):
         self.current_position = rec_msg.position
-        self.current_position_deg = float(self.current_position) / self.tics_per_degree
+        self.current_position_deg = float(self.current_position/256) / self.tics_per_degree
         return self.current_position_deg
     
+    def set_position_old(self, pos_deg):  # This is the old, 16 bit implementation
+        # Saturation of joint angle.
+        # if pos_deg < self.min_pos_deg:
+        #     pos_deg = self.min_pos_deg
+        # if pos_deg > self.max_pos_deg:
+        #     pos_deg = self.max_pos_deg
+        # The id is the joint number times 16 (it's in hex)
+        id = self.joint_id*16
+        # Convert the position to tics
+        tics = int(pos_deg)
+        print("Tics: ", tics)
+        # Split the tics into 2 - it is an unsigned short (16 bit)
+        packed_tics = struct.pack('>H', tics) # the '>' means big-endian, the 'H' means unsigned short
+        pos0, pos1 = struct.unpack('>BB', packed_tics)
+
+        timestamp = 0x51
+        velocity = 0x80
+        digital_output = 0x00
+        data = [self.SET_POS_COMMAND, velocity, pos0, pos1, timestamp, digital_output]
+        self.can_bus.send(id, data)
+        print("Set Joint (OLD)", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1))
+    
     def set_position(self, pos_deg):  # This is the new, CANv2 32 bit implementation
-        # Saturation of joint angle. 
+        # Saturation of joint angle.    
         if pos_deg < self.min_pos_deg:
             pos_deg = self.min_pos_deg
         if pos_deg > self.max_pos_deg:
             pos_deg = self.max_pos_deg
         # The id is the joint number times 16 (it's in hex)
+        # if self.joint_id > 4:
+        #     self.set_position_old(pos_deg)
+            # return
         id = self.joint_id*16
         # Convert the position to tics
         tics = int(pos_deg*self.tics_per_degree)
@@ -126,7 +151,7 @@ class MoverJoint():
         # Tics per count is one byte
         tics_per_count = tics_per_count & 0xff
 
-        data = [0x02, 0x69, tics_per_count]
+        data = [0x02, 0x69, tics_per_count, 0x9E]
         self.can_bus.send(id, data)
         print("Set the tics per count to: ", tics_per_count)
     

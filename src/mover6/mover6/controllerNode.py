@@ -75,6 +75,8 @@ class InterfaceNode(Node):
         msg = Mover6Control()
         msg.command = "ZERO"
         msg.joint_no = int(joint_no)
+        self.joint_angles[joint_no-1] = 0# if joint_no < 5 else 32000
+        msg.joint_angles = [float(a) for a in self.joint_angles]
         self.joint_positions_publisher.publish(msg)
 
     
@@ -83,18 +85,22 @@ class InterfaceNode(Node):
         msg = Mover6Control()
         angle = float(self.joint_angles[joint_no-1])
         if direction == True: # True is up
-            angle = self.joint_angles[joint_no-1] + 5 # 5 degrees jog
+            angle = self.joint_angles[joint_no-1]
+            angle += 5
         else:
-            angle = self.joint_angles[joint_no-1] - 5 # 5 degrees jog
+            angle = self.joint_angles[joint_no-1] # 5 degrees jog
+            angle -= 5
+
         
         msg.joint_angles = [float(a) for a in self.joint_angles]
         msg.joint_angles[joint_no-1] = angle
+        self.joint_angles = msg.joint_angles
         self.joint_positions_publisher.publish(msg)
 
 
     def joint_positions_callback(self, msg):
         angles = msg.joint_angles
-        self.joint_angles = angles
+        # self.joint_angles = angles
         self.interface.axis1PositionLabel.setText(str(angles[0]))
         self.interface.axis2PositionLabel.setText(str(angles[1]))
         self.interface.axis3PositionLabel.setText(str(angles[2]))

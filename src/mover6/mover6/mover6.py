@@ -29,12 +29,20 @@ class mover6(Node):
     #                     -69.71,
     #                     3.2,
     #                     3.2]
-    tics_per_degree = [-256,
-                        -256,
-                        256,
-                        -256,
-                        15,
-                        15]
+    # tics_per_degree = [-256,
+    #                     -256,
+    #                     256,
+    #                     -256,
+    #                     15,
+    #                     15]
+    tics_per_degree = [8.3, # Input scaling 
+                        8.3,   
+                        8.3,
+                        5.55,
+                        3.2,
+                        3.2]
+
+                       
     
     
     MIN_MAX_POS_DEG = [(-150, 150),
@@ -81,7 +89,7 @@ class mover6(Node):
         
         self.desired_joint_angles = [0, 0, 30, 90, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
         # Setup a timer to run the main loop
-        self.max_joint = 1
+        self.max_joint = 4
         self.setup()
         timer = self.create_timer(0.05, self.main_loop)  # 20Hz
 
@@ -117,7 +125,7 @@ class mover6(Node):
             time.sleep(2/1000)
             joint.set_vel_pid(0.5, 0, 0)
             time.sleep(2/1000)
-            joint.set_tic_scale(1)
+            joint.set_tic_scale(120)
             time.sleep(2/1000)
             joint.set_max_current(0)
             # if joint.joint_id == 5 or joint.joint_id == 6:
@@ -162,7 +170,6 @@ class mover6(Node):
             # Reenable the joint
             self.joints[joint_no-1].enable()
             time.sleep(2/1000)            
-            return
         # Set the desired joint angles to the received joint angles
         self.desired_joint_angles = msg.joint_angles
         # Saturate the desired joint angles to the joint limits
@@ -174,13 +181,6 @@ class mover6(Node):
         print("Received: ", self.desired_joint_angles)
         # print(("RECIEVED \n")*100)
         
-
-
-    def shutdown(self):
-        self.can_bus.shutdown()
-
-    def __del__(self):
-        self.can_bus.shutdown()
 
 
 def main(args=None):
