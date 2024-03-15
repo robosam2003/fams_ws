@@ -23,12 +23,19 @@ def _get_message(msg):
 class mover6(Node):
     # CONSTANTS
     MAX_LAG = 0  # Disabled
-    tics_per_degree = [-65.87,
-                        -65.87,
-                        65.87,
-                        -69.71,
-                        3.2,
-                        3.2]
+    # tics_per_degree = [-65.87,
+    #                     -65.87,
+    #                     65.87,
+    #                     -69.71,
+    #                     3.2,
+    #                     3.2]
+    tics_per_degree = [-256,
+                        -256,
+                        256,
+                        -256,
+                        15,
+                        15]
+    
     
     MIN_MAX_POS_DEG = [(-150, 150),
                         (-30, 60),
@@ -55,6 +62,13 @@ class mover6(Node):
             10
         )
 
+        # Setup robot joint state publisher
+        self.joint_positions_publisher = self.create_publisher(
+            Mover6Control,
+            'mover6_state',
+            10
+        )
+
         # 1. Initialise the CAN bus and the joints
         self.can_bus = PCanBus.PCanBus()
         self.num_joints = 6
@@ -67,7 +81,7 @@ class mover6(Node):
         
         self.desired_joint_angles = [0, 0, 30, 90, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
         # Setup a timer to run the main loop
-        self.max_joint = 4
+        self.max_joint = 1
         self.setup()
         timer = self.create_timer(0.05, self.main_loop)  # 20Hz
 
@@ -106,8 +120,8 @@ class mover6(Node):
             joint.set_tic_scale(1)
             time.sleep(2/1000)
             joint.set_max_current(0)
-            if joint.joint_id == 5 or joint.joint_id == 6:
-                joint.set_zero_position()
+            # if joint.joint_id == 5 or joint.joint_id == 6:
+            #     joint.set_zero_position()
             time.sleep(2/1000)
         time.sleep(0.5)
             
@@ -124,16 +138,31 @@ class mover6(Node):
         for joint in range(1, max_joint+1):
             j = self.joints[joint-1]
             reference = self.desired_joint_angles[joint-1]
+            # print("Desired joint angle: ", reference, " degrees")
+            # reference = 120000
             j.set_position(reference)
             rec_msg = self.can_bus.recv()
             # # Parse the message and update the joint position
             joint_pos = rec_msg.position
-            j.update_position(rec_msg)
+            self.joints[joint-1].update_position(rec_msg)
             
-            print("Joint", joint, "is at position: ", joint_pos)
+            print("Joint", joint, "is at position: ", j.current_position_deg, " degrees")
             time.sleep(2/1000) 
+        # Publish the joint positions
+        msg = Mover6Control()   
+        msg.joint_angles = [float(j.current_position_deg) for j in self.joints]
+        self.joint_positions_publisher.publish(msg)
+
 
     def mover6_control_callback(self, msg):
+        if msg.command == "ZERO":
+            joint_no = msg.joint_no
+            self.joints[joint_no-1].set_zero_position()
+            time.sleep(2/1000)
+            # Reenable the joint
+            self.joints[joint_no-1].enable()
+            time.sleep(2/1000)            
+            return
         # Set the desired joint angles to the received joint angles
         self.desired_joint_angles = msg.joint_angles
         # Saturate the desired joint angles to the joint limits

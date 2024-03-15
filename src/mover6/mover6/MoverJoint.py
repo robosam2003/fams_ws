@@ -22,7 +22,7 @@ class MoverJoint():
     
     def update_position(self, rec_msg):
         self.current_position = rec_msg.position
-        self.current_position_deg = self.current_position/self.tics_per_degree
+        self.current_position_deg = float(self.current_position) / self.tics_per_degree
         return self.current_position_deg
     
     def set_position(self, pos_deg):  # This is the new, CANv2 32 bit implementation
@@ -36,13 +36,14 @@ class MoverJoint():
         # Convert the position to tics
         tics = int(pos_deg*self.tics_per_degree)
         # Split the tics into 4
-        pos0, pos1, pos2, pos3 = struct.pack('>i', tics)
+        packed_tics = struct.pack('>i', tics)
+        pos0, pos1, pos2, pos3 = struct.unpack('>BBBB', packed_tics)
         
         timestamp = 0x51
         digital_output = 0x00
         data = [self.SET_POS_COMMAND_32, pos0, pos1, pos2, pos3, timestamp, digital_output]
         self.can_bus.send(id, data)
-        print("Set Joint", self.joint_id, "to position: ", pos_deg, "degrees     Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
+        print("Set Joint", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
 
     def set_velocity(self, joint_no, vel): # TODO: This is the old implementation (16 bit)
         id = joint_no*16  # (it's in hex)
