@@ -8,6 +8,7 @@ from cv_bridge import CvBridge
 from threading import Thread 
 import cv2 as cv
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QMainWindow, QApplication
 from rclpy.executors import MultiThreadedExecutor
 
@@ -21,22 +22,70 @@ class Interface(QMainWindow, Controller_ui.Ui_MainWindow):
         self.setupUi(self)
         self.rosnode = None
 
+        # set up timers:
+        self.timer1 = QTimer()
+        self.timer1.timeout.connect(lambda: self.rosnode.axisButtonHandler(1, True))
+        self.timer2 = QTimer()
+        self.timer2.timeout.connect(lambda: self.rosnode.axisButtonHandler(1, 0))
+        self.timer3 = QTimer()
+        self.timer3.timeout.connect(lambda: self.rosnode.axisButtonHandler(2, True))
+        self.timer4 = QTimer()
+        self.timer4.timeout.connect(lambda: self.rosnode.axisButtonHandler(2, 0))
+        self.timer5 = QTimer()
+        self.timer5.timeout.connect(lambda: self.rosnode.axisButtonHandler(3, True))
+        self.timer6 = QTimer()
+        self.timer6.timeout.connect(lambda: self.rosnode.axisButtonHandler(3, 0))
+        self.timer7 = QTimer()
+        self.timer7.timeout.connect(lambda: self.rosnode.axisButtonHandler(4, True))
+        self.timer8 = QTimer()
+        self.timer8.timeout.connect(lambda: self.rosnode.axisButtonHandler(4, 0))
+        self.timer9 = QTimer()
+        self.timer9.timeout.connect(lambda: self.rosnode.axisButtonHandler(5, True))
+        self.timer10 = QTimer()
+        self.timer10.timeout.connect(lambda: self.rosnode.axisButtonHandler(5, 0))
+        self.timer11 = QTimer()
+        self.timer11.timeout.connect(lambda: self.rosnode.axisButtonHandler(6, True))
+        self.timer12 = QTimer()
+        self.timer12.timeout.connect(lambda: self.rosnode.axisButtonHandler(6, 0))
+        self.timers_list = [self.timer1, self.timer2, self.timer3, self.timer4, self.timer5, self.timer6, self.timer7, self.timer8, self.timer9, self.timer10, self.timer11, self.timer12]
+
+    def start_timer_handler(self, timer):
+        timer.start(50)
+
+    def stop_timer_handler(self, timer):
+        timer.stop()
+
+
     def setup(self, rosnode):
         self.rosnode = rosnode
 
         # Add button click events - There are up and down buttons for each joint
-        self.axis1UpButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(1, True))
-        self.axis1DownButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(1, 0))
-        self.axis2UpButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(2, True))
-        self.axis2DownButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(2, 0))
-        self.axis3UpButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(3, True))
-        self.axis3DownButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(3, 0))
-        self.axis4UpButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(4, True))
-        self.axis4DownButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(4, 0))
-        self.axis5UpButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(5, True))
-        self.axis5DownButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(5, 0))
-        self.axis6UpButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(6, True))
-        self.axis6DownButton.clicked.connect(lambda: self.rosnode.axisButtonHandler(6, 0))
+        self.axis1UpButton.pressed.connect(lambda: self.start_timer_handler(self.timer1))
+        self.axis1UpButton.released.connect(lambda: self.stop_timer_handler(self.timer1))
+        self.axis1DownButton.pressed.connect(lambda: self.start_timer_handler(self.timer2))
+        self.axis1DownButton.released.connect(lambda: self.stop_timer_handler(self.timer2))
+        self.axis2UpButton.pressed.connect(lambda: self.start_timer_handler(self.timer3))
+        self.axis2UpButton.released.connect(lambda: self.stop_timer_handler(self.timer3))
+        self.axis2DownButton.pressed.connect(lambda: self.start_timer_handler(self.timer4))
+        self.axis2DownButton.released.connect(lambda: self.stop_timer_handler(self.timer4))
+        self.axis3UpButton.pressed.connect(lambda: self.start_timer_handler(self.timer5))
+        self.axis3UpButton.released.connect(lambda: self.stop_timer_handler(self.timer5))
+        self.axis3DownButton.pressed.connect(lambda: self.start_timer_handler(self.timer6))
+        self.axis3DownButton.released.connect(lambda: self.stop_timer_handler(self.timer6))
+        self.axis4UpButton.pressed.connect(lambda: self.start_timer_handler(self.timer7))
+        self.axis4UpButton.released.connect(lambda: self.stop_timer_handler(self.timer7))
+        self.axis4DownButton.pressed.connect(lambda: self.start_timer_handler(self.timer8))
+        self.axis4DownButton.released.connect(lambda: self.stop_timer_handler(self.timer8))
+        self.axis5UpButton.pressed.connect(lambda: self.start_timer_handler(self.timer9))
+        self.axis5UpButton.released.connect(lambda: self.stop_timer_handler(self.timer9))
+        self.axis5DownButton.pressed.connect(lambda: self.start_timer_handler(self.timer10))
+        self.axis5DownButton.released.connect(lambda: self.stop_timer_handler(self.timer10))
+        self.axis6UpButton.pressed.connect(lambda: self.start_timer_handler(self.timer11))
+        self.axis6UpButton.released.connect(lambda: self.stop_timer_handler(self.timer11))
+        self.axis6DownButton.pressed.connect(lambda: self.start_timer_handler(self.timer12))
+        self.axis6DownButton.released.connect(lambda: self.stop_timer_handler(self.timer12))
+
+
 
         # Zero button events
         self.zeroAxis1Button.clicked.connect(lambda: self.rosnode.zeroAxisButtonHandler(1))
@@ -45,6 +94,9 @@ class Interface(QMainWindow, Controller_ui.Ui_MainWindow):
         self.zeroAxis4Button.clicked.connect(lambda: self.rosnode.zeroAxisButtonHandler(4))
         self.zeroAxis5Button.clicked.connect(lambda: self.rosnode.zeroAxisButtonHandler(5))
         self.zeroAxis6Button.clicked.connect(lambda: self.rosnode.zeroAxisButtonHandler(6))
+
+        # Gripper button
+        self.gripperButton.clicked.connect(lambda: self.rosnode.gripperButtonHandler())
 
 
 
@@ -55,6 +107,7 @@ class InterfaceNode(Node):
         self.get_logger().info('Interface node started')
         self.interface = interface
         self.get_logger().info('Interface GUI started')
+        self.gripper_state = False
 
         # Add subscription and publishers
         self.joint_positions_subscription = self.create_subscription(
@@ -86,10 +139,10 @@ class InterfaceNode(Node):
         angle = float(self.joint_angles[joint_no-1])
         if direction == True: # True is up
             angle = self.joint_angles[joint_no-1]
-            angle += 5
+            angle += 1
         else:
             angle = self.joint_angles[joint_no-1] # 5 degrees jog
-            angle -= 5
+            angle -= 1
 
         
         msg.joint_angles = [float(a) for a in self.joint_angles]
@@ -97,6 +150,15 @@ class InterfaceNode(Node):
         self.joint_angles = msg.joint_angles
         self.joint_positions_publisher.publish(msg)
 
+    def gripperButtonHandler(self):
+        self.gripper_state = not self.gripper_state # toggle the gripper state
+        # Open or close the gripper
+        msg = Mover6Control()
+        if self.gripper_state:
+            msg.command = "GRIPPER OPEN"
+        else:
+            msg.command = "GRIPPER CLOSED"
+        self.joint_positions_publisher.publish(msg)
 
     def joint_positions_callback(self, msg):
         angles = msg.joint_angles

@@ -19,6 +19,7 @@ class MoverJoint():
         
         self.min_pos_deg = min_pos_deg
         self.max_pos_deg = max_pos_deg
+        self.gripper_enabled = False
     
     def update_position(self, rec_msg):
         self.current_position = rec_msg.position
@@ -62,14 +63,17 @@ class MoverJoint():
         pos0, pos1, pos2, pos3 = struct.unpack('>BBBB', packed_tics)
         
         timestamp = 0x51
-        digital_output = 0x03
-        if gripper and joint_id==4:
-            digital_output == 0x02
+        digital_output = 0x00
+        if gripper and self.joint_id==4:
+            self.gripper_enabled = True
+            digital_output = 0x02 # close gripper
+        elif not gripper and self.joint_id==4 and self.gripper_enabled:
+            digital_output = 0x03
 
         velocity = 0x80
         data = [self.SET_POS_COMMAND_32, velocity, pos0, pos1, pos2, pos3, timestamp, digital_output]
         self.can_bus.send(id, data)
-        print("Set Joint", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
+        # print("Set Joint", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
 
     def set_velocity(self, joint_no, vel): # TODO: This is the old implementation (16 bit)
         id = joint_no*16  # (it's in hex)

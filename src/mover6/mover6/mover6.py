@@ -143,12 +143,12 @@ class mover6(Node):
             # print("Desired joint angle: ", reference, " degrees")
             # reference = 120000
             j.set_position(reference, self.gripper_state)
-            rec_msg = self.can_bus.recv()
+            rec_msg = self.can_bus.recv(vervose=False)
             # # Parse the message and update the joint position
             joint_pos = rec_msg.position
             self.joints[joint-1].update_position(rec_msg)
             
-            print("Joint", joint, "is at position: ", j.current_position_deg, " degrees")
+            # print("Joint", joint, "is at position: ", j.current_position_deg, " degrees")
             time.sleep(2/1000) 
         # Publish the joint positions
         msg = Mover6Control()   
@@ -157,8 +157,13 @@ class mover6(Node):
 
 
     def mover6_control_callback(self, msg):
-        if msg.gripper_state == 0 or msg.gripper_state == 1:
-            self.gripper_state = msg.gripper_state
+        # print("Received: ", msg)
+        if msg.command == "GRIPPER OPEN":
+            self.gripper_state = False
+            print("Gripper state: ", self.gripper_state)
+        elif msg.command == "GRIPPER CLOSED":
+            self.gripper_state = True
+            print("Gripper state: ", self.gripper_state)
         if msg.command == "ZERO":
             joint_no = msg.joint_no
             self.joints[joint_no-1].set_zero_position()
@@ -167,7 +172,7 @@ class mover6(Node):
             self.joints[joint_no-1].enable()
             time.sleep(2/1000)            
         # Set the desired joint angles to the received joint angles
-        if len(msg.joint_angles) == 6
+        if len(msg.joint_angles) == 6:
             self.desired_joint_angles = msg.joint_angles
         # Saturate the desired joint angles to the joint limits
             for i in range(0, self.num_joints):
@@ -175,7 +180,7 @@ class mover6(Node):
                     self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][1]
                 elif self.desired_joint_angles[i] < self.MIN_MAX_POS_DEG[i][0]:
                     self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][0]
-            print("Received: ", self.desired_joint_angles)
+            # print("Received: ", self.desired_joint_angles)
         # print(("RECIEVED \n")*100)
         
 
