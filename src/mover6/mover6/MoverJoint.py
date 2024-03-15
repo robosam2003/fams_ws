@@ -47,7 +47,7 @@ class MoverJoint():
         self.can_bus.send(id, data)
         print("Set Joint (OLD)", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1))
     
-    def set_position(self, pos_deg):  # This is the new, CANv2 32 bit implementation
+    def set_position(self, pos_deg, gripper=False):  # This is the new, CANv2 32 bit implementation
         # Saturation of joint angle.    
         if pos_deg < self.min_pos_deg:
             pos_deg = self.min_pos_deg
@@ -62,7 +62,10 @@ class MoverJoint():
         pos0, pos1, pos2, pos3 = struct.unpack('>BBBB', packed_tics)
         
         timestamp = 0x51
-        digital_output = 0x00
+        digital_output = 0x03
+        if gripper and joint_id==4:
+            digital_output == 0x02
+
         velocity = 0x80
         data = [self.SET_POS_COMMAND_32, velocity, pos0, pos1, pos2, pos3, timestamp, digital_output]
         self.can_bus.send(id, data)

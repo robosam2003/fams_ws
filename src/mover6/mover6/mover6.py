@@ -29,23 +29,13 @@ class mover6(Node):
     #                     -69.71,
     #                     3.2,
     #                     3.2]
-    # tics_per_degree = [-256,
-    #                     -256,
-    #                     256,
-    #                     -256,
-    #                     15,
-    #                     15]
+
     tics_per_degree = [2111,
                        2111,
                        2111,
                        2111,
                        3.55,
                        3.55]
-
-
-
-
-                       
     
     
     MIN_MAX_POS_DEG = [(-150, 150),
@@ -90,7 +80,8 @@ class mover6(Node):
                                              self.MIN_MAX_POS_DEG[i][1])  # Max position
                                              for i in range(0, self.num_joints)]  # List conprehension to create the joints
         
-        self.desired_joint_angles = [0, 0, 30, 90, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
+        self.desired_joint_angles = [0, 0, 0, 0, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
+        self.gripper_state = False
         # Setup a timer to run the main loop
         self.max_joint = 6
         self.setup()
@@ -151,7 +142,7 @@ class mover6(Node):
             reference = self.desired_joint_angles[joint-1]
             # print("Desired joint angle: ", reference, " degrees")
             # reference = 120000
-            j.set_position(reference)
+            j.set_position(reference, self.gripper_state)
             rec_msg = self.can_bus.recv()
             # # Parse the message and update the joint position
             joint_pos = rec_msg.position
@@ -166,6 +157,8 @@ class mover6(Node):
 
 
     def mover6_control_callback(self, msg):
+        if msg.gripper_state == 0 or msg.gripper_state == 1:
+            self.gripper_state = msg.gripper_state
         if msg.command == "ZERO":
             joint_no = msg.joint_no
             self.joints[joint_no-1].set_zero_position()
@@ -174,14 +167,15 @@ class mover6(Node):
             self.joints[joint_no-1].enable()
             time.sleep(2/1000)            
         # Set the desired joint angles to the received joint angles
-        self.desired_joint_angles = msg.joint_angles
+        if len(msg.joint_angles) == 6
+            self.desired_joint_angles = msg.joint_angles
         # Saturate the desired joint angles to the joint limits
-        for i in range(0, self.num_joints):
-            if self.desired_joint_angles[i] > self.MIN_MAX_POS_DEG[i][1]:
-                self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][1]
-            elif self.desired_joint_angles[i] < self.MIN_MAX_POS_DEG[i][0]:
-                self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][0]
-        print("Received: ", self.desired_joint_angles)
+            for i in range(0, self.num_joints):
+                if self.desired_joint_angles[i] > self.MIN_MAX_POS_DEG[i][1]:
+                    self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][1]
+                elif self.desired_joint_angles[i] < self.MIN_MAX_POS_DEG[i][0]:
+                    self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][0]
+            print("Received: ", self.desired_joint_angles)
         # print(("RECIEVED \n")*100)
         
 
