@@ -54,9 +54,6 @@ class MoverJoint():
         if pos_deg > self.max_pos_deg:
             pos_deg = self.max_pos_deg
         # The id is the joint number times 16 (it's in hex)
-        # if self.joint_id > 4:
-        #     self.set_position_old(pos_deg)
-            # return
         id = self.joint_id*16
         # Convert the position to tics
         tics = int(pos_deg*self.tics_per_degree)

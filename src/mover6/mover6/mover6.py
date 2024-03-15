@@ -35,12 +35,15 @@ class mover6(Node):
     #                     -256,
     #                     15,
     #                     15]
-    tics_per_degree = [8.3, # Input scaling 
-                        8.3,   
-                        8.3,
-                        5.55,
-                        3.2,
-                        3.2]
+    tics_per_degree = [2111,
+                       2111,
+                       2111,
+                       2111,
+                       3.55,
+                       3.55]
+
+
+
 
                        
     
@@ -89,7 +92,7 @@ class mover6(Node):
         
         self.desired_joint_angles = [0, 0, 30, 90, 0, 0] # This is the desired joint angles - initially zero, these will be set with the subscriber callback
         # Setup a timer to run the main loop
-        self.max_joint = 4
+        self.max_joint = 6
         self.setup()
         timer = self.create_timer(0.05, self.main_loop)  # 20Hz
 
@@ -125,7 +128,7 @@ class mover6(Node):
             time.sleep(2/1000)
             joint.set_vel_pid(0.5, 0, 0)
             time.sleep(2/1000)
-            joint.set_tic_scale(120)
+            joint.set_tic_scale(1)
             time.sleep(2/1000)
             joint.set_max_current(0)
             # if joint.joint_id == 5 or joint.joint_id == 6:
