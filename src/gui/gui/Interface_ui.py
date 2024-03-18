@@ -15,9 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QFormLayout, QGraphicsView,
-    QLabel, QLineEdit, QMainWindow, QPushButton,
-    QSizePolicy, QStatusBar, QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QFormLayout, QLabel,
+    QLineEdit, QListView, QMainWindow, QPushButton,
+    QSizePolicy, QSpacerItem, QStatusBar, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -154,13 +154,18 @@ class Ui_MainWindow(object):
 
         self.formLayout_2.setWidget(25, QFormLayout.FieldRole, self.addJobButton)
 
-        self.graphicsView = QGraphicsView(self.centralwidget)
-        self.graphicsView.setObjectName(u"graphicsView")
-        self.graphicsView.setEnabled(True)
-        self.graphicsView.setMinimumSize(QSize(0, 100))
-        
+        self.listView = QListView(self.centralwidget)
+        self.listView.setObjectName(u"listView")
 
-        self.formLayout_2.setWidget(26, QFormLayout.FieldRole, self.graphicsView)
+        self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.listView)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.formLayout_2.setItem(26, QFormLayout.FieldRole, self.horizontalSpacer)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.formLayout_2.setItem(3, QFormLayout.FieldRole, self.horizontalSpacer_2)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
