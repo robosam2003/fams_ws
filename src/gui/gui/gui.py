@@ -11,22 +11,27 @@ from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
 
 # import main windows and qt stuff
-from PySide6.QtWidgets import QMainWindow, QApplication, QListView
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6.QtWidgets import QWidget, QMainWindow, QApplication, QListView, QListWidget, QAbstractItemView, QTableView, QCheckBox, QHBoxLayout, QVBoxLayout, QPushButton, QButtonGroup
+# from PySide6.QtWidgets import QWidget,  QCheckBox, QHBoxLayout, QVBoxLayout, QListWidget, QAbstractItemView, QPushButton,QButtonGroup
+from PySide6 import QtCore, QtWidgets, QtGui, QtQuick
 from std_msgs.msg import String
 
 from sensor_msgs.msg import Image # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 
-class Interface(QMainWindow, ui.Ui_MainWindow):
+class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
     def __init__(self, rosnode, parent=None):
         super(Interface, self).__init__(parent)
         self.setupUi(self)
         self.rosnode = rosnode
         self.stopButton.clicked.connect(self.rosnode.start)
         #self.stopButton.clicked.print("clicked")
-        
+
+        # self.listWidget.setSelectionMode(QAbstractItemView.Mul)
+        self.listWidget.addItem("One")
+        self.listWidget.addItems(["Two","Three"])
+
         self.jobObj=Job()
         self.jobObj.subprocesses=[]
 

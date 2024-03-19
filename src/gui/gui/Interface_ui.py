@@ -16,8 +16,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QFormLayout, QLabel,
-    QLineEdit, QListView, QMainWindow, QPushButton,
-    QSizePolicy, QSpacerItem, QStatusBar, QWidget)
+    QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
+    QPushButton, QSizePolicy, QSpacerItem, QStatusBar,
+    QWidget, QAbstractItemView)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -35,6 +36,10 @@ class Ui_MainWindow(object):
         self.stopButton.setAutoRepeat(False)
 
         self.formLayout_2.setWidget(1, QFormLayout.FieldRole, self.stopButton)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.formLayout_2.setItem(3, QFormLayout.FieldRole, self.horizontalSpacer_2)
 
         self.label = QLabel(self.centralwidget)
         self.label.setObjectName(u"label")
@@ -154,18 +159,16 @@ class Ui_MainWindow(object):
 
         self.formLayout_2.setWidget(25, QFormLayout.FieldRole, self.addJobButton)
 
-        self.listView = QListView(self.centralwidget)
-        self.listView.setObjectName(u"listView")
-
-        self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.listView)
-
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.formLayout_2.setItem(26, QFormLayout.FieldRole, self.horizontalSpacer)
 
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.listWidget = QListWidget(self.centralwidget)
+        self.listWidget.setObjectName(u"listWidget")
+        
 
-        self.formLayout_2.setItem(3, QFormLayout.FieldRole, self.horizontalSpacer_2)
+
+        self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.listWidget)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
