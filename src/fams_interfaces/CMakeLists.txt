@@ -28,6 +28,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SystemState.msg"
   "msg/Workstation.msg"
   "msg/Mover6Control.msg"
+  "msg/Location.msg"
+  "msg/WorkstationCommand.msg"
+  
   DEPENDENCIES std_msgs geometry_msgs
 )
 
