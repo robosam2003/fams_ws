@@ -22,6 +22,7 @@ class WorkstationController(Node):
         self.system_state_subscriber = self.create_subscription(
             SystemState,
             'system_state',
+            self.system_state_handler,
             self.listener_callback,
             10
         )
@@ -32,23 +33,21 @@ class WorkstationController(Node):
             'system_state',
             10
         )
+
         self.schedule_subscriber = self.create_subscription(
             Schedule,
             'schedule',
-            self.callback_function,
+            self.schedule_handler,
             10
         )
-        # # self.visionLocations_publisher = self.create_publisher(
-        # #     visionLocations,
-        # #     'visionLocations',
-        # #     10
-        # # )
-        self.visionLocations_publisher = self.create_publisher(
-            Location,
-            'Location',
+
+        self.vision_locations_subscriber = self.create_subscription(
+            Location, # What type of message will it be?
+            'vision_location',
+            self.vision_locations_handler,
             10
         )
-        self.publish_location
+    
     def publish_location(self):
         msg = Location()
         msg.x = 1.0  # Replace with your actual X coordinate
@@ -78,28 +77,14 @@ class WorkstationController(Node):
 
         self.workstation_list = [self.Workstation1, self.Workstation2, self.Workstation3]
        
-       
+    
         w = Workstation()
         for w in self.workstation_list: w.status = 'FREE'
         self.system_state = SystemState()
         self.system_state.workstations = self.workstation_list
         self.system_state_publisher.publish(self.system_state)
-        eStop=True
-        if eStop==True:
-            print("b is greater than a")
-        #else
-        # location x,y 
-        # def timer_callback(self):
-        #     msg = String()
-        #     msg.data = 'Hello World: %d' % self.i
-        #     self.system_state_publisher.publish(msg)
-        #     self.get_logger().info('Publishing: "%s"' % msg.data)
-        #     self.i += 1
-    def listener_callback(self, msg):
-            self.get_logger().info('I heard: ')
-    def callback_function(self, msg):
-        # Your callback logic goes here
-        pass
+
+    
 def main(args=None):
     rclpy.init(args=args)
     workstation_controller = WorkstationController()

@@ -12,7 +12,9 @@ setup(
         ('share/' + package_name, ['package.xml']),
         # Add the moverjoint and pcanbus files
         ('lib/' + package_name, [package_name + '/MoverJoint.py']),
-        ('lib/' + package_name, [package_name + '/PCanBus.py']),     
+        ('lib/' + package_name, [package_name + '/PCanBus.py']),   
+        ('lib/' + package_name, [package_name + '/Controller_ui.py']),
+  
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -25,6 +27,7 @@ setup(
         'console_scripts': [
             'mover6 = mover6.mover6:main',
             'mover6_control_test = mover6.control_test:main',
+            'mover6_control_gui = mover6.controllerNode:main',
         ],
     },
 )

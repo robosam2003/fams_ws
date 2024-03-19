@@ -11,12 +11,16 @@ from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
 
 # import main windows and qt stuff
-from PySide6.QtWidgets import QMainWindow, QApplication
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6.QtWidgets import QWidget, QMainWindow, QApplication, QListView, QListWidget, QAbstractItemView, QTableView, QCheckBox, QHBoxLayout, QVBoxLayout, QPushButton, QButtonGroup
+# from PySide6.QtWidgets import QWidget,  QCheckBox, QHBoxLayout, QVBoxLayout, QListWidget, QAbstractItemView, QPushButton,QButtonGroup
+from PySide6 import QtCore, QtWidgets, QtGui, QtQuick
 from std_msgs.msg import String
 
+from sensor_msgs.msg import Image # Image is the message type
+from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
+import cv2 # OpenCV library
 
-class Interface(QMainWindow, ui.Ui_MainWindow):
+class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
     def __init__(self, rosnode, parent=None):
         super(Interface, self).__init__(parent)
         self.setupUi(self)
@@ -24,6 +28,9 @@ class Interface(QMainWindow, ui.Ui_MainWindow):
         self.stopButton.clicked.connect(self.rosnode.start)
         #self.stopButton.clicked.print("clicked")
 
+        # self.listWidget.setSelectionMode(QAbstractItemView.Mul)
+        self.listWidget.addItem("One")
+        self.listWidget.addItems(["Two","Three"])
 
         self.jobObj=Job()
         self.jobObj.subprocesses=[]
@@ -42,7 +49,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow):
         #print(str(self.subID.text()))
         #print(str(self.opType.text()))
                
-        
+        self.listView.create
         
         sub1=SubProcess()   #create subprocess object
         sub1.sub_process_id=int(self.subID.text())
@@ -56,7 +63,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow):
         self.jobObj.subprocesses.append(sub1)
         print((self.jobObj.subprocesses[0]))
         
-       
+        
         
         #  self.get_logger().info('stop')
 #
@@ -109,8 +116,36 @@ class InterfaceNode(Node):
             10
         )
 
+        #Vid_subscriber
+        self.subscription = self.create_subscription(
+            Image, 
+            'video_stream', 
+            self.listener_callback, 
+            10
+        )
+        self.subscription # prevent unused variable warning
+      
+        # Used to convert between ROS and OpenCV images
+        self.br = CvBridge()
+        
         self.interface = Interface(self)
         self.interface.show()
+
+    def listener_callback(self, data):
+        """
+        Callback function.
+        """
+        # Display the message on the console
+        self.get_logger().info('Receiving video frame')
+ 
+        # Convert ROS Image message to OpenCV image
+        current_frame = self.br.imgmsg_to_cv2(data)
+        img = QtGui.QImage(current_frame.data)
+        current_frame
+        # Display image
+        cv2.imshow("camera", current_frame)
+        
+        cv2.waitKey(1)
 
     def string_callback(self, msg: String):
         self.get_logger().info(str(msg))
@@ -122,31 +157,7 @@ class InterfaceNode(Node):
     def start(self):
         #self.interface.label.setText('Generating and publishing a job message...')
 
-        #job = Job()
-        #job.job_id = random.randint(1, 100000)
-        #job.priority = 1
-        #part = Part()
-        #part.part_id = random.randint(1, 100)
-        #part.location = 0
-        #part.current_subprocess_id = 0
-        #part.job_id = job.job_id
-        #job.part = part
 
-        #sub1 = SubProcess()
-        #sub1.sub_process_id = random.randint(1, 100)
-        #sub1.operation_type = 'milling'
-        #sub1.start_time = int(time.time())
-        #sub1.end_time = 0
-        #sub2 = SubProcess()
-        #sub2.sub_process_id = random.randint(1, 100)
-        #sub2.operation_type = 'drilling'
-        #sub2.start_time = int(time.time()) + 50
-        #sub2.end_time = 0
-        #job.subprocesses = [sub1, sub2]
-        #job.start_time = sub1.start_time
-        #job.end_time = 0
-        
-        #job.status = 'PENDING'
 
         # Publish the message
         self.job_publisher.publish(self.interface.jobObj)
