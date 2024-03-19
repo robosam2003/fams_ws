@@ -21,7 +21,7 @@ class MyNode_1(Node):
             a = self.ser.readline().strip()  # Remove leading/trailing whitespace
             msg.rfid_code = a.decode('utf-8')  #bytes to string
             self.RFID_publisher.publish(msg)
-            self.get_logger().info(msg)
+            self.get_logger().info(msg.rfid_code)
 
 
 def main(args=None):
