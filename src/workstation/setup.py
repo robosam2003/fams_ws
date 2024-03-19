@@ -22,6 +22,8 @@ setup(
         'console_scripts': [
             'workstation_controller = workstation.workstation_controller:main',
             'workstation = workstation.workstation:main',
+            'WorkstationCommand = workstation.WorkstationCommand:main',
+            'moveRobot = workstation.moveRobot:main',
             
             
         ],

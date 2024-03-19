@@ -4,9 +4,11 @@ import rclpy
 
 from rclpy.node import Node
 
-from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Workstation, Schedule
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Workstation, Schedule, Location
 #from machine_vision import eStop, location
-from workstation import Location
+#from workstation 
+#from workstation.msg import Location
+from rosidl_runtime_py import *
 class WorkstationController(Node):
     def __init__(self):
         super().__init__('workstation_controller')
@@ -21,6 +23,14 @@ class WorkstationController(Node):
             SystemState,
             'system_state',
             self.system_state_handler,
+            self.listener_callback,
+            10
+        )
+        
+
+        self.system_state_publisher = self.create_publisher(
+            SystemState,
+            'system_state',
             10
         )
 
@@ -42,7 +52,7 @@ class WorkstationController(Node):
         msg = Location()
         msg.x = 1.0  # Replace with your actual X coordinate
         msg.y = 2.0  # Replace with your actual Y coordinate
-        self.publisher.publish(msg)
+        self.visionLocations_publisher.publish(msg)
         self.get_logger().info('Publishing location: X=%f, Y=%f' % (msg.x, msg.y))
 
         # self.eStop_subscriber = self.create_subscription(
