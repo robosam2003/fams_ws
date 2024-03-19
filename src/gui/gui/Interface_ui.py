@@ -18,7 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QComboBox, QFormLayout, QLabel,
     QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
     QPushButton, QSizePolicy, QSpacerItem, QStatusBar,
-    QWidget, QAbstractItemView)
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -165,8 +165,6 @@ class Ui_MainWindow(object):
 
         self.listWidget = QListWidget(self.centralwidget)
         self.listWidget.setObjectName(u"listWidget")
-        
-
 
         self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.listWidget)
 
