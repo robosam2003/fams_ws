@@ -23,6 +23,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Job.msg"
   "msg/MobileRobot.msg"
   "msg/Part.msg"
+  "msg/RFID.msg"
   "msg/Schedule.msg"
   "msg/SubProcess.msg"
   "msg/SystemState.msg"
