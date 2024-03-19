@@ -11,7 +11,7 @@ from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
 
 # import main windows and qt stuff
-from PySide6.QtWidgets import QMainWindow, QApplication
+from PySide6.QtWidgets import QMainWindow, QApplication, QListView
 from PySide6 import QtCore, QtWidgets, QtGui
 from std_msgs.msg import String
 
@@ -44,7 +44,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow):
         #print(str(self.subID.text()))
         #print(str(self.opType.text()))
                
-        
+        self.listView.create
         
         sub1=SubProcess()   #create subprocess object
         sub1.sub_process_id=int(self.subID.text())
@@ -58,7 +58,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow):
         self.jobObj.subprocesses.append(sub1)
         print((self.jobObj.subprocesses[0]))
         
-       
+        
         
         #  self.get_logger().info('stop')
 #
