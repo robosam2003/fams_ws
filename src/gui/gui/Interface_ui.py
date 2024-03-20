@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(701, 673)
+        MainWindow.resize(720, 695)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.formLayout_2 = QFormLayout(self.centralwidget)
@@ -163,15 +163,20 @@ class Ui_MainWindow(object):
 
         self.formLayout_2.setItem(26, QFormLayout.FieldRole, self.horizontalSpacer)
 
-        self.listWidget = QListWidget(self.centralwidget)
-        self.listWidget.setObjectName(u"listWidget")
-
-        self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.listWidget)
-
         self.label_10 = QLabel(self.centralwidget)
         self.label_10.setObjectName(u"label_10")
 
-        self.formLayout_2.setWidget(27, QFormLayout.LabelRole, self.label_10)
+        self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.label_10)
+
+        self.listWidget = QListWidget(self.centralwidget)
+        self.listWidget.setObjectName(u"listWidget")
+
+        self.formLayout_2.setWidget(28, QFormLayout.FieldRole, self.listWidget)
+
+        self.JobDeleteButton = QPushButton(self.centralwidget)
+        self.JobDeleteButton.setObjectName(u"JobDeleteButton")
+
+        self.formLayout_2.setWidget(29, QFormLayout.FieldRole, self.JobDeleteButton)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
@@ -203,6 +208,7 @@ class Ui_MainWindow(object):
         self.priority.setItemText(2, QCoreApplication.translate("MainWindow", u"3", None))
 
         self.addJobButton.setText(QCoreApplication.translate("MainWindow", u"add job", None))
-        self.label_10.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Job List", None))
+        self.JobDeleteButton.setText(QCoreApplication.translate("MainWindow", u"Delete selected job", None))
     # retranslateUi
 
