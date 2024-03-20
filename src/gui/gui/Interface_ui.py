@@ -61,10 +61,10 @@ class Ui_MainWindow(object):
 
         self.formLayout_2.setWidget(8, QFormLayout.FieldRole, self.part_id)
 
-        self.label10 = QLabel(self.centralwidget)
-        self.label10.setObjectName(u"label10")
+        self.label_11 = QLabel(self.centralwidget)
+        self.label_11.setObjectName(u"label_11")
 
-        self.formLayout_2.setWidget(10, QFormLayout.LabelRole, self.label10)
+        self.formLayout_2.setWidget(10, QFormLayout.LabelRole, self.label_11)
 
         self.partLocation = QLineEdit(self.centralwidget)
         self.partLocation.setObjectName(u"partLocation")
@@ -168,6 +168,11 @@ class Ui_MainWindow(object):
 
         self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.listWidget)
 
+        self.label_10 = QLabel(self.centralwidget)
+        self.label_10.setObjectName(u"label_10")
+
+        self.formLayout_2.setWidget(27, QFormLayout.LabelRole, self.label_10)
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -183,7 +188,7 @@ class Ui_MainWindow(object):
         self.stopButton.setText(QCoreApplication.translate("MainWindow", u"stop", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"job id", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"part id", None))
-        self.label10.setText(QCoreApplication.translate("MainWindow", u"partLocation", None))
+        self.label_11.setText(QCoreApplication.translate("MainWindow", u"partLocation", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"subprocessesID", None))
         self.subID.setText("")
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"operationType", None))
@@ -198,5 +203,6 @@ class Ui_MainWindow(object):
         self.priority.setItemText(2, QCoreApplication.translate("MainWindow", u"3", None))
 
         self.addJobButton.setText(QCoreApplication.translate("MainWindow", u"add job", None))
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
     # retranslateUi
 

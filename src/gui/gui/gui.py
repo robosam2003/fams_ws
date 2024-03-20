@@ -31,6 +31,14 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         # self.listWidget.setSelectionMode(QAbstractItemView.Mul)
         self.listWidget.addItem("One")
         self.listWidget.addItems(["Two","Three"])
+        self.listWidget.setCurrentRow(1)
+        #print(self.listWidget.currentRow)
+        
+        self.listWidget.clicked.connect(self.listWidgetHandler)
+        #self.listWidget.selectedItems()
+        self.listWidget.currentItemChanged.connect(self.current_item_changed)
+        self.listWidget.currentTextChanged.connect(self.current_text_changed)
+        
 
         self.jobObj=Job()
         self.jobObj.subprocesses=[]
@@ -42,9 +50,25 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.addToList.clicked.connect(self.addToListHandler)
         self.addJobButton.clicked.connect(self.addJobButtonHandler)#add job btn
        
+    def listWidgetHandler(self, text):
+        #self.listWidget.takeItem(self.listWidget.currentRow())
+        #self.label_10.setText(str(self.listWidget.selectedItems()))
+        #print("Current item : ",item.text())
+        #print("Current text changed : ",text)
+        print("listWidgetHandler")
+
+    def current_item_changed(self, item):
+        print("Current item : ",item.text())
+        
+
+    def current_text_changed(self,text):
+        print("Current text changed : ",text)
+        self.label_10.setText(str("item.text", text))
+    
     def stopButtonHandler(self):
         print("stop")
        # self.get_logger().info('stop')
+        
     def addToListHandler(self):
         #print(str(self.subID.text()))
         #print(str(self.opType.text()))
@@ -117,13 +141,13 @@ class InterfaceNode(Node):
         )
 
         #Vid_subscriber
-        self.subscription = self.create_subscription(
-            Image, 
-            'video_stream', 
-            self.listener_callback, 
-            10
-        )
-        self.subscription # prevent unused variable warning
+        # self.subscription = self.create_subscription(
+        #     Image, 
+        #     'video_stream', 
+        #     self.listener_callback, 
+        #     10
+        # )
+        #self.subscription # prevent unused variable warning
       
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()

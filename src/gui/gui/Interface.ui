@@ -62,7 +62,7 @@
      <widget class="QLineEdit" name="part_id"/>
     </item>
     <item row="10" column="0">
-     <widget class="QLabel" name="label10">
+     <widget class="QLabel" name="label_11">
       <property name="text">
        <string>partLocation</string>
       </property>
@@ -193,6 +193,13 @@
     </item>
     <item row="27" column="1">
      <widget class="QListWidget" name="listWidget"/>
+    </item>
+    <item row="27" column="0">
+     <widget class="QLabel" name="label_10">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
