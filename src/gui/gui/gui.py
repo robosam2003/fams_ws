@@ -171,6 +171,19 @@ class InterfaceNode(Node):
         
         cv2.waitKey(1)
 
+    def camera_view_callback(self, msg): # EXAMPLE IMAGE CALLBACK - ADAPT FOR YOUR NEEDS
+        self.get_logger().info('Camera view callback')
+        # # Convert message to cv image
+        converted_image = self.bridge.compressed_imgmsg_to_cv2(msg)
+        display_scale = 0.7
+        converted_image = cv2.resize(converted_image, fx=display_scale, fy=display_scale, dsize=(0, 0))
+
+
+        # Scale the image to fit the label
+        # # Set the pixmap of the label to the image
+        self.interface.vision_label.setPixmap(QtGui.QPixmap.fromImage(QtGui.QImage(converted_image.data, converted_image.shape[1], converted_image.shape[0], QtGui.QImage.Format_BGR888)))
+
+
     def string_callback(self, msg: String):
         self.get_logger().info(str(msg))
 
