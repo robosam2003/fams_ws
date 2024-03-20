@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Schedule, Workstation
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Schedule, Workstation, JobList
 from rosidl_runtime_py import *
 
 
@@ -17,6 +17,13 @@ class Scheduler(Node):
             self.job_message_callback,
             10 # QoS profile
         )
+
+        self.active_job_publisher = self.create_publisher(
+            JobList,
+            'active_jobs',
+            10
+        )
+
         self.state_subscriber = self.create_subscription(
             SystemState,
             'system_state',
@@ -47,6 +54,9 @@ class Scheduler(Node):
                     job = self.csv_to_job(line)
                     self.active_job_list.append(job)
         self.get_logger().info('Active job list has been updated, with ' + str(len(self.active_job_list)) + ' jobs')
+        joblist = JobList()
+        joblist.list = self.active_job_list
+        self.active_job_publisher.publish(joblist)
 
     def csv_to_job(self, csv_string) -> Job:
         # Convert csv string to Job message
