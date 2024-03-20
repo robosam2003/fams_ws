@@ -31,7 +31,6 @@ class Ui_MainWindow(object):
         self.formLayout_2.setObjectName(u"formLayout_2")
         self.stopButton = QPushButton(self.centralwidget)
         self.stopButton.setObjectName(u"stopButton")
-        self.stopButton.setStyleSheet("background-color: red") #makes the stopButton red
         icon = QIcon(QIcon.fromTheme(u"media-playback-stop"))
         self.stopButton.setIcon(icon)
         self.stopButton.setAutoRepeat(False)
