@@ -5,7 +5,7 @@ import sys
 import gui.Interface_ui as ui
 import time
 import random
-from fams_interfaces.msg import Job, SubProcess, Part, SystemState
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState, EmergencyControl
 
 from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QWidget, QMainWindow, QApplication, QListView, QLi
 from PySide6 import QtCore, QtWidgets, QtGui, QtQuick
 from std_msgs.msg import String
 
-from sensor_msgs.msg import Image # Image is the message type
+from sensor_msgs.msg import Image, CompressedImage # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 
@@ -25,30 +25,33 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         super(Interface, self).__init__(parent)
         self.setupUi(self)
         self.rosnode = rosnode
-        self.stopButton.clicked.connect(self.rosnode.start)
-        #self.stopButton.clicked.print("clicked")
-
+        
+        #self.stopButton.clicked.connect(self.rosnode.start) # if stopButton is clicked
+        
+        # listWidget testing vvv
         # self.listWidget.setSelectionMode(QAbstractItemView.Mul)
         self.listWidget.addItem("One")
         self.listWidget.addItems(["Two","Three"])
-        self.listWidget.setCurrentRow(1)
+        #self.listWidget.setCurrentRow(1)
         #print(self.listWidget.currentRow)
-        
-        self.listWidget.clicked.connect(self.listWidgetHandler)
-        #self.listWidget.selectedItems()
-        self.listWidget.currentItemChanged.connect(self.current_item_changed)
-        self.listWidget.currentTextChanged.connect(self.current_text_changed)
-        
 
-        self.jobObj=Job()
-        self.jobObj.subprocesses=[]
+        self.jobObj=Job() # creates an object of class Job
+        self.jobObj.subprocesses=[] # creates a blank array to store a list of subprocesses
 
-        self.stopButton.setStyleSheet("background-color: red")
+        self.emergency = EmergencyControl()
 
         self.destroyed.connect(self.rosnode.destroy_node)
+
         self.stopButton.clicked.connect(self.stopButtonHandler)
         self.addToList.clicked.connect(self.addToListHandler)
         self.addJobButton.clicked.connect(self.addJobButtonHandler)#add job btn
+
+        self.listWidget.clicked.connect(self.listWidgetHandler) # if listWidget is clicked
+        #self.listWidget.selectedItems()
+        self.listWidget.currentItemChanged.connect(self.current_item_changed) # if the selected item has changed
+        self.listWidget.currentTextChanged.connect(self.current_text_changed) # if the selected text has changed
+
+        self.JobDeleteButton.clicked.connect(self.JobDeleteButtonHandler)
        
     def listWidgetHandler(self, text):
         #self.listWidget.takeItem(self.listWidget.currentRow())
@@ -60,20 +63,23 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
     def current_item_changed(self, item):
         print("Current item : ",item.text())
         
-
     def current_text_changed(self,text):
         print("Current text changed : ",text)
-        self.label_10.setText(str("item.text", text))
+        #self.label_10.setText(str("item.text", text))
     
     def stopButtonHandler(self):
         print("stop")
+        
        # self.get_logger().info('stop')
+        
+    def JobDeleteButtonHandler(self):
+        self.listWidget.takeItem(self.listWidget.currentRow())
         
     def addToListHandler(self):
         #print(str(self.subID.text()))
         #print(str(self.opType.text()))
                
-        self.listView.create
+        #self.listView.create
         
         sub1=SubProcess()   #create subprocess object
         sub1.sub_process_id=int(self.subID.text())
@@ -108,17 +114,21 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         self.jobObj.status = 'PENDING'
 
+        self.jobObj.a
+
         print((self.jobObj))
 
-        #interfaceNodeObj = InterfaceNode()
-        #interfaceNodeObj.job_publisher = interfaceNodeObj.create_publisher(
-        #    Job,
-        #    'job',
-        #    10
-        #
-        #interfaceNodeObj.job_publisher.publish(self.jobObj
+        self.listWidget.addItem(self.jobObj)
+
+        # interfaceNodeObj = InterfaceNode()
+        # interfaceNodeObj.job_publisher = interfaceNodeObj.create_publisher(
+        #     Job,
+        #     'job',
+        #     10
+        # )
+        # interfaceNodeObj.job_publisher.publish(self.jobObj)
         
-        # self.get_logger().info('Job message has been published')
+        self.get_logger().info('Job message has been published')
         # self.interface.label.setText('Job message has been published')
 
 
@@ -133,6 +143,12 @@ class InterfaceNode(Node):
             10
         )
 
+        self.emergency_publisher = self.create_publisher(
+            EmergencyControl,
+            'emergency_control',
+            10
+        )
+
         self.chatter_subscriber = self.create_subscription(
             String,
             "/chatter", 
@@ -141,13 +157,13 @@ class InterfaceNode(Node):
         )
 
         #Vid_subscriber
-        # self.subscription = self.create_subscription(
-        #     Image, 
-        #     'video_stream', 
-        #     self.listener_callback, 
-        #     10
-        # )
-        #self.subscription # prevent unused variable warning
+        self.subscription = self.create_subscription(
+            CompressedImage, 
+            'video_stream', 
+            self.listener_callback, 
+            10
+        )
+        self.subscription # prevent unused variable warning
       
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()
@@ -165,10 +181,11 @@ class InterfaceNode(Node):
         # Convert ROS Image message to OpenCV image
         current_frame = self.br.imgmsg_to_cv2(data)
         img = QtGui.QImage(current_frame.data)
-        current_frame
+        # current_frame
         # Display image
-        cv2.imshow("camera", current_frame)
-        
+        cv2.imshow("camera", current_frame) 
+        # look at compressed image types 
+        # need a label to write a pixmap to
         cv2.waitKey(1)
 
     def camera_view_callback(self, msg): # EXAMPLE IMAGE CALLBACK - ADAPT FOR YOUR NEEDS
@@ -195,10 +212,10 @@ class InterfaceNode(Node):
         #self.interface.label.setText('Generating and publishing a job message...')
 
 
-
+        #print("hello")
         # Publish the message
         self.job_publisher.publish(self.interface.jobObj)
-        # self.get_logger().info('Job message has been published')
+        self.get_logger().info('Job message has been published')
         # self.interface.label.setText('Job message has been published')
 
 
