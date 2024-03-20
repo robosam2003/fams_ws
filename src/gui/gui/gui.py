@@ -5,14 +5,13 @@ import sys
 import gui.Interface_ui as ui
 import time
 import random
-from fams_interfaces.msg import Job, SubProcess, Part, SystemState, EmergencyControl
+from fams_interfaces.msg import Job, JobList, SubProcess, Part, SystemState, EmergencyControl
 
 from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
 
 # import main windows and qt stuff
 from PySide6.QtWidgets import QWidget, QMainWindow, QApplication, QListView, QListWidget, QAbstractItemView, QTableView, QCheckBox, QHBoxLayout, QVBoxLayout, QPushButton, QButtonGroup
-# from PySide6.QtWidgets import QWidget,  QCheckBox, QHBoxLayout, QVBoxLayout, QListWidget, QAbstractItemView, QPushButton,QButtonGroup
 from PySide6 import QtCore, QtWidgets, QtGui, QtQuick
 from std_msgs.msg import String
 
@@ -69,7 +68,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
     
     def stopButtonHandler(self):
         print("stop")
-        
+        self.emergency = 1
+        self.rosnode.emergency_publisher.publish(self.emergency)
        # self.get_logger().info('stop')
         
     def JobDeleteButtonHandler(self):
@@ -114,7 +114,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         self.jobObj.status = 'PENDING'
 
-        self.jobObj.a
+        
 
         print((self.jobObj))
 
@@ -164,6 +164,12 @@ class InterfaceNode(Node):
             10
         )
         self.subscription # prevent unused variable warning
+
+        self.subscription = self.create_subscription(
+            JobList,
+            'active_jobs',
+            10
+        )
       
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()
