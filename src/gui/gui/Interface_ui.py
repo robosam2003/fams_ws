@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(701, 673)
+        MainWindow.resize(720, 695)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.formLayout_2 = QFormLayout(self.centralwidget)
@@ -61,10 +61,10 @@ class Ui_MainWindow(object):
 
         self.formLayout_2.setWidget(8, QFormLayout.FieldRole, self.part_id)
 
-        self.label10 = QLabel(self.centralwidget)
-        self.label10.setObjectName(u"label10")
+        self.label_11 = QLabel(self.centralwidget)
+        self.label_11.setObjectName(u"label_11")
 
-        self.formLayout_2.setWidget(10, QFormLayout.LabelRole, self.label10)
+        self.formLayout_2.setWidget(10, QFormLayout.LabelRole, self.label_11)
 
         self.partLocation = QLineEdit(self.centralwidget)
         self.partLocation.setObjectName(u"partLocation")
@@ -163,10 +163,20 @@ class Ui_MainWindow(object):
 
         self.formLayout_2.setItem(26, QFormLayout.FieldRole, self.horizontalSpacer)
 
+        self.label_10 = QLabel(self.centralwidget)
+        self.label_10.setObjectName(u"label_10")
+
+        self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.label_10)
+
         self.listWidget = QListWidget(self.centralwidget)
         self.listWidget.setObjectName(u"listWidget")
 
-        self.formLayout_2.setWidget(27, QFormLayout.FieldRole, self.listWidget)
+        self.formLayout_2.setWidget(28, QFormLayout.FieldRole, self.listWidget)
+
+        self.JobDeleteButton = QPushButton(self.centralwidget)
+        self.JobDeleteButton.setObjectName(u"JobDeleteButton")
+
+        self.formLayout_2.setWidget(29, QFormLayout.FieldRole, self.JobDeleteButton)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
@@ -183,7 +193,7 @@ class Ui_MainWindow(object):
         self.stopButton.setText(QCoreApplication.translate("MainWindow", u"stop", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"job id", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"part id", None))
-        self.label10.setText(QCoreApplication.translate("MainWindow", u"partLocation", None))
+        self.label_11.setText(QCoreApplication.translate("MainWindow", u"partLocation", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"subprocessesID", None))
         self.subID.setText("")
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"operationType", None))
@@ -198,5 +208,7 @@ class Ui_MainWindow(object):
         self.priority.setItemText(2, QCoreApplication.translate("MainWindow", u"3", None))
 
         self.addJobButton.setText(QCoreApplication.translate("MainWindow", u"add job", None))
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Job List", None))
+        self.JobDeleteButton.setText(QCoreApplication.translate("MainWindow", u"Delete selected job", None))
     # retranslateUi
 
