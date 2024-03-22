@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+# Author: Ben Harvey
+# Node for all mschine vision functionalitiies of th system including ArUco Marker localisation, obstacle detecetion and initialisation
  
 # Import the necessary libraries
 import rclpy # Python Client Library for ROS 2
@@ -9,7 +10,6 @@ from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Image
 import cv2 # OpenCV library
 import os
 import numpy as np
-from std_msgs.msg import Float32
 from fams_interfaces.msg import Vision
 from rosidl_runtime_py import *
 import math
@@ -25,21 +25,23 @@ class ArucoReader(Node):
     super().__init__('aruco_reader')
     self.get_logger().info('Aruco Reader Node Started')
 
+    # Publisher Setup
     self.location_pub = self.create_publisher(Vision,'VisionLocations',10)
     self.video_publisher=self.create_publisher(Image,'video_stream',10)
 
-    # Create a VideoCapture object
+    # Create a VideoCapture object and set parameters
     self.cap = cv2.VideoCapture(-1)
     self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    os.system('v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1')
+    os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0')
 
     aruco_type = "DICT_4X4_100" #Is looking for 4x4 only
 
+    # Camera coeffiecents from Calibration
     intrinsic_camera = np.array(((1.51676623e+03,0,9.58518895e+02),(0, 1.59055282e+03, 5.44395560e+02),(0,0,1)))
     distortion = np.array((1.73228514e-02, -7.03010353e-01, -7.57199459e-04,  6.85156948e-02, 8.77224638e-01))
-    os.system('v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1')
-    os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0')
     
     self.main_loop(aruco_type, intrinsic_camera,distortion)
 
@@ -50,16 +52,15 @@ class ArucoReader(Node):
     sizeLoadingArea=[0.6,0.4]
     return Ob_ids, sizeWorkstation, sizeLoadingArea
   
-  # Checks if a matrix is a valid rotation matrix.
-  def isRotationMatrix(self,R):
+  
+  def isRotationMatrix(self,R): # Checks if a matrix is a valid rotation matrix.
     Rt = np.transpose(R)
     shouldBeIdentity = np.dot(Rt, R)
     I = np.identity(3, dtype = R.dtype)
     n = np.linalg.norm(I - shouldBeIdentity)
     return n < 1e-6
  
-  def rotationMatrixToEulerAngles(self,R) :
- 
+  def rotationMatrixToEulerAngles(self,R) : # Converts Rotation Matrix to Euler Angles
     assert(self.isRotationMatrix(R))
     sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
     singular = sy < 1e-6
@@ -80,9 +81,7 @@ class ArucoReader(Node):
     cv2.aruco_dict = cv2.aruco.Dictionary_get(aruco_dict_type)
     parameters = cv2.aruco.DetectorParameters_create()
 
-    corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, cv2.aruco_dict,parameters=parameters,
-      cameraMatrix=matrix_coefficients,
-      distCoeff=distortion_coefficients)
+    corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, cv2.aruco_dict,parameters=parameters,cameraMatrix=matrix_coefficients,distCoeff=distortion_coefficients)
     origin=[0.00649249, -0.01326193,  2.86440854]
     id_msg=[]
     loc_msg=[]
@@ -111,7 +110,6 @@ class ArucoReader(Node):
           loc_msg.extend([x,y,yaw])
           anti_ob_flag.append(corners[i])
           
-          
         if ids[i,0] in (8,9):
           ob_id_msg.append(int(ids[i,0]))
           ob_loc_msg.extend([x,y,yaw])
@@ -124,9 +122,11 @@ class ArucoReader(Node):
       location_msg.mobile_location=loc_msg
       location_msg.obstacle_id=ob_id_msg
       location_msg.obstacle_location=ob_loc_msg
+
       self.get_logger().info('{}:{}'.format("Publishing",location_msg))
       self.location_pub.publish(location_msg)   
-      # msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads"
+
+      # msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads" # Code to show location of marker- Keep commented unless for debugging purposes
       # cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
       # cv2.putText(frame, '-y  0 rads',(970,50),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
       # cv2.putText(frame, '+y  +-pi rads',(970,1000),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
@@ -162,19 +162,6 @@ class ArucoReader(Node):
           FilteredContours.append(cnt)
           cv2.drawContours(frame,[box],0,(0,0,255),2)
 
-        
-        # if 
-
-        
-        
-    # # draw contours on the original image
-    # image_copy = frame.copy()
-    # cv2.drawContours(image=frame, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
-    # # # see the results
-    # cv2.imshow('None approximation', frame)
-    
-    # #cv2.imwrite('contours_none_image1.jpg', image_copy)
-    # cv2.destroyAllWindows()
     return FilteredContours
     
 
@@ -208,7 +195,7 @@ class ArucoReader(Node):
       
       
 
-      key = cv2.waitKey(1) & 0xFF
+      key = cv2.waitKey(1) & 0xFF # pressing q will quit popup window and close capture
       if key == ord('q'):
         break
 
