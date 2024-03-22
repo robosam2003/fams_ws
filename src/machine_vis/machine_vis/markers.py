@@ -13,6 +13,7 @@ from std_msgs.msg import Float32
 from fams_interfaces.msg import Vision
 from rosidl_runtime_py import *
 import math
+import csv
 
 class ArucoReader(Node):
 
@@ -39,7 +40,7 @@ class ArucoReader(Node):
     distortion = np.array((1.73228514e-02, -7.03010353e-01, -7.57199459e-04,  6.85156948e-02, 8.77224638e-01))
     os.system('v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1')
     os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0')
-
+    
     self.main_loop(aruco_type, intrinsic_camera,distortion)
 
 
@@ -73,7 +74,6 @@ class ArucoReader(Node):
         z = 0
     return np.array([x, y, z])
 
-    
 
   def pose_estimation(self, frame, aruco_dict_type, matrix_coefficients, distortion_coefficients):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -86,6 +86,10 @@ class ArucoReader(Node):
     origin=[0.00649249, -0.01326193,  2.86440854]
     id_msg=[]
     loc_msg=[]
+    ob_id_msg=[]
+    ob_loc_msg=[]
+    anti_ob_flag=[]
+    location_msg=Vision()
     
     if len(corners) > 0:
       for i in range(0, len(ids)):
@@ -93,50 +97,86 @@ class ArucoReader(Node):
         cv2.aruco.drawDetectedMarkers(frame, corners,ids) 
         cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.05)  
         locations=tvec-origin
+
         x=(round(locations[0,0,0],5))
         y=(round(locations[0,0,1],5))
         # z=round(locations[0,0,2],5)
+
         rmat=cv2.Rodrigues(rvec)[0]
         angles=self.rotationMatrixToEulerAngles(rmat)
-        yaw=(angles[2])
-        location_msg=Vision()
-        id_msg.append(int(ids[i,0]))
-        loc_msg.extend([x,y,yaw])
-      
+        yaw=round((angles[2]),4)
+        
+        if ids[i,0] in (0,1):
+          id_msg.append(int(ids[i,0]))
+          loc_msg.extend([x,y,yaw])
+          anti_ob_flag.append(corners[i])
+          
+          
+        if ids[i,0] in (8,9):
+          ob_id_msg.append(int(ids[i,0]))
+          ob_loc_msg.extend([x,y,yaw])
+          a,SizeW,SizeL = self.obstacle_initial()
+          oppositeCorner=x+SizeW[0],y+SizeW[1]
+          print(x,y)
+          print(oppositeCorner)
+          
       location_msg.mobile_robot_id=id_msg
       location_msg.mobile_location=loc_msg
+      location_msg.obstacle_id=ob_id_msg
+      location_msg.obstacle_location=ob_loc_msg
       self.get_logger().info('{}:{}'.format("Publishing",location_msg))
-      self.location_pub.publish(location_msg)
-        
-
-
-        
-
-        # if ids[i]==0:
-        #   location_msg=Vision()
-        #   
-        #   location_msg.physical_location=(x,y,yaw)
-        #   self.location_A_publisher.publish(location_msg)
-        #   self.get_logger().info('{}:{}'.format("Publishing",location_msg))
-        # elif ids[i]==1:
-        #   location_msg=Vision()
-        #   location_msg.mobile_robot_id=1
-        #   location_msg.physical_location=x,y,z
-        #   self.location_B_publisher.publish(location_msg)
-        #   self.get_logger().info('{}:{}'.format("Publishing",location_msg))
-        # elif ids[i]==8:
-        #   centre_location=x,y
-        #   ObstacleSize=[0.5,0.5]
-        #   ObstacleCorners=([])
-          
-
-
-          
-
-        
+      self.location_pub.publish(location_msg)   
+      # msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads"
+      # cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
+      # cv2.putText(frame, '-y  0 rads',(970,50),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.putText(frame, '+y  +-pi rads',(970,1000),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.putText(frame, '-x -pi/2 rads',(20,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.putText(frame, '-x +pi/2 rads',(1800,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.line(frame, (0,540),(1920,540),(255,0,0),1)
+      # cv2.line(frame, (960,0),(960,1080),(255,0,0),1)
     else:
       locations=origin
-    return frame, locations
+    return frame, locations, anti_ob_flag
+
+  def obstacle_detector(self,frame,anti_ob_flag):
+    FilteredContours=[]
+    grey=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    retval,thresh=cv2.threshold(grey,190,255,cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(image=thresh, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
+
+    for cnt in contours:
+      area=cv2.contourArea(cnt)
+      if area > 800:
+        
+        M=cv2.moments(cnt)
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+        # print(cx,cy)
+        rect = cv2.minAreaRect(cnt)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
+        Mark_x=anti_ob_flag[0][0][0][0] # Need to update to work w/ multiple markers
+        Mark_y=anti_ob_flag[0][0][0][1]
+        check=cv2.pointPolygonTest(box,[Mark_x,Mark_y],measureDist=False)
+        if check==-1:
+          FilteredContours.append(cnt)
+          cv2.drawContours(frame,[box],0,(0,0,255),2)
+
+        
+        # if 
+
+        
+        
+    # # draw contours on the original image
+    # image_copy = frame.copy()
+    # cv2.drawContours(image=frame, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+    # # # see the results
+    # cv2.imshow('None approximation', frame)
+    
+    # #cv2.imwrite('contours_none_image1.jpg', image_copy)
+    # cv2.destroyAllWindows()
+    return FilteredContours
+    
 
   def main_loop(self,aruco_type,intrinsic_camera,distortion):
     while self.cap.isOpened():
@@ -146,8 +186,13 @@ class ArucoReader(Node):
       os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
 
       ret, img = self.cap.read()
-      output, location = self.pose_estimation(img, ARUCO_DICT[aruco_type], intrinsic_camera, distortion)
-      cv2.imshow('Estimated Pose', output)
+      output, location, ObFlag = self.pose_estimation(img, ARUCO_DICT[aruco_type], intrinsic_camera, distortion)
+      # cv2.imshow('Estimated Pose', output)
+      FilteredContours= self.obstacle_detector(img,ObFlag)
+      cv2.drawContours(image=img, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+      cv2.imshow('None approximation', img)
+      
+    
 
       if ret == True:
         # Print debugging information to the terminal
@@ -157,8 +202,8 @@ class ArucoReader(Node):
         # The 'cv2_to_imgmsg' method converts an OpenCV
         # image to a ROS image message
         self.br = CvBridge()
-        vid_msg=self.br.cv2_to_imgmsg(output)
-        self.video_publisher.publish(vid_msg)
+        # vid_msg=self.br.cv2_to_imgmsg(output)
+        # self.video_publisher.publish(vid_msg)
         
       
       
@@ -171,11 +216,6 @@ class ArucoReader(Node):
     cv2.destroyAllWindows()
     
 
-
-  
-
-
-
 ARUCO_DICT = {
 	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
 	"DICT_4X4_100": cv2.aruco.DICT_4X4_100,
@@ -184,11 +224,6 @@ ARUCO_DICT = {
 }
 
 
-
-
-    
-
-   
 def main(args=None):
   rclpy.init(args=args)
   aruco_reader = ArucoReader()
