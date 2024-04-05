@@ -41,7 +41,7 @@ Visualization Manager:
     - Class: rviz_default_plugins/Map
       Alpha: 0.7
       Enabled: true
-      Draw Behind: true
+      Draw Behind: false
       Topic:
         Depth: 10
         History Policy: Keep Last
@@ -61,6 +61,18 @@ Visualization Manager:
         Value: /global_costmap/costmap
       Color Scheme: costmap
       Name: Global Costmap
+    - Class: rviz_default_plugins/Map
+      Alpha: 0.7
+      Enabled: true
+      Draw Behind: False
+      Topic:
+        Depth: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Durability Policy: Transient Local
+        Value: /local_costmap/costmap
+      Color Scheme: costmap
+      Name: Local Costmap
     - Class: rviz_default_plugins/Path
       Alpha: 1
       Enabled: true

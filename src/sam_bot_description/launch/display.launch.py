@@ -2,12 +2,14 @@ import launch
 from launch.substitutions import Command, LaunchConfiguration
 import launch_ros
 import os
+from launch.actions import TimerAction
 
 def generate_launch_description():
     pkg_share = launch_ros.substitutions.FindPackageShare(package='sam_bot_description').find('sam_bot_description')
     nav2_bringup_pkg_share = launch_ros.substitutions.FindPackageShare(package='nav2_bringup').find('nav2_bringup')
 
-    nav_launch_file = os.path.join(nav2_bringup_pkg_share, 'launch', 'navigation_launch.py')
+    # nav_launch_file = os.path.join(nav2_bringup_pkg_share, 'launch', 'navigation_launch.py')
+    nav2_custom_launch_file = os.path.join(pkg_share, 'launch', 'nav2_launch.py')
 
     default_model_path = os.path.join(pkg_share, 'src/description/nexus_4wd_mecanum.xacro')
 
@@ -90,16 +92,32 @@ def generate_launch_description():
   
     
 
-    nav2_bringup_launch = launch.actions.IncludeLaunchDescription(
-        launch.launch_description_sources.PythonLaunchDescriptionSource(nav_launch_file),
-        launch_arguments = {
+    # nav2_bringup_launch = launch.actions.TimerAction(
+    #     period=2.0,
+    #     actions=[
+    #         launch.actions.IncludeLaunchDescription(
+    #             launch.launch_description_sources.PythonLaunchDescriptionSource(nav_launch_file),
+    #             launch_arguments={
+    #                 'use_sim_time': 'True',
+    #                 'params_file': nav2_params_file,
+    #                 'autostart': 'True',
+    #                 # 'namespace': 'nexus',
+    #                 'remappings': "/cmd_vel:=/nexus/cmd_vel",
+    #             }.items()
+    #         )
+    #     ]
+    # )
+
+    nav2_custom_launch = launch.actions.IncludeLaunchDescription(
+        launch.launch_description_sources.PythonLaunchDescriptionSource(nav2_custom_launch_file),
+        launch_arguments={
             'use_sim_time': 'True',
             'params_file': nav2_params_file,
             'autostart': 'True',
-            # 'namespace': 'nexus',
             'remappings': "/cmd_vel:=/nexus/cmd_vel",
         }.items()
     )
+
 
 
         
@@ -120,7 +138,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(name="tf_broadcast", default_value="True",
                                              description="whether to publush tf in this namespace or not"),
         # launch.actions.ExecuteProcess(cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world_path], output='screen'),
-        launch.actions.ExecuteProcess(cmd=['ros2', 'run', 'nav2_util', 'lifecycle_bringup', 'map_server']),
+        # launch.actions.ExecuteProcess(cmd=['ros2', 'run', 'nav2_util', 'lifecycle_bringup', 'map_server']),
         joint_state_publisher_node, # Commented out because gazebo plugin publishes joint states
         # joint_state_publisher_gui_node, # Commented out for Gazebo simulation
         robot_state_publisher_node,
@@ -129,5 +147,5 @@ def generate_launch_description():
         sam_bot_node,
         # robot_localization_node,
         rviz_node,
-        nav2_bringup_launch,
+        nav2_custom_launch,
     ])

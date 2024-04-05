@@ -50,10 +50,11 @@ def generate_launch_description():
         arguments=['-d', LaunchConfiguration('rvizconfig')],
     )
 
+
+    # This is just a simulation thing for now, in reality, every robot will publish it's own tf
     tf_broadcaster = launch_ros.actions.Node(
         package='tf_broadcast',
         executable='map_odom_publisher',
-        # namespace='nexus',
         output='screen'
     )
 
