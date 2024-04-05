@@ -21,7 +21,16 @@ def generate_launch_description():
     default_rviz_config_path = os.path.join(sam_bot_description_pkg_share, 'rviz/urdf_config.rviz')
 
     sam_bot_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(sam_bot_launch_file)
+        PythonLaunchDescriptionSource(sam_bot_launch_file),
+        launch_arguments={
+            'robot_name': 'nexus1'
+        }.items()
+    )
+    sam_bot_launch2 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(sam_bot_launch_file),
+        launch_arguments={
+            'robot_name': 'nexus2'
+        }.items()
     )
     
     mover6_launch = IncludeLaunchDescription(
@@ -65,6 +74,7 @@ def generate_launch_description():
                                             description='Flag to enable use_sim_time'),
         tf_broadcaster,
         sam_bot_launch,
+        sam_bot_launch2,
         mover6_launch,
         rviz_node,
     ])

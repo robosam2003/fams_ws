@@ -22,9 +22,17 @@ class SamBot(Node):
     def __init__(self):
         # Call the constructor of the parent class
         super().__init__('sam_bot')
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('robot_name', 'nexus'),
+            ]
+        )
+
+        robot_name = self.get_parameter('robot_name').value # Get the name of the robot from the parameter server
 
         # Create a publisher that publishes the joint states of the SAM_BOT
-        self.wheel_states_publisher = self.create_publisher(JointState, 'sam_bot_wheel_states', 10)
+        self.wheel_states_publisher = self.create_publisher(JointState, 'wheel_states', 10)
 
         # Create an aruco_tf publisher
         self.aruco_tf_publisher = self.create_publisher(Point,
@@ -32,7 +40,7 @@ class SamBot(Node):
                                                         10)
 
         # Create a subscriber that subscribes to the cmd_vel topic
-        self.cmd_vel_subscription = self.create_subscription(Twist, '/cmd_vel', self.cmd_vel_callback, 10)
+        self.cmd_vel_subscription = self.create_subscription(Twist, 'cmd_vel', self.cmd_vel_callback, 10)
         
 
         # Initialize the joint states

@@ -1,23 +1,33 @@
 import launch
 from launch.substitutions import Command, LaunchConfiguration
+from launch.actions import DeclareLaunchArgument
 import launch_ros
 import os
+from launch.actions import (
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    GroupAction,
+    IncludeLaunchDescription,
+    LogInfo,
+    OpaqueFunction,
+)
 
-def generate_launch_description():
+def setup_launch(context, *args, **kwargs):
     pkg_share = launch_ros.substitutions.FindPackageShare(package='sam_bot_description').find('sam_bot_description')
     configured_params = os.path.join(pkg_share, 'config', 'nav2_params.yaml')
 
+    remap = LaunchConfiguration('remap')
+
+    remap_str = str(remap.perform(context))
+
     use_respawn = False
-    remappings = [('/tf', 'tf'),
-                ('/tf_static', 'tf_static')]
-
-
     map_server = launch_ros.actions.Node(
         package='nav2_map_server',
         executable='map_server',
         name='map_server',
         parameters=[configured_params],
     )
+
     controller = launch_ros.actions.Node(
                 package='nav2_controller',
                 executable='controller_server',
@@ -25,7 +35,8 @@ def generate_launch_description():
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
-                remappings=remappings)
+                remappings=[('/cmd_vel', remap_str)]
+    )
     smoother = launch_ros.actions.Node(
                 package='nav2_smoother',
                 executable='smoother_server',
@@ -34,7 +45,7 @@ def generate_launch_description():
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
-                remappings=remappings)
+    )
     planner = launch_ros.actions.Node(
                 package='nav2_planner',
                 executable='planner_server',
@@ -43,7 +54,7 @@ def generate_launch_description():
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
-                remappings=remappings)
+    )
     behaviours = launch_ros.actions.Node(
                 package='nav2_behaviors',
                 executable='behavior_server',
@@ -52,7 +63,9 @@ def generate_launch_description():
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
-                remappings=remappings)
+                remappings=[('/cmd_vel', remap_str)]
+
+    )
     navigator = launch_ros.actions.Node(
                 package='nav2_bt_navigator',
                 executable='bt_navigator',
@@ -61,7 +74,7 @@ def generate_launch_description():
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
-                remappings=remappings)
+    )
     waypoint_follower = launch_ros.actions.Node(
                 package='nav2_waypoint_follower',
                 executable='waypoint_follower',
@@ -70,7 +83,7 @@ def generate_launch_description():
                 respawn=use_respawn,
                 respawn_delay=2.0,
                 parameters=[configured_params],
-                remappings=remappings)
+    )
 
     lifecycle_nodes = ['map_server',
                        'controller_server',
@@ -89,8 +102,7 @@ def generate_launch_description():
                             {'autostart': True},
                             {'node_names': lifecycle_nodes}
                             ])
-
-    return launch.LaunchDescription([
+    return [
         map_server,
         controller,
         smoother,
@@ -98,6 +110,17 @@ def generate_launch_description():
         behaviours,
         navigator,
         waypoint_follower,
-        #velocity_smoother,
         lifecycle_manager
+    
+    ]
+
+def generate_launch_description():
+
+    return launch.LaunchDescription([
+        DeclareLaunchArgument(
+            'remap',
+            # default_value must be iterable
+            default_value="/sam_bot/cmd_vel",
+            description='List of topics to remap'),
+        OpaqueFunction(function=setup_launch)
     ])
