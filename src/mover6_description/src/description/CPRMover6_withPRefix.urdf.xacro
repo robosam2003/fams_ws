@@ -1,0 +1,265 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="CPRMover6" params="prexix">
+
+<!-- URDF file for the Commonplace Robotics Mover6 robot arm, version 2016 -->
+<!-- Version 1.2 from Sept. 19th, 2016. Gripper joints added. -->
+  
+  <link name="${prefix}_base_link">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint0.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint0Coll.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+ <link name="${prefix}_geoJoint1">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint1.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint1Coll.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+ <link name="${prefix}_geoJoint2">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint2.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint2Coll.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+ <link name="${prefix}_geoJoint3">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint3.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint3Coll.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+ <link name="${prefix}_geoJoint4">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint4.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint4Coll.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+ <link name="${prefix}_geoJoint5">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint5.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint5Coll.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+ <link name="${prefix}_geoJoint6">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint6.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/Joint6Coll.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+<link name="${prefix}_gripperBody">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/GripperBase.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/GripperBaseColl.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+<link name="${prefix}_gripperFinger1">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/GripperFinger.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/GripperFingerColl.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+<link name="${prefix}_gripperFinger2">
+    <visual>
+	<origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+	<mesh filename="package://mover6_description/src/description/GeometryCPRMover6/GripperFinger.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 0.8"/>
+      </material>
+    </visual>
+ <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://mover6_description/src/description/GeometryCPRMover6/GripperFingerColl.obj" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+
+
+
+
+
+<joint name="${prefix}_Joint0" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="${prefix}_base_link"/>
+    <child link="${prefix}_geoJoint1"/>
+    <origin rpy="0 0 0" xyz="0 0 0.130"/>
+    <limit effort="100" velocity="30"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+<joint name="${prefix}_Joint1" type="continuous">
+    <axis xyz="0 1 0"/>
+    <parent link="${prefix}_geoJoint1"/>
+    <child link="${prefix}_geoJoint2"/>
+    <origin rpy="0 0 0" xyz="0 0 0.0625"/>
+    <limit effort="100" velocity="100"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+
+<joint name="${prefix}_Joint2" type="continuous">
+    <axis xyz="0 1 0"/>
+    <parent link="${prefix}_geoJoint2"/>
+    <child link="${prefix}_geoJoint3"/>
+    <origin rpy="0 1.57 0" xyz="0 0 0.19"/>
+    <limit effort="100" velocity="100"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+ <joint name="${prefix}_Joint3" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="${prefix}_geoJoint3"/>
+    <child link="${prefix}_geoJoint4"/>
+    <origin rpy="0 0 0" xyz="-0.064 0 0"/>
+    <limit effort="100" velocity="100"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+<joint name="${prefix}_Joint4" type="continuous">
+    <axis xyz="0 1 0"/>
+    <parent link="${prefix}_geoJoint4"/>
+    <child link="${prefix}_geoJoint5"/>
+    <origin rpy="0 0 0" xyz="0 0 0.251"/>
+    <limit effort="100" velocity="100"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+<joint name="${prefix}_Joint5" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="${prefix}_geoJoint5"/>
+    <child link="${prefix}_geoJoint6"/>
+    <origin rpy="0 0 0" xyz="0.0 0 0.065"/>
+    <limit effort="100" velocity="100"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+
+<joint name="${prefix}_GripperFixed" type="fixed">
+    <parent link="${prefix}_geoJoint6"/>
+    <child link="${prefix}_gripperBody"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+<joint name="${prefix}_Gripper1" type="continuous">
+    <axis xyz="1 0 0"/>
+    <parent link="${prefix}_gripperBody"/>
+    <child link="${prefix}_gripperFinger1"/>
+    <origin rpy="0 0 3.141" xyz="0.0 0.01 0.03"/>
+    <limit effort="100" velocity="100"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+<joint name="${prefix}_Gripper2" type="continuous">
+    <axis xyz="1 0 0"/>
+    <parent link="${prefix}_gripperBody"/>
+    <child link="${prefix}_gripperFinger2"/>
+     <origin rpy="0 0 0" xyz="0.0 -0.01 0.03"/>
+    <limit effort="100" velocity="100"/>
+    <joint_properties damping="0.0" friction="0.0"/>
+  </joint>
+
+</robot>
+
