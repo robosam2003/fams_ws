@@ -8,9 +8,9 @@ def generate_launch_description():
     configured_params = os.path.join(pkg_share, 'config', 'nav2_params.yaml')
 
     use_respawn = False
-    use_sim_time = False
     remappings = [('/tf', 'tf'),
-                    ('/tf_static', 'tf_static')]
+                ('/tf_static', 'tf_static')]
+
 
     map_server = launch_ros.actions.Node(
         package='nav2_map_server',
@@ -18,8 +18,6 @@ def generate_launch_description():
         name='map_server',
         parameters=[configured_params],
     )
-
-
     controller = launch_ros.actions.Node(
                 package='nav2_controller',
                 executable='controller_server',
@@ -73,17 +71,6 @@ def generate_launch_description():
                 respawn_delay=2.0,
                 parameters=[configured_params],
                 remappings=remappings)
-    #velocity_smoother = launch_ros.actions.Node(
-    #            package='nav2_velocity_smoother',
-    #            executable='velocity_smoother',
-    #            name='velocity_smoother',
-    #            output='screen',
-    #            respawn=use_respawn,
-    #            respawn_delay=2.0,
-    #            parameters=[configured_params],
-    #            remappings=remappings +
-    #                       [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')])
-
 
     lifecycle_nodes = ['map_server',
                        'controller_server',
@@ -99,7 +86,6 @@ def generate_launch_description():
                 name='lifecycle_manager_navigation',
                 output='screen',
                 parameters=[
-                            #{'use_sim_time': use_sim_time},
                             {'autostart': True},
                             {'node_names': lifecycle_nodes}
                             ])

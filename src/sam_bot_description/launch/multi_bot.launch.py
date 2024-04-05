@@ -13,7 +13,7 @@ colcon build --symlink-install --packages-select mover6 mover6_description sam_b
 
 def generate_launch_description():
     sam_bot_description_pkg_share = launch_ros.substitutions.FindPackageShare(package='sam_bot_description').find('sam_bot_description')
-    sam_bot_launch_file = os.path.join(sam_bot_description_pkg_share, 'launch', 'display.launch.py')
+    sam_bot_launch_file = os.path.join(sam_bot_description_pkg_share, 'launch', 'single_amr_launch.py')
 
     mover6_pkg_share = launch_ros.substitutions.FindPackageShare(package='mover6_description').find('mover6_description')
     mover6_launch_file = os.path.join(mover6_pkg_share, 'launch', 'mover6_launch.py')

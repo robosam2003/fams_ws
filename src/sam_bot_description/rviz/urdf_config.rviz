@@ -139,7 +139,6 @@ Visualization Manager:
     - Class: rviz_default_plugins/SetInitialPose
     - Class: rviz_default_plugins/SetGoal
     - Class: rviz_default_plugins/PublishPoint
-
       Line color: 128; 128; 0
   Transformation:
     Current:
