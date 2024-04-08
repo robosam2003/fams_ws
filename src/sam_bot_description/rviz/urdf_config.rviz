@@ -19,6 +19,7 @@ Visualization Manager:
       Color: 160; 160; 164
       Enabled: true
       Name: Grid
+    # Nexus Robot Models
     - Class: rviz_default_plugins/RobotModel
       Alpha: 0.6
       Description Topic:
@@ -26,11 +27,25 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: nexus/robot_description
-      TF Prefix: nexus
+        Value: nexus1/robot_description
+      TF Prefix: nexus1
       Enabled: true
-      Name: NexusModel
+      Name: Nexus1Model
       Visual Enabled: true
+    - Class: rviz_default_plugins/RobotModel
+      Alpha: 0.6
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nexus2/robot_description
+      TF Prefix: nexus2
+      Enabled: true
+      Name: Nexus2Model
+      Visual Enabled: true
+
+    # TF
     - Class: rviz_default_plugins/TF
       Enabled: true
       Name: TF
@@ -38,6 +53,8 @@ Visualization Manager:
       Show Arrows: true
       Show Axes: true
       Show Names: false
+    
+    # Map
     - Class: rviz_default_plugins/Map
       Alpha: 0.7
       Enabled: true
@@ -49,6 +66,8 @@ Visualization Manager:
         Durability Policy: Transient Local
         Value: map
       Name: Map
+
+    # Global Costmap
     - Class: rviz_default_plugins/Map
       Alpha: 0.7
       Enabled: true
@@ -58,9 +77,11 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Durability Policy: Transient Local
-        Value: /global_costmap/costmap
+        Value: nexus1/global_costmap/costmap
       Color Scheme: costmap
       Name: Global Costmap
+
+    # Local Costmaps
     - Class: rviz_default_plugins/Map
       Alpha: 0.7
       Enabled: true
@@ -70,59 +91,110 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Durability Policy: Transient Local
-        Value: /local_costmap/costmap
+        Value: nexus1/local_costmap/costmap
       Color Scheme: costmap
-      Name: Local Costmap
+      Name: Nexus1 Local Costmap
+    - Class: rviz_default_plugins/Map
+      Alpha: 0.7
+      Enabled: true
+      Draw Behind: False
+      Topic:
+        Depth: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Durability Policy: Transient Local
+        Value: nexus2/local_costmap/costmap
+      Color Scheme: costmap
+      Name: Nexus2 Local Costmap
+
+    # Plans
     - Class: rviz_default_plugins/Path
       Alpha: 1
       Enabled: true
       Topic:
-        Value: /plan
-      Name: Plan
+        Value: /nexus1/plan
+      Name: Nexus1 Plan
     - Class: rviz_default_plugins/Path
+      Alpha: 1
+      Enabled: true
+      Topic:
+        Value: /nexus2/plan
+      Name: Nexus2 Plan
+
+    # Local Plans
+    - Class: rviz_default_plugins/Path
+      Name: Nexus1 Local_Plan
       Alpha: 1
       Enabled: true
       Color: 28; 113; 216
       Topic:
-        Value: /local_plan
-      Name: Local_Plan
+        Value: /nexus1/local_plan
+    - Class: rviz_default_plugins/Path
+      Name: Nexus2 Local_Plan
+      Alpha: 1
+      Enabled: true
+      Color: 28; 113; 216
+      Topic:
+        Value: /nexus1/local_plan
+
+    # Footprints
     - Class: rviz_default_plugins/Polygon
       Alpha: 1
       Enabled: true
       Topic:
-        Value: local_costmap/published_footprint
-      Name: Robot Footprint
+        Value: /nexus1/local_costmap/published_footprint
+      Name: Nexus1 Robot Footprint
+    - Class: rviz_default_plugins/Polygon
+      Alpha: 1
+      Enabled: true
+      Topic:
+        Value: /nexus2/local_costmap/published_footprint
+      Name: Nexus2 Robot Footprint
+    
+    # Nexus Goal Pose
     - Class: rviz_default_plugins/Pose
       Alpha: 1
       Enabled: true
       Shaft Length: 0.5
       Head Length: 0.15
       Topic:
-        Value: /goal_pose
-      Name: Goal Pose
-    - Class: rviz_default_plugins/RobotModel
-      Alpha: 0.6
-      Description Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: mover6/robot_description
-      TF Prefix: mover6
-      Enabled: true
-      Name: Mover6Model
-      Visual Enabled: true
+        Value: nexus1/goal_pose
+      Name: Nexus1 Goal Pose
     - Class: rviz_default_plugins/Pose
       Alpha: 1
       Enabled: true
-      Shape: Arrow
-      Shaft Length: 0.1
-      Shaft Radius: 0.02
-      Head Length: 0.05
-      Head Radius: 0.05
+      Shaft Length: 0.5
+      Head Length: 0.15
       Topic:
-        Value: /mover6/mover6_target_position
-      Name: Goal Pose
+        Value: nexus2/goal_pose
+      Name: Nexus2 Goal Pose
+
+    # MOVER6
+    # - Class: rviz_default_plugins/RobotModel
+    #   Alpha: 0.6
+    #   Description Topic:
+    #     Depth: 5
+    #     Durability Policy: Volatile
+    #     History Policy: Keep Last
+    #     Reliability Policy: Reliable
+    #     Value: mover6/robot_description
+    #   TF Prefix: mover6
+    #   Enabled: true
+    #   Name: Mover6Model
+    #   Visual Enabled: true
+    # - Class: rviz_default_plugins/Pose
+    #   Alpha: 1
+    #   Enabled: true
+    #   Shape: Arrow
+    #   Shaft Length: 0.1
+    #   Shaft Radius: 0.02
+    #   Head Length: 0.05
+    #   Head Radius: 0.05
+    #   Topic:
+    #     Value: /mover6/mover6_target_position
+    #   Name: Goal Pose
+
+  
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -138,6 +210,11 @@ Visualization Manager:
     - Class: rviz_default_plugins/Measure
     - Class: rviz_default_plugins/SetInitialPose
     - Class: rviz_default_plugins/SetGoal
+      Text: Nexus1 Goal Pose
+      Topic: /nexus1/goal_pose
+    - Class: rviz_default_plugins/SetGoal
+      Text: Nexus2 Goal Pose
+      Topic: /nexus2/goal_pose
     - Class: rviz_default_plugins/PublishPoint
       Line color: 128; 128; 0
   Transformation:

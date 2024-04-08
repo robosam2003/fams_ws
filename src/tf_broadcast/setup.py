@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'map_odom_publisher = tf_broadcast.tf_broadcast:main',
+            'tf_broadcaster = tf_broadcast.tf_broadcast:main',
         ],
     },
 )

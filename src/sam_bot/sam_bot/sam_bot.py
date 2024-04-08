@@ -28,7 +28,7 @@ class SamBot(Node):
                 ('robot_name', 'nexus'),
             ]
         )
-
+    
         robot_name = self.get_parameter('robot_name').value # Get the name of the robot from the parameter server
 
         # Create a publisher that publishes the joint states of the SAM_BOT
@@ -117,7 +117,7 @@ class SamBot(Node):
         # Update the initial time
         self.initial_time = current_time
 
-        self.get_logger().info('Robot position: x = %f, y = %f, yaw = %f' % (self.robot_pos_xy_yaw[0], self.robot_pos_xy_yaw[1], self.robot_pos_xy_yaw[2]))
+        # self.get_logger().info('Robot position: x = %f, y = %f, yaw = %f' % (self.robot_pos_xy_yaw[0], self.robot_pos_xy_yaw[1], self.robot_pos_xy_yaw[2]))
 
         aruco = Point()
         aruco.x = float(self.robot_pos_xy_yaw[0])

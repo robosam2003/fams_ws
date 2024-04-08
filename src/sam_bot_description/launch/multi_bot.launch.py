@@ -20,36 +20,27 @@ def generate_launch_description():
 
     default_rviz_config_path = os.path.join(sam_bot_description_pkg_share, 'rviz/urdf_config.rviz')
 
-    sam_bot_launch = IncludeLaunchDescription(
+
+
+    sam_bot_launch1 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(sam_bot_launch_file),
         launch_arguments={
-            'robot_name': 'nexus1'
+            'robot_name': 'nexus1',
+            'initial_base_link_pos': "0.0 0.0 0.0"
         }.items()
     )
     sam_bot_launch2 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(sam_bot_launch_file),
         launch_arguments={
-            'robot_name': 'nexus2'
+            'robot_name': 'nexus2',
+            'initial_base_link_pos': "0.0 -1.0 0.0"
         }.items()
     )
     
-    mover6_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(mover6_launch_file),
-    )
-
-    # sam_bot_launch_with_namespace = launch.actions.GroupAction(
-    #     actions=[
-    #         PushRosNamespace('nexus'),
-    #         sam_bot_launch,
-    #     ]
+    # mover6_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(mover6_launch_file),
     # )
 
-    # mover6_launch_with_namespace = launch.actions.GroupAction(
-    #     actions=[
-    #         PushRosNamespace('mover6'),
-    #         mover6_launch,
-    #     ]
-    # )
       
     rviz_node = launch_ros.actions.Node(
         package='rviz2',
@@ -60,21 +51,20 @@ def generate_launch_description():
     )
 
 
-    # This is just a simulation thing for now, in reality, every robot will publish it's own tf
-    tf_broadcaster = launch_ros.actions.Node(
-        package='tf_broadcast',
-        executable='map_odom_publisher',
-        output='screen'
-    )
+    # # This is just a simulation thing for now, in reality, every robot will publish it's own tf
+    # tf_broadcaster = launch_ros.actions.Node(
+    #     package='tf_broadcast',
+    #     executable='map_odom_publisher',
+    #     output='screen'
+    # )
 
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(name='rvizconfig', default_value=default_rviz_config_path,
                                             description='Absolute path to rviz config file'),
         launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True',
                                             description='Flag to enable use_sim_time'),
-        tf_broadcaster,
-        sam_bot_launch,
+        sam_bot_launch1,
         sam_bot_launch2,
-        mover6_launch,
+        # mover6_launch,
         rviz_node,
     ])

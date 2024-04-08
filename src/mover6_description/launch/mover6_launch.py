@@ -34,7 +34,6 @@ def generate_launch_description():
         name='mover6_joint_state_publisher',
         # arguments=[default_model_path],
         namespace='mover6',
-
         # remappings=[('/joint_states', 'mover6/joint_states')],
         parameters=[{'source_list': ['mover6_joint_states']},
                     {'robot_description': Command(['xacro ', default_model_path])}],
