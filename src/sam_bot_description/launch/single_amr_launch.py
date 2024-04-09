@@ -29,11 +29,14 @@ def launch_setup(context: LaunchContext):
 
     # Get the last number in the robot_name string
     robot_number = int(robot_name_str[-1])
+    other_nexus_number = 1 if robot_number == 2 else 2
 
     nav2_params_file = ReplaceString(
-            source_file=nav2_params_file,
-            replacements={'<namespace>': robot_name_str}
-        )
+        source_file=nav2_params_file,
+        replacements={'<namespace>': robot_name_str,
+                        '<other_nexus>': 'nexus' + str(other_nexus_number)}
+
+    )
 
     robot_type = 'sam_bot'
     

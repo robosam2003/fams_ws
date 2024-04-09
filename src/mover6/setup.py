@@ -26,7 +26,6 @@ setup(
     entry_points={
         'console_scripts': [
             'mover6 = mover6.mover6:main',
-            'mover6_control_test = mover6.control_test:main',
             'mover6_control_gui = mover6.controllerNode:main',
         ],
     },

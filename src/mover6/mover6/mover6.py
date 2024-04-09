@@ -5,6 +5,15 @@ import rclpy
 from rclpy.node import Node
 import subprocess
 from fams_interfaces.msg import Mover6Control
+import ikpy.chain
+import numpy as np
+import ikpy.utils.plot as plot_utils
+
+from sensor_msgs.msg import JointState
+from geometry_msgs.msg import Point, PoseStamped, Pose
+import matplotlib.pyplot
+from mpl_toolkits.mplot3d import Axes3D
+
 
 """
 Before running this program, run: 
@@ -14,11 +23,6 @@ Before running this program, run:
 
 """
 
-def _get_message(msg):
-    print("Received: ", msg)
-    return msg
- 
-    
 
 class mover6(Node):
     # CONSTANTS
@@ -55,6 +59,9 @@ class mover6(Node):
         # Node init
         super().__init__('mover6')
 
+        self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
+        self.target_pose = [0.2, 0.0, 0.3]
+
         # Setup robot joint state publisher subscription
         self.joint_positions_subscription = self.create_subscription(
             Mover6Control,
@@ -64,11 +71,12 @@ class mover6(Node):
         )
 
         # Setup robot joint state publisher
-        self.joint_positions_publisher = self.create_publisher(
-            Mover6Control,
+        self.joint_states_publisher = self.create_publisher(
+            JointState,
             'mover6_state',
             10
         )
+
 
         # 1. Initialise the CAN bus and the joints
         self.can_bus = PCanBus.PCanBus()
@@ -85,7 +93,7 @@ class mover6(Node):
         # Setup a timer to run the main loop
         self.max_joint = 6
         self.setup()
-        timer = self.create_timer(0.05, self.main_loop)  # 20Hz
+        self.timer = self.create_timer(0.05, self.main_loop)  # 20Hz
 
         # self.main_loop()
 
@@ -153,7 +161,7 @@ class mover6(Node):
         # Publish the joint positions
         msg = Mover6Control()   
         msg.joint_angles = [float(j.current_position_deg) for j in self.joints]
-        self.joint_positions_publisher.publish(msg)
+        self.joint_states_publisher.publish(msg)
 
 
     def mover6_control_callback(self, msg):
