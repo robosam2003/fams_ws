@@ -125,13 +125,14 @@ class InterfaceNode(Node):
         )
         self.joint_states = JointState()
         self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5']
+        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def zeroAxisButtonHandler(self, joint_no):
         msg = Mover6Control()
         msg.command = "ZERO"
         msg.joint_no = int(joint_no)
         self.joint_states.position[joint_no-1] = 0 
-        msg.joint_angles = [float(a) for a in self.joint_angles]
+        msg.joint_angles = [float(a) for a in self.joint_states.position]
         self.joint_control_publisher.publish(msg)
 
     
@@ -150,7 +151,7 @@ class InterfaceNode(Node):
         
         msg.joint_angles = [float(a) for a in joint_angles]
         msg.joint_angles[joint_no-1] = angle
-        self.joint_states.position = msg.joint_angles
+        self.joint_states.position = [float(a) for a in msg.joint_angles]
         self.joint_control_publisher.publish(msg)
 
     def gripperButtonHandler(self):
@@ -164,8 +165,9 @@ class InterfaceNode(Node):
         self.joint_control_publisher.publish(msg)
 
     def joint_positions_callback(self, msg):
+        self.joint_states = msg
         angles = msg.position
-        self.joint_states.position = angles
+        
 
         # self.joint_angles = angles
         self.interface.axis1PositionLabel.setText(str(angles[0]))
