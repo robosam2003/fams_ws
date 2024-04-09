@@ -73,7 +73,7 @@ class mover6(Node):
         # Setup robot joint state publisher
         self.joint_states_publisher = self.create_publisher(
             JointState,
-            'mover6_state',
+            'mover6_joint_states',
             10
         )
 
@@ -96,6 +96,13 @@ class mover6(Node):
         self.timer = self.create_timer(0.05, self.main_loop)  # 20Hz
 
         # self.main_loop()
+        # Initialise the joint states
+        self.joint_states = JointState()
+        self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5']
+        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+        
 
     def setup(self):   
         # =======================================
@@ -159,9 +166,8 @@ class mover6(Node):
             # print("Joint", joint, "is at position: ", j.current_position_deg, " degrees")
             time.sleep(2/1000) 
         # Publish the joint positions
-        msg = Mover6Control()   
-        msg.joint_angles = [float(j.current_position_deg) for j in self.joints]
-        self.joint_states_publisher.publish(msg)
+        self.joint_states.position = [float(j.current_position_deg) for j in self.joints] # convert to radians
+        self.joint_states_publisher.publish(self.joint_states)
 
 
     def mover6_control_callback(self, msg):

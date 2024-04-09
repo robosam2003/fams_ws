@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication
 from rclpy.executors import MultiThreadedExecutor
 
 from fams_interfaces.msg import Mover6Control
+from sensor_msgs.msg import JointState
 
 
 # Interface class for the GUI
@@ -111,44 +112,46 @@ class InterfaceNode(Node):
 
         # Add subscription and publishers
         self.joint_positions_subscription = self.create_subscription(
-            Mover6Control,
-            'mover6_state',
+            JointState,
+            'mover6_joint_states',
             self.joint_positions_callback,
             10
         )
 
-        self.joint_positions_publisher = self.create_publisher(
+        self.joint_control_publisher = self.create_publisher(
             Mover6Control,
             'mover6_control',
             10
         )
-        self.joint_angles = [0, 0, 0, 0, 0, 0]
+        self.joint_states = JointState()
+        self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5']
 
     def zeroAxisButtonHandler(self, joint_no):
         msg = Mover6Control()
         msg.command = "ZERO"
         msg.joint_no = int(joint_no)
-        self.joint_angles[joint_no-1] = 0# if joint_no < 5 else 32000
+        self.joint_states.position[joint_no-1] = 0 
         msg.joint_angles = [float(a) for a in self.joint_angles]
-        self.joint_positions_publisher.publish(msg)
+        self.joint_control_publisher.publish(msg)
 
     
     def axisButtonHandler(self, joint_no, direction):
         # Jog the joint in the given direction
         msg = Mover6Control()
-        angle = float(self.joint_angles[joint_no-1])
+        joint_angles = self.joint_states.position
+        angle = float(joint_angles[joint_no-1])
         if direction == True: # True is up
-            angle = self.joint_angles[joint_no-1]
+            angle = joint_angles[joint_no-1]
             angle += 1
         else:
-            angle = self.joint_angles[joint_no-1] # 5 degrees jog
+            angle = joint_angles[joint_no-1]
             angle -= 1
 
         
-        msg.joint_angles = [float(a) for a in self.joint_angles]
+        msg.joint_angles = [float(a) for a in joint_angles]
         msg.joint_angles[joint_no-1] = angle
-        self.joint_angles = msg.joint_angles
-        self.joint_positions_publisher.publish(msg)
+        self.joint_states.position = msg.joint_angles
+        self.joint_control_publisher.publish(msg)
 
     def gripperButtonHandler(self):
         self.gripper_state = not self.gripper_state # toggle the gripper state
@@ -158,10 +161,12 @@ class InterfaceNode(Node):
             msg.command = "GRIPPER OPEN"
         else:
             msg.command = "GRIPPER CLOSED"
-        self.joint_positions_publisher.publish(msg)
+        self.joint_control_publisher.publish(msg)
 
     def joint_positions_callback(self, msg):
-        angles = msg.joint_angles
+        angles = msg.position
+        self.joint_states.position = angles
+
         # self.joint_angles = angles
         self.interface.axis1PositionLabel.setText(str(angles[0]))
         self.interface.axis2PositionLabel.setText(str(angles[1]))
