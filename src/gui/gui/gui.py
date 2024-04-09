@@ -168,6 +168,7 @@ class InterfaceNode(Node):
         self.subscription = self.create_subscription(
             JobList,
             'active_jobs',
+            self.jobList_callback,
             10
         )
       
@@ -213,6 +214,9 @@ class InterfaceNode(Node):
         
 
         # When the window is closed, destroy the node and stop the application
+
+    def jobList_callback(self, msg: JobList):
+        self.get_logger().info(str(msg))
 
     def start(self):
         #self.interface.label.setText('Generating and publishing a job message...')
