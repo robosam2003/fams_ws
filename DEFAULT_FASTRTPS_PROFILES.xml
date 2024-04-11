@@ -1,44 +1,92 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<profiles>
-    <participant profile_name="participant_robosam" is_default_profile="true">
+<!-- <?xml version="1.0" encoding="UTF-8" ?>
+<dds xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+    <profiles>
+        <participant profile_name="participant_profile" is_default_profile="true">
+            <domainId>0</domainId>
+            <rtps>
+                <builtin>
+                    <metatrafficUnicastLocatorList>
+                        <locator>
+                            <udpv4>
+                                <address>172.30.58.232</address>
+                            </udpv4>
+                        </locator>
+                        <locator>
+                            <udpv4>
+                                <address>143.167.46.22</address>
+                            </udpv4>
+                        </locator>
+                        <locator>
+                            <udpv4> 
+                                <address>172.30.58.176</address>
+                            </udpv4>
+                        </locator>
+                        <locator>
+                            <udpv4>
+                                <address>172.30.58.222</address>
+                            </udpv4>
+                        </locator>
+                        <locator>
+                            <udpv4>
+                                <address>143.167.228.36</address>
+                            </udpv4>
+                        </locator>
+                        <locator>
+                            <udpv4>
+                                <address>192.168.22.183</address>
+                            </udpv4>
+                        </locator>
+                    </metatrafficUnicastLocatorList> <!-- Add this closing tag -->
+                </builtin>
+            </rtps>
+        </participant>
+    </profiles>
+</dds>
+           
+
+<!--     
+    
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+    <participant profile_name="participant_profile">
         <rtps>
             <builtin>
                 <metatrafficUnicastLocatorList>
-                     <locator/>
+                    <locator/>
                 </metatrafficUnicastLocatorList>
-                 <initialPeersList>
-                     <locator>
-                         <udpv4>
-                         <address>172.30.58.232</address>
-                         </udpv4>
-                     </locator>
-                     <locator>
-                         <udpv4>
-                         <address>143.167.46.22</address>
-                         </udpv4>
-                     </locator>
-                     <locator>
-                         <udpv4> 
-                         <address>172.30.58.176</address>
-                         </udpv4>
-                     </locator>
-                     <locator>
-                         <udpv4>
-                         <address>172.30.58.222</address>
-                         </udpv4>
-                     </locator>
-                     <locator>
-                         <udpv4>
-                         <address>143.167.228.36</address>
-                         </udpv4>
-                     </locator>
-                     <locator>
-                         <udpv4>
-                         <address>192.168.22.183</address>
+                <!-- <use_simple_rtps_pdp>"false"</use_simple_rtps_pdp> -->
+                <initialPeersList>
+                    <locator>
+                        <udpv4>
+                        <address>172.30.58.232</address>
                         </udpv4>
                     </locator>
-                 </initialPeersList>
+                    <locator>
+                        <udpv4>
+                        <address>143.167.46.22</address>
+                        </udpv4>
+                    </locator>
+                    <locator>
+                        <udpv4> 
+                        <address>172.30.58.176</address>
+                        </udpv4>
+                    </locator>
+                    <locator>
+                        <udpv4>
+                        <address>172.30.58.222</address>
+                        </udpv4>
+                    </locator>
+                    <locator>
+                        <udpv4>
+                        <address>143.167.228.36</address>
+                        </udpv4>
+                    </locator>
+                    <locator>
+                        <udpv4>
+                        <address>192.168.22.183</address>
+                    </udpv4>
+                </locator>
+                </initialPeersList>
              </builtin>
          </rtps>
      </participant>
-</profiles> 
+</profiles>  --> -->
