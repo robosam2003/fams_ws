@@ -40,8 +40,12 @@ class ArucoReader(Node):
     aruco_type = "DICT_4X4_100" #Is looking for 4x4 only
 
     # Camera coeffiecents from Calibration
-    intrinsic_camera = np.array(((1.51676623e+03,0,9.58518895e+02),(0, 1.59055282e+03, 5.44395560e+02),(0,0,1)))
-    distortion = np.array((1.73228514e-02, -7.03010353e-01, -7.57199459e-04,  6.85156948e-02, 8.77224638e-01))
+    # intrinsic_camera = np.array(((1.51676623e+03,0,9.58518895e+02),(0, 1.59055282e+03, 5.44395560e+02),(0,0,1)))
+    # distortion = np.array((1.73228514e-02, -7.03010353e-01, -7.57199459e-04,  6.85156948e-02, 8.77224638e-01))
+
+    intrinsic_camera = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
+    distortion = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,
+   1.36994424e+01))
     
     self.main_loop(aruco_type, intrinsic_camera,distortion)
 
@@ -82,7 +86,8 @@ class ArucoReader(Node):
     parameters = cv2.aruco.DetectorParameters_create()
 
     corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, cv2.aruco_dict,parameters=parameters,cameraMatrix=matrix_coefficients,distCoeff=distortion_coefficients)
-    origin=[0.00649249, -0.01326193,  2.86440854]
+    # origin=[0.00649249, -0.01326193,  2.86440854]
+    origin=[-0.64196,-0.341637,9.68856]
     id_msg=[]
     loc_msg=[]
     ob_id_msg=[]
@@ -92,14 +97,18 @@ class ArucoReader(Node):
     
     if len(corners) > 0:
       for i in range(0, len(ids)):
+        
+        
         rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.15, matrix_coefficients, distortion_coefficients)            
         cv2.aruco.drawDetectedMarkers(frame, corners,ids) 
         cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.05)  
         locations=tvec-origin
+       
 
         x=(round(locations[0,0,0],5))
         y=(round(locations[0,0,1],5))
-        # z=round(locations[0,0,2],5)
+        z=round(locations[0,0,2],5)
+        
 
         rmat=cv2.Rodrigues(rvec)[0]
         angles=self.rotationMatrixToEulerAngles(rmat)
@@ -115,68 +124,123 @@ class ArucoReader(Node):
           ob_loc_msg.extend([x,y,yaw])
           a,SizeW,SizeL = self.obstacle_initial()
           oppositeCorner=x+SizeW[0],y+SizeW[1]
-          print(x,y)
-          print(oppositeCorner)
+          # print(x,y)
+          # print(oppositeCorner)
           
       location_msg.mobile_robot_id=id_msg
       location_msg.mobile_location=loc_msg
       location_msg.obstacle_id=ob_id_msg
       location_msg.obstacle_location=ob_loc_msg
 
-      self.get_logger().info('{}:{}'.format("Publishing",location_msg))
+      #self.get_logger().info('{}:{}'.format("Publishing",location_msg))
       self.location_pub.publish(location_msg)   
 
-      # msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads" # Code to show location of marker- Keep commented unless for debugging purposes
-      # cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
-      # cv2.putText(frame, '-y  0 rads',(970,50),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      # cv2.putText(frame, '+y  +-pi rads',(970,1000),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      # cv2.putText(frame, '-x -pi/2 rads',(20,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      # cv2.putText(frame, '-x +pi/2 rads',(1800,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      # cv2.line(frame, (0,540),(1920,540),(255,0,0),1)
-      # cv2.line(frame, (960,0),(960,1080),(255,0,0),1)
+      msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads" # Code to show location of marker- Keep commented unless for debugging purposes
+      cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
+      cv2.putText(frame, '-y  0 rads',(970,50),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      cv2.putText(frame, '+y  +-pi rads',(970,1000),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      cv2.putText(frame, '-x -pi/2 rads',(20,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      cv2.putText(frame, '-x +pi/2 rads',(1800,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      cv2.line(frame, (0,540),(1920,540),(255,0,0),1)
+      cv2.line(frame, (960,0),(960,1080),(255,0,0),1)
     else:
       locations=origin
+  
+    # print(anti_ob_flag[1][0][1])
+    # print(len(anti_ob_flag))
     return frame, locations, anti_ob_flag
 
   def obstacle_detector(self,frame,anti_ob_flag):
     FilteredContours=[]
+    FilteredBoxes=[]
+    intrinsic_camera = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
+    distortion = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,
+   1.36994424e+01))
+    # h,  w = frame.shape[:2]
+    # newcameramtx, roi = cv2.getOptimalNewCameraMatrix(intrinsic_camera, distortion, (w,h), 1, (w,h))
+    
+
+    # # undistort
+   
+    # dst = cv2.undistort(frame, intrinsic_camera, distortion, None, newcameramtx)
     grey=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     retval,thresh=cv2.threshold(grey,190,255,cv2.THRESH_BINARY)
     contours, hierarchy = cv2.findContours(image=thresh, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
 
     for cnt in contours:
       area=cv2.contourArea(cnt)
-      if area > 800:
-        
+      if area > 1200:
         M=cv2.moments(cnt)
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-        # print(cx,cy)
-        rect = cv2.minAreaRect(cnt)
-        box = cv2.boxPoints(rect)
-        box = np.int0(box)
-        Mark_x=anti_ob_flag[0][0][0][0] # Need to update to work w/ multiple markers
-        Mark_y=anti_ob_flag[0][0][0][1]
-        check=cv2.pointPolygonTest(box,[Mark_x,Mark_y],measureDist=False)
-        if check==-1:
-          FilteredContours.append(cnt)
-          cv2.drawContours(frame,[box],0,(0,0,255),2)
+        scale=1/535
+        cx = ((M['m10']/M['m00'])-960)*scale
+        cy = ((M['m01']/M['m00'])-540)*scale
+        print(cx,cy)
 
-    return FilteredContours
+        #corners=[(cx+40.,cy-40),(cx+40.,cy+40.),(cx-40.,cy+40.),(cx-40.,cy-40.)]
+        # corners=([cx+40,cy-40],[cx+40,cy+40],[cx-40,cy+40],[cx-40,cy-40])
+
+        # print(corners)
+        # print(type(corners))
+        # rvec, tvec, markerPoints=cv2.aruco.estimatePoseSingleMarkers(corners, 0.15, intrinsic_camera, distortion)
+        # origin=[-0.64196,-0.341637,9.68856]    
+        # locations=tvec-origin
+       
+
+        # x=(round(locations[0,0,0],5))
+        # y=(round(locations[0,0,1],5))
+        # z=round(locations[0,0,2],5)
+        # print([x,y,z])
+        rect = cv2.minAreaRect(cnt)
+        
+        box = cv2.boxPoints(rect)
+        
+        box = np.int0(box)
+        
+        match len(anti_ob_flag):
+          case 1:
+             Mark_x1=anti_ob_flag[0][0][0][0]
+             Mark_y1=anti_ob_flag[0][0][0][1]
+             check=cv2.pointPolygonTest(box,[Mark_x1,Mark_y1],measureDist=False)
+             if check==-1:
+              FilteredContours.append(cnt)
+              FilteredBoxes.append(box)
+              cv2.drawContours(frame,[box],0,(0,0,255),2)
+          case 2:
+            Mark_x1=anti_ob_flag[0][0][0][0]
+            Mark_y1=anti_ob_flag[0][0][0][1]
+            Mark_x2=anti_ob_flag[1][0][0][0]
+            Mark_y2=anti_ob_flag[1][0][0][1]
+            check1=cv2.pointPolygonTest(box,[Mark_x1,Mark_y1],measureDist=False)
+            check2=cv2.pointPolygonTest(box,[Mark_x2,Mark_y2],measureDist=False)
+            if check1==-1 and check2==-1:
+              FilteredContours.append(cnt)
+              FilteredBoxes.append(box)
+              cv2.drawContours(frame,[box],0,(0,0,255),2)
+          case 0:
+            FilteredContours.append(cnt)
+            FilteredBoxes.append(box)
+            cv2.drawContours(frame,[box],0,(0,0,255),2)
+          case _:
+            print("Anti-Obstacle Flag length error")
+    cv2.drawContours(frame, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+    return FilteredBoxes
     
 
   def main_loop(self,aruco_type,intrinsic_camera,distortion):
     while self.cap.isOpened():
 	
-      os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=230')
+      os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=130')
       os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=3700')
       os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
 
       ret, img = self.cap.read()
+      
       output, location, ObFlag = self.pose_estimation(img, ARUCO_DICT[aruco_type], intrinsic_camera, distortion)
       # cv2.imshow('Estimated Pose', output)
-      FilteredContours= self.obstacle_detector(img,ObFlag)
-      cv2.drawContours(image=img, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+      FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+      # print(FilteredContourBoxes)
+      
+      
       cv2.imshow('None approximation', img)
       
     
