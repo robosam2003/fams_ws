@@ -124,44 +124,36 @@ class ArucoReader(Node):
           ob_loc_msg.extend([x,y,yaw])
           a,SizeW,SizeL = self.obstacle_initial()
           oppositeCorner=x+SizeW[0],y+SizeW[1]
-          # print(x,y)
-          # print(oppositeCorner)
           
       location_msg.mobile_robot_id=id_msg
       location_msg.mobile_location=loc_msg
       location_msg.obstacle_id=ob_id_msg
       location_msg.obstacle_location=ob_loc_msg
 
-      #self.get_logger().info('{}:{}'.format("Publishing",location_msg))
+      self.get_logger().info('{}:{}'.format("Publishing",location_msg))
       self.location_pub.publish(location_msg)   
 
-      msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads" # Code to show location of marker- Keep commented unless for debugging purposes
-      cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
-      cv2.putText(frame, '-y  0 rads',(970,50),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      cv2.putText(frame, '+y  +-pi rads',(970,1000),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      cv2.putText(frame, '-x -pi/2 rads',(20,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      cv2.putText(frame, '-x +pi/2 rads',(1800,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      cv2.line(frame, (0,540),(1920,540),(255,0,0),1)
-      cv2.line(frame, (960,0),(960,1080),(255,0,0),1)
+      # msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads" # Code to show location of marker- Keep commented unless for debugging purposes
+      # cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
+      # cv2.putText(frame, '-y  0 rads',(970,50),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.putText(frame, '+y  +-pi rads',(970,1000),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.putText(frame, '-x -pi/2 rads',(20,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.putText(frame, '-x +pi/2 rads',(1800,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+      # cv2.line(frame, (0,540),(1920,540),(255,0,0),1)
+      # cv2.line(frame, (960,0),(960,1080),(255,0,0),1)
     else:
       locations=origin
-  
-    # print(anti_ob_flag[1][0][1])
-    # print(len(anti_ob_flag))
     return frame, locations, anti_ob_flag
 
   def obstacle_detector(self,frame,anti_ob_flag):
     FilteredContours=[]
     FilteredBoxes=[]
     intrinsic_camera = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
-    distortion = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,
-   1.36994424e+01))
+    distortion = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,1.36994424e+01))
+
     # h,  w = frame.shape[:2]
     # newcameramtx, roi = cv2.getOptimalNewCameraMatrix(intrinsic_camera, distortion, (w,h), 1, (w,h))
-    
-
     # # undistort
-   
     # dst = cv2.undistort(frame, intrinsic_camera, distortion, None, newcameramtx)
     grey=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     retval,thresh=cv2.threshold(grey,190,255,cv2.THRESH_BINARY)
@@ -176,24 +168,8 @@ class ArucoReader(Node):
         cy = ((M['m01']/M['m00'])-540)*scale
         print(cx,cy)
 
-        #corners=[(cx+40.,cy-40),(cx+40.,cy+40.),(cx-40.,cy+40.),(cx-40.,cy-40.)]
-        # corners=([cx+40,cy-40],[cx+40,cy+40],[cx-40,cy+40],[cx-40,cy-40])
-
-        # print(corners)
-        # print(type(corners))
-        # rvec, tvec, markerPoints=cv2.aruco.estimatePoseSingleMarkers(corners, 0.15, intrinsic_camera, distortion)
-        # origin=[-0.64196,-0.341637,9.68856]    
-        # locations=tvec-origin
-       
-
-        # x=(round(locations[0,0,0],5))
-        # y=(round(locations[0,0,1],5))
-        # z=round(locations[0,0,2],5)
-        # print([x,y,z])
         rect = cv2.minAreaRect(cnt)
-        
         box = cv2.boxPoints(rect)
-        
         box = np.int0(box)
         
         match len(anti_ob_flag):
