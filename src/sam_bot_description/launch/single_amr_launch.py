@@ -78,12 +78,12 @@ def launch_setup(context: LaunchContext):
                 ]
     )
 
-    sam_bot_node = launch_ros.actions.Node(
-        package='sam_bot',
-        executable='sam_bot',
-        namespace=robot_name,
-        output='screen'
-    )
+    # sam_bot_node = launch_ros.actions.Node(
+    #     package='sam_bot',
+    #     executable='sam_bot',
+    #     namespace=robot_name,
+    #     output='screen'
+    # )
 
 
     

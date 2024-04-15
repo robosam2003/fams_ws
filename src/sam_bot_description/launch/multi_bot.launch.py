@@ -29,13 +29,13 @@ def generate_launch_description():
             'initial_base_link_pos': "1.0 1.0 0.0"
         }.items()
     )
-    sam_bot_launch2 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(sam_bot_launch_file),
-        launch_arguments={
-            'robot_name': 'nexus2',
-            'initial_base_link_pos': "1.0 2.0 0.0"
-        }.items()
-    )
+    # sam_bot_launch2 = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(sam_bot_launch_file),
+    #     launch_arguments={
+    #         'robot_name': 'nexus2',
+    #         'initial_base_link_pos': "1.0 2.0 0.0"
+    #     }.items()
+    # )
     
     # mover6_launch = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource(mover6_launch_file),
@@ -64,7 +64,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True',
                                             description='Flag to enable use_sim_time'),
         sam_bot_launch1,
-        sam_bot_launch2,
+        # sam_bot_launch2,
         # mover6_launch,
         rviz_node,
     ])

@@ -6,10 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /RobotModel1/Links1
         - /TF1
       Splitter Ratio: 0.5
-    Tree Height: 557
+    Tree Height: 787
 Visualization Manager:
   Class: ""
   Displays:
@@ -18,183 +17,472 @@ Visualization Manager:
       Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
       Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
       Name: Grid
-    # Nexus Robot Models
-    - Class: rviz_default_plugins/RobotModel
-      Alpha: 0.6
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Alpha: 0.6000000238418579
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
       Description Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: nexus1/robot_description
-      TF Prefix: nexus1
       Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_sensor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_sensor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lower_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lower_left_wheel_shaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lower_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lower_right_wheel_shaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_sensor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_sensor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        upper_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        upper_left_wheel_shaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        upper_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        upper_right_wheel_shaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
       Name: Nexus1Model
+      TF Prefix: nexus1
+      Update Interval: 0
+      Value: true
       Visual Enabled: true
-    - Class: rviz_default_plugins/RobotModel
-      Alpha: 0.6
+    - Alpha: 0.6000000238418579
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
       Description Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: nexus2/robot_description
-      TF Prefix: nexus2
       Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: ""
+      Mass Properties:
+        Inertia: false
+        Mass: false
       Name: Nexus2Model
+      TF Prefix: nexus2
+      Update Interval: 0
+      Value: true
       Visual Enabled: true
-
-    # TF
     - Class: rviz_default_plugins/TF
       Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        map:
+          Value: true
+        nexus1/base_footprint:
+          Value: true
+        nexus1/base_link:
+          Value: true
+        nexus1/front_sensor:
+          Value: true
+        nexus1/left_sensor:
+          Value: true
+        nexus1/lower_left_wheel:
+          Value: true
+        nexus1/lower_left_wheel_shaft:
+          Value: true
+        nexus1/lower_right_wheel:
+          Value: true
+        nexus1/lower_right_wheel_shaft:
+          Value: true
+        nexus1/odom:
+          Value: true
+        nexus1/rear_sensor:
+          Value: true
+        nexus1/right_sensor:
+          Value: true
+        nexus1/upper_left_wheel:
+          Value: true
+        nexus1/upper_left_wheel_shaft:
+          Value: true
+        nexus1/upper_right_wheel:
+          Value: true
+        nexus1/upper_right_wheel_shaft:
+          Value: true
+      Marker Scale: 0.30000001192092896
       Name: TF
-      Marker Scale: 0.3
       Show Arrows: true
       Show Axes: true
       Show Names: false
-    
-    # Map
-    - Class: rviz_default_plugins/Map
-      Alpha: 0.7
-      Enabled: true
+      Tree:
+        map:
+          nexus1/odom:
+            nexus1/base_link:
+              nexus1/base_footprint:
+                {}
+              nexus1/front_sensor:
+                {}
+              nexus1/left_sensor:
+                {}
+              nexus1/lower_left_wheel_shaft:
+                nexus1/lower_left_wheel:
+                  {}
+              nexus1/lower_right_wheel_shaft:
+                nexus1/lower_right_wheel:
+                  {}
+              nexus1/rear_sensor:
+                {}
+              nexus1/right_sensor:
+                {}
+              nexus1/upper_left_wheel_shaft:
+                nexus1/upper_left_wheel:
+                  {}
+              nexus1/upper_right_wheel_shaft:
+                nexus1/upper_right_wheel:
+                  {}
+      Update Interval: 0
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz_default_plugins/Map
+      Color Scheme: map
       Draw Behind: false
-      Topic:
-        Depth: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Durability Policy: Transient Local
-        Value: map
+      Enabled: true
       Name: Map
-
-    # Global Costmap
-    - Class: rviz_default_plugins/Map
-      Alpha: 0.7
-      Enabled: true
-      Draw Behind: True
       Topic:
         Depth: 10
+        Durability Policy: Transient Local
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Durability Policy: Transient Local
-        Value: nexus1/global_costmap/costmap
+        Value: map
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: map_updates
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz_default_plugins/Map
       Color Scheme: costmap
+      Draw Behind: true
+      Enabled: true
       Name: Global Costmap
-
-    # Local Costmaps
-    - Class: rviz_default_plugins/Map
-      Alpha: 0.7
-      Enabled: true
-      Draw Behind: False
       Topic:
         Depth: 10
+        Durability Policy: Transient Local
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Durability Policy: Transient Local
-        Value: nexus1/local_costmap/costmap
+        Value: nexus1/global_costmap/costmap
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nexus1/global_costmap/costmap_updates
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz_default_plugins/Map
       Color Scheme: costmap
+      Draw Behind: false
+      Enabled: true
       Name: Nexus1 Local Costmap
-    - Class: rviz_default_plugins/Map
-      Alpha: 0.7
-      Enabled: true
-      Draw Behind: False
       Topic:
         Depth: 10
+        Durability Policy: Transient Local
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Durability Policy: Transient Local
-        Value: nexus2/local_costmap/costmap
+        Value: nexus1/local_costmap/costmap
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nexus1/local_costmap/costmap_updates
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz_default_plugins/Map
       Color Scheme: costmap
+      Draw Behind: false
+      Enabled: true
       Name: Nexus2 Local Costmap
-
-    # Plans
-    - Class: rviz_default_plugins/Path
-      Alpha: 1
-      Enabled: true
       Topic:
-        Value: /nexus1/plan
+        Depth: 10
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nexus2/local_costmap/costmap
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nexus2/local_costmap/costmap_updates
+      Use Timestamp: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
       Name: Nexus1 Plan
-    - Class: rviz_default_plugins/Path
-      Alpha: 1
-      Enabled: true
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
       Topic:
-        Value: /nexus2/plan
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nexus1/plan
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
       Name: Nexus2 Plan
-
-    # Local Plans
-    - Class: rviz_default_plugins/Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nexus2/plan
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 28; 113; 216
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
       Name: Nexus1 Local_Plan
-      Alpha: 1
-      Enabled: true
-      Color: 28; 113; 216
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
       Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
         Value: /nexus1/local_plan
-    - Class: rviz_default_plugins/Path
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 28; 113; 216
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
       Name: Nexus2 Local_Plan
-      Alpha: 1
-      Enabled: true
-      Color: 28; 113; 216
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
       Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
         Value: /nexus1/local_plan
-
-    # Footprints
-    - Class: rviz_default_plugins/Polygon
-      Alpha: 1
+      Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/Polygon
+      Color: 25; 255; 0
       Enabled: true
-      Topic:
-        Value: /nexus1/local_costmap/published_footprint
       Name: Nexus1 Robot Footprint
-    - Class: rviz_default_plugins/Polygon
-      Alpha: 1
-      Enabled: true
       Topic:
-        Value: /nexus2/local_costmap/published_footprint
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nexus1/local_costmap/published_footprint
+      Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/Polygon
+      Color: 25; 255; 0
+      Enabled: true
       Name: Nexus2 Robot Footprint
-    
-    # Nexus Goal Pose
-    - Class: rviz_default_plugins/Pose
-      Alpha: 1
-      Enabled: true
-      Shaft Length: 0.5
-      Head Length: 0.15
       Topic:
-        Value: nexus1/goal_pose
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nexus2/local_costmap/published_footprint
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz_default_plugins/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.15000000596046448
+      Head Radius: 0.10000000149011612
       Name: Nexus1 Goal Pose
-    - Class: rviz_default_plugins/Pose
-      Alpha: 1
-      Enabled: true
       Shaft Length: 0.5
-      Head Length: 0.15
+      Shaft Radius: 0.05000000074505806
+      Shape: Arrow
       Topic:
-        Value: nexus2/goal_pose
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nexus1/goal_pose
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz_default_plugins/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.15000000596046448
+      Head Radius: 0.10000000149011612
       Name: Nexus2 Goal Pose
-
-    # MOVER6
-    # - Class: rviz_default_plugins/RobotModel
-    #   Alpha: 0.6
-    #   Description Topic:
-    #     Depth: 5
-    #     Durability Policy: Volatile
-    #     History Policy: Keep Last
-    #     Reliability Policy: Reliable
-    #     Value: mover6/robot_description
-    #   TF Prefix: mover6
-    #   Enabled: true
-    #   Name: Mover6Model
-    #   Visual Enabled: true
-    # - Class: rviz_default_plugins/Pose
-    #   Alpha: 1
-    #   Enabled: true
-    #   Shape: Arrow
-    #   Shaft Length: 0.1
-    #   Shaft Radius: 0.02
-    #   Head Length: 0.05
-    #   Head Radius: 0.05
-    #   Topic:
-    #     Value: /mover6/mover6_target_position
-    #   Name: Goal Pose
-
-  
+      Shaft Length: 0.5
+      Shaft Radius: 0.05000000074505806
+      Shape: Arrow
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nexus2/goal_pose
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -208,15 +496,39 @@ Visualization Manager:
     - Class: rviz_default_plugins/Select
     - Class: rviz_default_plugins/FocusCamera
     - Class: rviz_default_plugins/Measure
-    - Class: rviz_default_plugins/SetInitialPose
-    - Class: rviz_default_plugins/SetGoal
-      Text: Nexus1 Goal Pose
-      Topic: /nexus1/goal_pose
-    - Class: rviz_default_plugins/SetGoal
-      Text: Nexus2 Goal Pose
-      Topic: /nexus2/goal_pose
-    - Class: rviz_default_plugins/PublishPoint
       Line color: 128; 128; 0
+    - Class: rviz_default_plugins/SetInitialPose
+      Covariance x: 0.25
+      Covariance y: 0.25
+      Covariance yaw: 0.06853891909122467
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nexus1/goal_pose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nexus2/goal_pose
+    - Class: rviz_default_plugins/PublishPoint
+      Single click: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
   Transformation:
     Current:
       Class: rviz_default_plugins/TF
@@ -224,7 +536,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
+      Distance: 4.070065975189209
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: 2.4013798236846924
+        Y: 1.4217270612716675
+        Z: 0.03814152255654335
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
       Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 1.544796347618103
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
+      Yaw: 4.69357442855835
     Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1016
+  Hide Left Dock: false
+  Hide Right Dock: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000001560000039efc0200000001fb000000100044006900730070006c006100790073010000003d0000039e000000c900ffffff000005de0000039e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Width: 1850
+  X: 70
+  Y: 27

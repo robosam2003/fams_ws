@@ -63,12 +63,20 @@ class mover6(Node):
         self.target_pose = [0.2, 0.0, 0.3]
 
         # Setup robot joint state publisher subscription
-        self.joint_positions_subscription = self.create_subscription(
+        self.joint_control_subscription = self.create_subscription(
             Mover6Control,
             'mover6_control',
-            self.mover6_control_callback,
+            self.mover6_joints_control_callback,
             10
         )
+
+        self.pose_control_subscription = self.create_subscription(
+            Pose,
+            'mover6_pose_control',
+            self.mover6_pose_control_callback,
+            10
+        )
+
 
         # Setup robot joint state publisher
         self.joint_states_publisher = self.create_publisher(
@@ -169,8 +177,20 @@ class mover6(Node):
         self.joint_states.position = [float(j.current_position_deg) for j in self.joints] # convert to radians
         self.joint_states_publisher.publish(self.joint_states)
 
+    def mover6_pose_control_callback(self, msg):
+        point = [msg.position.x, msg.position.y, msg.position.z]
+        orientation_quat = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
+        # Convert the orientation to euler angles
+        orientation_euler = plot_utils.quaternion_to_euler(orientation_quat)
+        
 
-    def mover6_control_callback(self, msg):
+
+        # print("Received: ", msg)
+               
+        
+        
+
+    def mover6_joints_control_callback(self, msg):
         # print("Received: ", msg)
         if msg.command == "GRIPPER OPEN":
             self.gripper_state = False
