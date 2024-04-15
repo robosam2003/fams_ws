@@ -19,7 +19,7 @@ class pi_control(Node):
         self.cmd_vel_subscription = self.create_subscription(Twist, 'cmd_vel', self.cmd_vel_callback, 10)
 
         #Initiate Serial communication to arduino
-        self.ser = serial.Serial('/dev/ttyACM0', 9600)
+        self.ser = serial.Serial('/dev/ttyACM0', 115200)
 
         # Create record of start time of system
         self.initial_time = self.get_clock().now().nanoseconds / 1e9
@@ -49,8 +49,13 @@ class pi_control(Node):
         right_wheel_velocity = -(linear_velocity + angular_velocity * wheel_separation / 2.0) / wheel_radius
         # Send to Arduino
         # Encode into some format
-        # Send via sel.ser.write?
-        
+        # Send via self.ser.write?
+        left_wheel_velocity = round(left_wheel_velocity, 2)
+        right_wheel_velocity = round(right_wheel_velocity, 2)
+        message = f"{left_wheel_velocity},{right_wheel_velocity}"
+
+        self.ser.write(message)
+
         # Compute the left and right wheel positions
         left_wheel_position = self.wheel_states.position[0] + left_wheel_velocity * elapsed_time
         right_wheel_position = self.wheel_states.position[1] + right_wheel_velocity * elapsed_time
