@@ -12,6 +12,7 @@ import os
 import numpy as np
 from fams_interfaces.msg import Vision
 from rosidl_runtime_py import *
+from geometry_msgs.msg import Point
 import math
 import csv
 
@@ -22,11 +23,11 @@ class ArucoReader(Node):
     Class constructor to set up the node
     """
     # Initiate the Node class's constructor and give it a name
-    super().__init__('aruco_reader')
+    super().__init__('aruco_cdreader')
     self.get_logger().info('Aruco Reader Node Started')
 
     # Publisher Setup
-    self.location_pub = self.create_publisher(Vision,'VisionLocations',10)
+    self.location_pub = self.create_publisher(Point,'nexus1/aruco_tf',10)
     self.video_publisher=self.create_publisher(Image,'video_stream',10)
 
     # Create a VideoCapture object and set parameters
@@ -127,11 +128,15 @@ class ArucoReader(Node):
           
       location_msg.mobile_robot_id=id_msg
       location_msg.mobile_location=loc_msg
-      location_msg.obstacle_id=ob_id_msg
-      location_msg.obstacle_location=ob_loc_msg
-
-      self.get_logger().info('{}:{}'.format("Publishing",location_msg))
-      self.location_pub.publish(location_msg)   
+      # location_msg.obstacle_id=ob_id_msg
+      # location_msg.obstacle_location=ob_loc_msg
+      pointmsg=Point()
+      pointmsg.x=x
+      pointmsg.y=y
+      pointmsg.z=yaw
+      #self.get_logger().info('{}:{}'.format("Publishing",location_msg))
+      # self.location_pub.publish(location_msg)   
+      self.location_pub.publish(pointmsg)
 
       # msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads" # Code to show location of marker- Keep commented unless for debugging purposes
       # cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
@@ -156,48 +161,52 @@ class ArucoReader(Node):
     # # undistort
     # dst = cv2.undistort(frame, intrinsic_camera, distortion, None, newcameramtx)
     grey=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    retval,thresh=cv2.threshold(grey,190,255,cv2.THRESH_BINARY)
+    retval,thresh=cv2.threshold(grey,180,255,cv2.THRESH_BINARY)
+    cv2.namedWindow("thresh", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('thresh', 1700, 1080)   
+    cv2.imshow('thresh',thresh)
     contours, hierarchy = cv2.findContours(image=thresh, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
 
     for cnt in contours:
       area=cv2.contourArea(cnt)
-      if area > 1200:
+      if area > 660:
         M=cv2.moments(cnt)
         scale=1/535
         cx = ((M['m10']/M['m00'])-960)*scale
         cy = ((M['m01']/M['m00'])-540)*scale
-        print(cx,cy)
-
-        rect = cv2.minAreaRect(cnt)
-        box = cv2.boxPoints(rect)
-        box = np.int0(box)
-        
-        match len(anti_ob_flag):
-          case 1:
-             Mark_x1=anti_ob_flag[0][0][0][0]
-             Mark_y1=anti_ob_flag[0][0][0][1]
-             check=cv2.pointPolygonTest(box,[Mark_x1,Mark_y1],measureDist=False)
-             if check==-1:
+        # print(cx,cy)
+        if int((M['m10']/M['m00']))>20:
+          rect = cv2.minAreaRect(cnt)
+          box = cv2.boxPoints(rect)
+          box = np.int0(box)
+          print(box)
+          
+          match len(anti_ob_flag):
+            case 1:
+              Mark_x1=anti_ob_flag[0][0][0][0]
+              Mark_y1=anti_ob_flag[0][0][0][1]
+              check=cv2.pointPolygonTest(box,[Mark_x1,Mark_y1],measureDist=False)
+              if check==-1:
+                FilteredContours.append(cnt)
+                FilteredBoxes.append(box)
+                cv2.drawContours(frame,[box],0,(0,0,255),2)
+            case 2:
+              Mark_x1=anti_ob_flag[0][0][0][0]
+              Mark_y1=anti_ob_flag[0][0][0][1]
+              Mark_x2=anti_ob_flag[1][0][0][0]
+              Mark_y2=anti_ob_flag[1][0][0][1]
+              check1=cv2.pointPolygonTest(box,[Mark_x1,Mark_y1],measureDist=False)
+              check2=cv2.pointPolygonTest(box,[Mark_x2,Mark_y2],measureDist=False)
+              if check1==-1 and check2==-1:
+                FilteredContours.append(cnt)
+                FilteredBoxes.append(box)
+                cv2.drawContours(frame,[box],0,(0,0,255),2)
+            case 0:
               FilteredContours.append(cnt)
               FilteredBoxes.append(box)
               cv2.drawContours(frame,[box],0,(0,0,255),2)
-          case 2:
-            Mark_x1=anti_ob_flag[0][0][0][0]
-            Mark_y1=anti_ob_flag[0][0][0][1]
-            Mark_x2=anti_ob_flag[1][0][0][0]
-            Mark_y2=anti_ob_flag[1][0][0][1]
-            check1=cv2.pointPolygonTest(box,[Mark_x1,Mark_y1],measureDist=False)
-            check2=cv2.pointPolygonTest(box,[Mark_x2,Mark_y2],measureDist=False)
-            if check1==-1 and check2==-1:
-              FilteredContours.append(cnt)
-              FilteredBoxes.append(box)
-              cv2.drawContours(frame,[box],0,(0,0,255),2)
-          case 0:
-            FilteredContours.append(cnt)
-            FilteredBoxes.append(box)
-            cv2.drawContours(frame,[box],0,(0,0,255),2)
-          case _:
-            print("Anti-Obstacle Flag length error")
+            case _:
+              print("Anti-Obstacle Flag length error")
     cv2.drawContours(frame, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
     return FilteredBoxes
     
@@ -212,12 +221,13 @@ class ArucoReader(Node):
       ret, img = self.cap.read()
       
       output, location, ObFlag = self.pose_estimation(img, ARUCO_DICT[aruco_type], intrinsic_camera, distortion)
-      # cv2.imshow('Estimated Pose', output)
-      FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+      cv2.imshow('Estimated Pose', output)
+      # FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
       # print(FilteredContourBoxes)
       
       
-      cv2.imshow('None approximation', img)
+      
+      # q
       
     
 

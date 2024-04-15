@@ -5,3 +5,4 @@ float32[] mobile_location  # Format is (x,y,yaw) in metres and radians respectiv
 uint32[] obstacle_id
 
 float32[] obstacle_location # Format is (x,y,yaw) in metres and radians respectively
+
