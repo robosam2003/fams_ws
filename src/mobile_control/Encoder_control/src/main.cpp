@@ -1,3 +1,19 @@
+// Started on: 12/02/24
+// Last edited: 15/04/24
+// Author: Tobias McNeil
+
+/*
+Function:
+
+Interfaces between the mobile robot node and the mobile robot hardware in the FAMS system. 
+
+Contains a speed controller to match a target provided by the mobile robot node.
+
+Contains no unnecessary functions, not capable of exporting data for analysis.
+
+*/
+
+
 #include <Arduino.h>
 #include <SPI.h>
 #include <EnableInterrupt.h>
@@ -29,27 +45,27 @@
 
 #define ENABLE_MOTORS 8
 
-volatile int M1encoderPos = 0;
+volatile int M1encoderPos = 0; //Count of encoder position
 volatile int M2encoderPos = 0;
 volatile int M3encoderPos = 0;
 volatile int M4encoderPos = 0;
 
-int pwm1, pwm2, pwm3, pwm4;
-int prevpwm1, prevpwm2, prevpwm3, prevpwm4;
-int dir1, dir2, dir3, dir4;
+int pwm1, pwm2, pwm3, pwm4; // PWM signal to motor driver
+int prevpwm1, prevpwm2, prevpwm3, prevpwm4; // Previous PWM for integration
+int dir1, dir2, dir3, dir4;// Direction of motor sent to motor driver
 
-long currT = 0;
-float deltaT = 0;
-volatile float velocity_i1 = 0, velocity_i2 = 0, velocity_i3 = 0, velocity_i4 = 0, left_vel = 0, right_vel = 0;
-volatile long prevT = 0;
-volatile int pos1, pos2, pos3, pos4;
-volatile int posprev1, posprev2, posprev3, posprev4;
-float vt1, vt2, vt3, vt4, err1, err2, err3, err4, u1, u2, u3, u4;
+long currT = 0;// Current time of system
+float deltaT = 0;// Time taken to measure certain amount of encoder pings
+volatile long prevT = 0;// Previous time measurement was taken at
+volatile float velocity_i1 = 0, velocity_i2 = 0, velocity_i3 = 0, velocity_i4 = 0, left_vel = 0, right_vel = 0;// Velocities of wheels and target velocities from node
+volatile int pos1, pos2, pos3, pos4;// Current count of encoder position
+volatile int posprev1, posprev2, posprev3, posprev4;// Previous count of encoder position
+float vt1, vt2, vt3, vt4, err1, err2, err3, err4, u1, u2, u3, u4;// Contorl variables
 
-void motor();
-void controlLoop();
+void motor();// Funciton eUpdates Motor parameters
+void controlLoop();// Executes speed control for the mobile robot
 
-void doM1EncoderA();
+void doM1EncoderA();// Executes on detection of an encoder Ping
 void doM2EncoderA();
 void doM3EncoderA();
 void doM4EncoderA();
@@ -57,14 +73,10 @@ void doM4EncoderA();
 void setup() {
   unsigned int configWord;
   
-  pinMode(M1PinA, INPUT);
-  pinMode(M1PinB, INPUT);
+  pinMode(M1PinA, INPUT);//Establishes encoder input pins
   pinMode(M2PinA, INPUT);
-  pinMode(M2PinB, INPUT);
   pinMode(M3PinA, INPUT);
-  pinMode(M3PinB, INPUT);
   pinMode(M4PinA, INPUT);
-  pinMode(M4PinB, INPUT);
 
   /*
   |2|------|3|
@@ -151,20 +163,20 @@ void setup() {
 
   digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled
 
-  enableInterrupt(M1PinA, doM1EncoderA, CHANGE);
+  enableInterrupt(M1PinA, doM1EncoderA, CHANGE);// Links encoder count functions to hardware interrupts
   enableInterrupt(M2PinA, doM2EncoderA, CHANGE);
   enableInterrupt(M3PinA, doM3EncoderA, CHANGE);
   enableInterrupt(M4PinA, doM4EncoderA, CHANGE);
 }
 
 void loop() {
-  dir1 = 1; dir2 = 2; dir3 = 1; dir4 = 1;
-  left_vel = Serial.read();
+  dir1 = 1; dir2 = 2; dir3 = 1; dir4 = 1;// Sets all motors to forward
+  left_vel = Serial.read();// Read diff drive wheel velocities from node
   right_vel = Serial.read();
-  vt1 = vt2 = right_vel;
+  vt1 = vt2 = right_vel;// Set diff drive wheel velocities to control loop targets
   vt3 = vt4 = left_vel;
-  controlLoop();
-  motor();
+  controlLoop();// Update control loop
+  motor();// Update motor parameters
 }
 
 void motor(){
@@ -182,47 +194,47 @@ void motor(){
 }
 
 void controlLoop(){
-  //Retireving current encoder positions
+  // Retireving current encoder positions
   noInterrupts();
   pos1 = M1encoderPos;
   pos2 = M2encoderPos;
   pos3 = M3encoderPos;
   pos4 = M4encoderPos;
   interrupts();
-  //Creates a time value to be referenced as the window of measurement
+  // Creates a time value to be referenced as the window of measurement
   currT = micros();
-  deltaT = ((float) (currT-prevT))/1.0e6;//Calculates window of measurement in seconds
-  velocity_i1 = (pos1 - posprev1)/deltaT;//Calculates difference in value of current and prev encoder pos
-  velocity_i2 = (pos2 - posprev2)/deltaT;//In units of encoder pings per second
+  deltaT = ((float) (currT-prevT))/1.0e6;// Calculates window of measurement in seconds
+  velocity_i1 = (pos1 - posprev1)/deltaT;// Calculates difference in value of current and prev encoder pos as a funciton of time
+  velocity_i2 = (pos2 - posprev2)/deltaT;// In units of encoder pings per second
   velocity_i3 = (pos3 - posprev3)/deltaT;
   velocity_i4 = (pos4 - posprev4)/deltaT;
   
-  posprev1 = pos1;//Sets new previous encoder pos
+  posprev1 = pos1;// Sets new previous encoder pos
   posprev2 = pos2;
   posprev3 = pos3;
   posprev4 = pos4;
-  prevT = currT;//Sets new previous time
+  prevT = currT;// Sets new previous time
   
-  float Kp = 0.5;// Adjust if control behaviour erratic
-
-  err1 = vt1 - velocity_i1*(768/2*PI);//Sets to units of rad/s
+  float scl_fctr = 10.625;// Adjust if speed behaviour is odd, matches ranges of rad/s to PWM
+  float Kp = 0.5*scl_fctr;// Adjust if control behaviour erratic/oscillatory
+  
+  err1 = vt1 - velocity_i1*(768/2*PI);// Sets to units of rad/s
   err2 = vt2 - velocity_i2*(768/2*PI);// Generates error from target velocity
   err3 = vt3 - velocity_i3*(768/2*PI);
   err4 = vt4 - velocity_i4*(768/2*PI);
   
-  float scl_fctr = 10.625;//Adjust if speed behaviour is odd
-
-  u1 = (Kp*err1)/scl_fctr;// Converts from rad/s to PWM
-  u2 = (Kp*err2)/scl_fctr;
-  u3 = (Kp*err3)/scl_fctr;
-  u4 = (Kp*err4)/scl_fctr;
+  u1 = (Kp*err1);// Converts from rad/s to PWM
+  u2 = (Kp*err2);
+  u3 = (Kp*err3);
+  u4 = (Kp*err4);
   
-  int p1 = u1 + 0.5, p2 = u2 + 0.5, p3 = u3 + 0.5, p4 = u4 + 0.5;
-  pwm1 = prevpwm1 + p1;
+  int p1 = u1 + 0.5, p2 = u2 + 0.5, p3 = u3 + 0.5, p4 = u4 + 0.5;// Adds buffer so taht float to int will round correctly
+  pwm1 = prevpwm1 + p1;// Integrates the control signal
   pwm2 = prevpwm2 + p2;
   pwm3 = prevpwm3 + p3;
   pwm4 = prevpwm4 + p4;
   
+  //Bounds PWM to prevent any escalating positive or negative out of range values
   if(pwm1>255){
     pwm1 = 255;
   }
@@ -248,7 +260,7 @@ void controlLoop(){
     pwm4 = 0;
   }
 
-  prevpwm1 = pwm1;
+  prevpwm1 = pwm1;// Sets previous PWM for next loop
   prevpwm2 = pwm2; 
   prevpwm3 = pwm3; 
   prevpwm4 = pwm4;
@@ -258,27 +270,30 @@ void controlLoop(){
 void doM1EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M1PinA) == HIGH) {
-    M1encoderPos = M1encoderPos + 1;
+    M1encoderPos = M1encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
   }
 }
 
 void doM2EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M2PinA) == HIGH) {
-    M2encoderPos = M2encoderPos + 1;
+    M2encoderPos = M2encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+  }
   }
 }
 
 void doM3EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M3PinA) == HIGH) {
-    M3encoderPos = M3encoderPos + 1;
+    M3encoderPos = M3encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+  }
   }
 }
 
 void doM4EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M4PinA) == HIGH) {
-    M4encoderPos = M4encoderPos + 1;
+    M4encoderPos = M4encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+  }
   }
 }
