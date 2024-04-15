@@ -40,13 +40,12 @@ int dir1, dir2, dir3, dir4;
 
 long currT = 0;
 float deltaT = 0;
-volatile float velocity_i1 = 0;  volatile float velocity_i2 = 0;  volatile float velocity_i3 = 0;  volatile float velocity_i4 = 0;
+volatile float velocity_i1 = 0, velocity_i2 = 0, velocity_i3 = 0, velocity_i4 = 0, left_vel = 0, right_vel = 0;
 volatile long prevT = 0;
 volatile int pos1, pos2, pos3, pos4;
 volatile int posprev1, posprev2, posprev3, posprev4;
-float vt, err1, err2, err3, err4, u1, u2, u3, u4;
+float vt1, vt2, vt3, vt4, err1, err2, err3, err4, u1, u2, u3, u4;
 
-void motorContorl(char direction);
 void motor();
 void controlLoop();
 
@@ -146,7 +145,7 @@ void setup() {
   digitalWrite(SS_M4, HIGH);
 
   //Set initial actuator settings to pull at 0 speed for safety
-  dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1; // Set direction 1 is forward, 0 is reverse, 1 also is minus
+  dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1; // Set direction 1 is forward, 0 is reverse
   pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0; // Set speed (0-255)
   prevpwm1 = 0, prevpwm2 = 0, prevpwm3 = 0, prevpwm4 = 0;
 
@@ -156,122 +155,20 @@ void setup() {
   enableInterrupt(M2PinA, doM2EncoderA, CHANGE);
   enableInterrupt(M3PinA, doM3EncoderA, CHANGE);
   enableInterrupt(M4PinA, doM4EncoderA, CHANGE);
-
-  Serial.print("M1_Velocity");Serial.print(","); //Establishes headers of .csv file
-  Serial.print("M2_Velocity");Serial.print(",");
-  Serial.print("M3_Velocity");Serial.print(",");
-  Serial.print("M4_Velocity");Serial.print(",");
-  Serial.print("M1_PWM");Serial.print(",");
-  Serial.print("M2_PWM");Serial.print(",");
-  Serial.print("M3_PWM");Serial.print(",");
-  Serial.print("M4_PWM");Serial.print(",");
-  Serial.println("Target_Velocity");
 }
 
 void loop() {
-  //Output gear to encoder is a 1:64 gearbox
-  //Wheel diameter is 100 mm
-  int time  = 0;
-  while(time<1000){
-    if(time<200){
-      vt = 0;
-    }
-    else if(time<400){
-      vt = 500;
-    }
-    else if(time<600){
-      vt = 1000;
-    }
-    else if(time<800){
-      vt = 1500;
-    }
-    else{
-      vt = 750;
-    }
-    
-    //char direct = Serial.read();
-    controlLoop();
-    motor();
-    //motorContorl(direct);
-    time = time + 1;
-    
-    Serial.print(velocity_i1);Serial.print(",");
-    Serial.print(velocity_i2);Serial.print(",");
-    Serial.print(velocity_i3);Serial.print(",");
-    Serial.print(velocity_i4);Serial.print(",");
-    Serial.print(pwm1);Serial.print(",");
-    Serial.print(pwm2);Serial.print(",");
-    Serial.print(pwm3);Serial.print(",");
-    Serial.print(pwm4);Serial.print(",");
-    Serial.println(vt);
-    /*
-
-    Serial.print("|M1|");Serial.print(pwm1);Serial.print(",");
-    Serial.print("|M2|");Serial.print(pwm2);Serial.print(",");
-    Serial.print("|M3|");Serial.print(pwm3);Serial.print(",");
-    Serial.print("|M4|");Serial.print(pwm4);Serial.print(" | ");
-
-    Serial.print("Target: ");Serial.print(time);
-
-    Serial.print("|M1|");Serial.print(err1);Serial.print(",");
-    Serial.print("|M2|");Serial.print(err2);Serial.print(",");
-    Serial.print("|M3|");Serial.print(err3);Serial.print(",");
-    Serial.print("|M4|");Serial.println(err4);
-    */
-  }
+  dir1 = 1; dir2 = 2; dir3 = 1; dir4 = 1;
+  left_vel = Serial.read();
+  right_vel = Serial.read();
+  vt1 = vt2 = right_vel;
+  vt3 = vt4 = left_vel;
+  controlLoop();
+  motor();
 }
 
 void motor(){
   digitalWrite(DIR_M1, dir1);
-  analogWrite(PWM_M1, pwm1);
-
-	digitalWrite(DIR_M2, dir2);
-	analogWrite(PWM_M2, pwm2);
-
-	digitalWrite(DIR_M3, dir3);
-	analogWrite(PWM_M3, pwm3);
-
-	digitalWrite(DIR_M4, dir4);
-	analogWrite(PWM_M4, pwm4);
-}
-
-void motorContorl(char direction){
-	
-	switch (direction)
-	{
-	case 'w' :
-		dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
-    vt = 1000;
-		break;
-	case 's' :
-		dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
-    vt = 1000;
-		break;
-	case 'a' :
-		dir1 = 0; dir2 = 1; dir3 = 0; dir4 = 1; //0 = forwards, 1 = backwards
-    vt = 1000;
-		break;
-	case 'd' :
-		dir1 = 1; dir2 = 0; dir3 = 1; dir4 = 0; //0 = forwards, 1 = backwards
-    vt = 1000;
-		break;
-	case 'q' :
-		dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1; //0 = forwards, 1 = backwards
-    vt = 1000;
-		break;
-	case 'e' :
-		dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0; //0 = forwards, 1 = backwards
-    vt = 1000;
-		break;
-	case 'b' :
-		vt = 0;
-		break;
-	default:
-		
-		break;
-	}
-	
-	digitalWrite(DIR_M1, dir1);
   analogWrite(PWM_M1, pwm1);
 
 	digitalWrite(DIR_M2, dir2);
@@ -296,7 +193,7 @@ void controlLoop(){
   currT = micros();
   deltaT = ((float) (currT-prevT))/1.0e6;//Calculates window of measurement in seconds
   velocity_i1 = (pos1 - posprev1)/deltaT;//Calculates difference in value of current and prev encoder pos
-  velocity_i2 = (pos2 - posprev2)/deltaT;//In units of pings per window
+  velocity_i2 = (pos2 - posprev2)/deltaT;//In units of encoder pings per second
   velocity_i3 = (pos3 - posprev3)/deltaT;
   velocity_i4 = (pos4 - posprev4)/deltaT;
   
@@ -306,16 +203,16 @@ void controlLoop(){
   posprev4 = pos4;
   prevT = currT;//Sets new previous time
   
-  float Kp = 0.5;
+  float Kp = 0.5;// Adjust if control behaviour erratic
 
-  err1 = vt - velocity_i1;//Units of relative to current target pings per window
-  err2 = vt - velocity_i2;
-  err3 = vt - velocity_i3;
-  err4 = vt - velocity_i4;
+  err1 = vt1 - velocity_i1*(768/2*PI);//Sets to units of rad/s
+  err2 = vt2 - velocity_i2*(768/2*PI);// Generates error from target velocity
+  err3 = vt3 - velocity_i3*(768/2*PI);
+  err4 = vt4 - velocity_i4*(768/2*PI);
   
-  float scl_fctr = 12.1568627;
+  float scl_fctr = 10.625;//Adjust if speed behaviour is odd
 
-  u1 = (Kp*err1)/scl_fctr;//Units of relative to current target pings per window
+  u1 = (Kp*err1)/scl_fctr;// Converts from rad/s to PWM
   u2 = (Kp*err2)/scl_fctr;
   u3 = (Kp*err3)/scl_fctr;
   u4 = (Kp*err4)/scl_fctr;
