@@ -47,14 +47,12 @@ class pi_control(Node):
         # Compute the left and right wheel velocities
         left_wheel_velocity = (linear_velocity - angular_velocity * wheel_separation / 2.0) / wheel_radius
         right_wheel_velocity = -(linear_velocity + angular_velocity * wheel_separation / 2.0) / wheel_radius
-        # Send to Arduino
-        # Encode into some format
-        # Send via self.ser.write?
+        
         left_wheel_velocity = round(left_wheel_velocity, 2)
         right_wheel_velocity = round(right_wheel_velocity, 2)
-        message = f"{left_wheel_velocity},{right_wheel_velocity}"
 
-        self.ser.write(message)
+        self.ser.write(left_wheel_velocity)
+        self.ser.write(right_wheel_velocity)
 
         # Compute the left and right wheel positions
         left_wheel_position = self.wheel_states.position[0] + left_wheel_velocity * elapsed_time
