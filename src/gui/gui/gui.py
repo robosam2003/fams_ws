@@ -29,8 +29,9 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         
         # listWidget testing vvv
         # self.listWidget.setSelectionMode(QAbstractItemView.Mul)
-        self.listWidget.addItem("One")
-        self.listWidget.addItems(["Two","Three"])
+        #self.listWidget.addItem("One")
+        #self.listWidget.addItems(["Two","Three"])
+        
         #self.listWidget.setCurrentRow(1)
         #print(self.listWidget.currentRow)
 
@@ -61,20 +62,49 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
     def current_item_changed(self, item):
         print("Current item : ",item.text())
-        
+        self.widgetItem = item
+
     def current_text_changed(self,text):
         print("Current text changed : ",text)
         #self.label_10.setText(str("item.text", text))
     
     def stopButtonHandler(self):
         print("stop")
-        self.emergency = 1
-        self.rosnode.emergency_publisher.publish(self.emergency)
+        #self.emergency = 1
+        #self.rosnode.emergency_publisher.publish(self.emergency)
        # self.get_logger().info('stop')
+
+        #print(str(self.rosnode.jobList[0].job_id))
         
     def JobDeleteButtonHandler(self):
-        self.listWidget.takeItem(self.listWidget.currentRow())
-        
+        #print('currentRow: ',str(self.listWidget.currentRow()))
+        #self.listWidget.takeItem(self.listWidget.currentRow())
+
+        #self.rosnode.get_logger().info(str(self.listWidget.currentRow()))
+        print('currentRow: ',str(self.listWidget.currentRow()))
+
+        print('currentItem***: ',str(self.widgetItem.text()))
+        #self.jobObj.job_id = int(self.widgetItem.text())
+        self.jobObj.job_id = 11111
+        self.jobObj.priority=0
+        partObj=Part()
+        partObj.part_id = 0
+        partObj.location = 0
+        partObj.current_subprocess_id = 0
+        partObj.job_id = self.jobObj.job_id
+        self.jobObj.part = partObj
+        sub1=SubProcess()   #create subprocess object
+        sub1.sub_process_id=0
+        sub1.operation_type=''
+        sub1.start_time=0
+        sub1.end_time=0
+        self.jobObj.subprocesses.append(sub1)
+        self.jobObj.start_time = 0
+        self.jobObj.end_time = 0
+        self.jobObj.status = ''
+        self.jobObj.add_remove = 'REMOVE'
+        self.rosnode.job_publisher.publish(self.jobObj)
+
     def addToListHandler(self):
         #print(str(self.subID.text()))
         #print(str(self.opType.text()))
@@ -118,7 +148,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         print((self.jobObj))
 
-        self.listWidget.addItem(self.jobObj)
+        #self.listWidget.addItem(self.jobObj)
 
         # interfaceNodeObj = InterfaceNode()
         # interfaceNodeObj.job_publisher = interfaceNodeObj.create_publisher(
@@ -216,7 +246,24 @@ class InterfaceNode(Node):
         # When the window is closed, destroy the node and stop the application
 
     def jobList_callback(self, msg: JobList):
-        self.get_logger().info(str(msg))
+        self.get_logger().info('jobList callback')
+        self.jobList = msg.list
+
+        self.interface.listWidget.clear()
+        
+        # for loop to add jobs from jobList into gui
+
+        #print(self.jobList[0])
+        print(str(self.jobList[0].job_id))
+        #self.interface.listWidget.addItems(["Two","Three"])
+        print(str(len(self.jobList)))
+
+        for i in range(len(self.jobList)):
+            self.interface.listWidget.addItem(str(self.jobList[i].job_id))
+            print(str(i))
+
+        #self.interface.listWidget.addItem(str(self.jobList[0].job_id))
+        
 
     def start(self):
         #self.interface.label.setText('Generating and publishing a job message...')
