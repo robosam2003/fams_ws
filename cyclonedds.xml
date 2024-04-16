@@ -3,22 +3,25 @@
     <Domain Id="any">
         <General>
             <Interfaces>
-                <NetworkInterface autodetermine="true" priority="default" multicast="default" />
+                <NetworkInterface autodetermine="true" priority="default" />
             </Interfaces>
-            <AllowMulticast>default</AllowMulticast>
+            <AllowMulticast>false</AllowMulticast>
             <MaxMessageSize>65500B</MaxMessageSize>
         </General>
         <Discovery>
             <EnableTopicDiscoveryEndpoints>true</EnableTopicDiscoveryEndpoints>
+        <ParticipantIndex>auto</ParticipantIndex>
+        <MaxAutoParticipantIndex>50</MaxAutoParticipantIndex>
+            <Peers>
+                <Peer Address="172.30.58.232"/>
+                <Peer Address="143.167.46.22"/>
+                <Peer Address="143.167.47.43"/>
+            </Peers>
         </Discovery>
         <Internal>
             <Watermarks>
                 <WhcHigh>500kB</WhcHigh>
             </Watermarks>
         </Internal>
-        <Tracing>
-            <Verbosity>config</Verbosity>
-            <OutputFile>cdds.log.${CYCLONEDDS_PID}</OutputFile>
-        </Tracing>
     </Domain>
 </CycloneDDS>
