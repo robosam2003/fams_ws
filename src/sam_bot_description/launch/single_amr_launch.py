@@ -78,12 +78,12 @@ def launch_setup(context: LaunchContext):
                 ]
     )
 
-    # sam_bot_node = launch_ros.actions.Node(
-    #     package='sam_bot',
-    #     executable='sam_bot',
-    #     namespace=robot_name,
-    #     output='screen'
-    # )
+    sam_bot_node = launch_ros.actions.Node(
+        package='sam_bot',
+        executable='sam_bot',
+        namespace=robot_name,
+        output='screen'
+    )
 
 
     
@@ -101,7 +101,7 @@ def launch_setup(context: LaunchContext):
         robot_state_publisher_node,
         joint_state_publisher_node,
         tf_broadcaster_node,
-        # sam_bot_node,
+        sam_bot_node,
         nav2_custom_launch
     ]
 
