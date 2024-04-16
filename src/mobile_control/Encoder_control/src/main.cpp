@@ -170,9 +170,20 @@ void setup() {
 }
 
 void loop() {
-  dir1 = 1; dir2 = 2; dir3 = 1; dir4 = 1;// Sets all motors to forward
   left_vel = Serial.read();// Read diff drive wheel velocities from node
   right_vel = Serial.read();
+  if right_vel < 0 && left_vel > 0{
+    dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1;// Sets all motors to rotate clockwise
+  }
+  else if left_vel < 0 && right_vel > 0{
+    dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0;// Sets all motors to rotate anticlockwise
+  }
+  else if left_vel > 0 && right_vel > 0{
+    dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1;// Sets all motors to forwards
+  }
+  else if left_vel < 0 && right_vel < 0{
+    dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0;// Sets all motors to backwards
+  }
   vt1 = vt2 = right_vel;// Set diff drive wheel velocities to control loop targets
   vt3 = vt4 = left_vel;
   controlLoop();// Update control loop
