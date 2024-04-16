@@ -84,8 +84,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print('currentRow: ',str(self.listWidget.currentRow()))
 
         print('currentItem***: ',str(self.widgetItem.text()))
-        #self.jobObj.job_id = int(self.widgetItem.text())
-        self.jobObj.job_id = 11111
+        self.jobObj.job_id = int(self.widgetItem.text())
+        #self.jobObj.job_id = 11111
         self.jobObj.priority=0
         partObj=Part()
         partObj.part_id = 0
