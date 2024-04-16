@@ -15,6 +15,7 @@ from rosidl_runtime_py import *
 from geometry_msgs.msg import Point
 import math
 import csv
+from time import sleep
 
 class ArucoReader(Node):
 
@@ -27,28 +28,54 @@ class ArucoReader(Node):
     self.get_logger().info('Aruco Reader Node Started')
 
     # Publisher Setup
-    self.location_pub = self.create_publisher(Point,'nexus1/aruco_tf',10)
+    # self.location_pub = self.create_publisher(Point,'nexus1/aruco_tf',10)
+    self.partlocation_pub=self.create_publisher(Vision,'VisionLocations',10)
     self.video_publisher=self.create_publisher(Image,'video_stream',10)
 
     # Create a VideoCapture object and set parameters
-    self.cap = cv2.VideoCapture(-1)
-    self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-    os.system('v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1')
-    os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0')
+    print('Setting Up Cameras')
+    
+    self.camera_setup(0)
+    intrinsic_camera = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
+    distortion = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,1.36994424e+01))
+
+    # self.camera_setup(1)
+    # intrinsic_camera1 = np.array(((1.21665111e+03, 0, 6.54768787e+02),(0, 1.21478888e+03, 5.00652432e+02),(0,0,1)))
+    # distortion1 = np.array((0.04315798,  0.50036972, -0.01800276, -0.00592732, -1.26928846))
+
+    # self.camera_setup(2)
+    # intrinsic_camera2 = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
+    # distortion2 = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,1.36994424e+01))
 
     aruco_type = "DICT_4X4_100" #Is looking for 4x4 only
 
-    # Camera coeffiecents from Calibration
-    # intrinsic_camera = np.array(((1.51676623e+03,0,9.58518895e+02),(0, 1.59055282e+03, 5.44395560e+02),(0,0,1)))
-    # distortion = np.array((1.73228514e-02, -7.03010353e-01, -7.57199459e-04,  6.85156948e-02, 8.77224638e-01))
-
-    intrinsic_camera = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
-    distortion = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,
-   1.36994424e+01))
-    
     self.main_loop(aruco_type, intrinsic_camera,distortion)
+
+  def camera_setup(self,CamIndex):
+    match CamIndex:
+      case 0:
+        self.cap = cv2.VideoCapture(-1)
+        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1')
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0')
+      case 1:
+        self.cap = cv2.VideoCapture(2)
+        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=auto_exposure=1')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_automatic=0')
+      case 2:
+        self.cap2 = cv2.VideoCapture(4)
+        self.cap1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        self.cap1.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.cap1.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        os.system('v4l2-ctl -d /dev/video4 --set-ctrl=auto_exposure=1')
+        os.system('v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_automatic=0')
+        
+
 
 
   def obstacle_initial(self):
@@ -94,7 +121,7 @@ class ArucoReader(Node):
     ob_id_msg=[]
     ob_loc_msg=[]
     anti_ob_flag=[]
-    location_msg=Vision()
+    partlocation_msg=Vision()
     
     if len(corners) > 0:
       for i in range(0, len(ids)):
@@ -126,17 +153,17 @@ class ArucoReader(Node):
           a,SizeW,SizeL = self.obstacle_initial()
           oppositeCorner=x+SizeW[0],y+SizeW[1]
           
-      location_msg.mobile_robot_id=id_msg
-      location_msg.mobile_location=loc_msg
+      partlocation_msg.part_id=id_msg
+      partlocation_msg.part_location=loc_msg
       # location_msg.obstacle_id=ob_id_msg
       # location_msg.obstacle_location=ob_loc_msg
       pointmsg=Point()
       pointmsg.x=x
       pointmsg.y=y
       pointmsg.z=yaw
-      #self.get_logger().info('{}:{}'.format("Publishing",location_msg))
-      # self.location_pub.publish(location_msg)   
-      self.location_pub.publish(pointmsg)
+      self.get_logger().info('{}:{}'.format("Publishing",partlocation_msg))
+      self.partlocation_pub.publish(partlocation_msg)   
+      # self.location_pub.publish(pointmsg)
 
       # msg="x: "+ str(x) + "m" +"  y: " +str(y)+"m"+" yaw: " +str(yaw)+"rads" # Code to show location of marker- Keep commented unless for debugging purposes
       # cv2.putText(frame, msg,(210,100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 0))
@@ -217,6 +244,9 @@ class ArucoReader(Node):
       os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=130')
       os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=3700')
       os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
+      os.system('v4l2-ctl -d /dev/video2 --set-ctrl=exposure_time_absolute=170')
+      os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_temperature=3700')
+      os.system('v4l2-ctl -d /dev/video2 --set-ctrl=gain=30')
 
       ret, img = self.cap.read()
       

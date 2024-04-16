@@ -1,4 +1,4 @@
-<!-- <?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <dds xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
     <profiles>
         <participant profile_name="participant_profile" is_default_profile="true">
@@ -89,4 +89,4 @@
              </builtin>
          </rtps>
      </participant>
-</profiles>  --> -->
+</profiles>  -->
