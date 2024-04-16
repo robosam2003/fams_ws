@@ -31,6 +31,7 @@ class Ui_MainWindow(object):
         self.formLayout_2.setObjectName(u"formLayout_2")
         self.stopButton = QPushButton(self.centralwidget)
         self.stopButton.setObjectName(u"stopButton")
+        self.stopButton.setStyleSheet("background-color: red")
         self.stopButton.setAutoRepeat(False)
 
         self.formLayout_2.setWidget(1, QFormLayout.FieldRole, self.stopButton)

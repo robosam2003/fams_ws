@@ -17,7 +17,8 @@ uint64 start_time
 
 uint64 end_time
 
-# The status of the job - Can be "IN PROGRESS", "FINISHED", "PENDING", "FAILED"
+# The status of the job - Can be "IN PROGRESS", "FINISHED", "PENDING", "FAILED", "REMOVED"
 string status
 
+# Whether a job is to be added or reomoved - Can be "ADD" or "REMOVE"
 string add_remove
