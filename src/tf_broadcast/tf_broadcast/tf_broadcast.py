@@ -86,7 +86,7 @@ class FamsTFBroadcaster(Node):
             t.transform.translation.x = self.initial_base_link_pos[0] # x
             t.transform.translation.y = self.initial_base_link_pos[1] # y
             t.transform.translation.z = 0.0
-            q = quaternion_from_euler(0, 0, self.initial_base_link_pos[2])
+            q = quaternion_from_euler(math.pi, 0, self.initial_base_link_pos[2])
             t.transform.rotation.x = q[0]
             t.transform.rotation.y = q[1]
             t.transform.rotation.z = q[2]
