@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             "marker = machine_vis.markers:main",
-            "Vid_sub = machine_vis.Vid_subscriber:main"
+            "Vid_sub = machine_vis.Vid_subscriber:main",
+            "workvis=machine.vis.workstationCam.py"
         ],
     },
 )
