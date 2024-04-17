@@ -3,8 +3,9 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import TransformStamped, Point
+from geometry_msgs.msg import TransformStamped
 import serial
+import struct
 
 class pi_control(Node):
 
@@ -16,7 +17,7 @@ class pi_control(Node):
         self.wheel_states_publisher = self.create_publisher(JointState, 'wheel_states', 10)
 
         # Create a subscriber that subscribes to the cmd_vel topic
-        self.cmd_vel_subscription = self.create_subscription(Twist, 'cmd_vel', self.cmd_vel_callback, 10)
+        self.cmd_vel_subscription = self.create_subscription(Twist, 'nexus1/cmd_vel', self.cmd_vel_callback, 10)
 
         #Initiate Serial communication to arduino
         self.ser = serial.Serial('/dev/ttyACM0', 115200)
@@ -27,6 +28,9 @@ class pi_control(Node):
         # Initialize the joint states for rviz
         self.wheel_states = JointState()
         self.wheel_states.name = ['upper_left_wheel_joint', 'upper_right_wheel_joint', 'lower_left_wheel_joint', 'lower_right_wheel_joint']
+        self.wheel_states.position = [0.0, 0.0, 0.0, 0.0]
+        self.wheel_states.velocity = [0.0, 0.0, 0.0, 0.0]
+        self.wheel_states.effort = [0.0, 0.0, 0.0, 0.0]
         self.get_logger().info('pi_control node has been started')
 
     def cmd_vel_callback(self, msg):
@@ -51,8 +55,11 @@ class pi_control(Node):
         left_wheel_velocity = round(left_wheel_velocity, 2)
         right_wheel_velocity = round(right_wheel_velocity, 2)
 
-        self.ser.write(left_wheel_velocity)
-        self.ser.write(right_wheel_velocity)
+        l_array = struct.pack('d',left_wheel_velocity)
+        r_array = struct.pack('d',right_wheel_velocity)
+
+        self.ser.write(l_array)
+        self.ser.write(r_array)
 
         # Compute the left and right wheel positions
         left_wheel_position = self.wheel_states.position[0] + left_wheel_velocity * elapsed_time
@@ -64,9 +71,6 @@ class pi_control(Node):
 
         # Publish the joint states - this will make the wheels spin
         self.wheel_states_publisher.publish(self.wheel_states)
-
-
-
 
 
 # Define the main function
