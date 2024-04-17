@@ -27,7 +27,7 @@ class pi_control(Node):
         # Initialize the joint states for rviz
         self.wheel_states = JointState()
         self.wheel_states.name = ['upper_left_wheel_joint', 'upper_right_wheel_joint', 'lower_left_wheel_joint', 'lower_right_wheel_joint']
-        self.wheepi_control_logger().info('pi_control node has been started')
+        self.get_logger().info('pi_control node has been started')
 
     def cmd_vel_callback(self, msg):
 
