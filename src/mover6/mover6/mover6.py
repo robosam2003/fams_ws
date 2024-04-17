@@ -60,7 +60,6 @@ class mover6(Node):
         super().__init__('mover6')
 
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
-        self.target_pose = [0.2, 0.0, 0.3]
 
         # Setup robot joint state publisher subscription
         self.joint_control_subscription = self.create_subscription(

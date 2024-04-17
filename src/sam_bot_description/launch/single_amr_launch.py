@@ -115,7 +115,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'initial_base_link_pos',
-            default_value='[0.0, 0.0, 0.0]',
+            default_value='0.0, 0.0, 0.0',
             description='Initial position of the robot in the map frame'
         ),
         # Run the OpaqueFunction
