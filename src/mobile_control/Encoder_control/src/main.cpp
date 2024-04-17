@@ -291,7 +291,7 @@ void doM2EncoderA() {
     M2encoderPos = M2encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
   }
   }
-}
+
 
 void doM3EncoderA() {
   // look for a low-to-high on channel A
@@ -299,7 +299,7 @@ void doM3EncoderA() {
     M3encoderPos = M3encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
   }
   }
-}
+
 
 void doM4EncoderA() {
   // look for a low-to-high on channel A
@@ -307,4 +307,3 @@ void doM4EncoderA() {
     M4encoderPos = M4encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
   }
   }
-}

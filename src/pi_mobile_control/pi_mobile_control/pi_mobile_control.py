@@ -75,13 +75,13 @@ def main(args=None):
     rclpy.init(args=args)
 
     # Create an instance of the SamBot class
-    pi_control = pi_control()
+    pi_mobile_control = pi_control()
 
     # Spin the node
-    rclpy.spin(pi_control)
+    rclpy.spin(pi_mobile_control)
 
     # Destroy the node
-    pi_control.destroy_node()
+    pi_mobile_control.destroy_node()
 
     # Shutdown ROS 2
     rclpy.shutdown()

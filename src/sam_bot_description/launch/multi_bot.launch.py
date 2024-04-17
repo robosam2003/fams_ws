@@ -26,7 +26,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(sam_bot_launch_file),
         launch_arguments={
             'robot_name': 'nexus1',
-            'initial_base_link_pos': "1.0 1.0 0.0"
+            'initial_base_link_pos': "1.77 1.015 0"
         }.items()
     )
     # sam_bot_launch2 = IncludeLaunchDescription(

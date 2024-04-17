@@ -42,7 +42,6 @@ class Scheduler(Node):
             'schedule',
             10
         )
-
         self.system_state = SystemState()
 
         self.active_job_list = []
