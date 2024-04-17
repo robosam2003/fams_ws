@@ -6,6 +6,7 @@ from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped
 import serial
 import struct
+from fams_interfaces.msg import PiControl
 
 class pi_control(Node):
 
@@ -15,6 +16,9 @@ class pi_control(Node):
 
         # Create a publisher that publishes the joint states so rivz can be run to visulaise system
         self.wheel_states_publisher = self.create_publisher(JointState, 'wheel_states', 10)
+
+        self.left_vel_observation = self.create_publisher(PiControl, 'left_vel', 10)
+        self.right_vel_observation = self.create_publisher(PiControl, 'right_vel', 10)
 
         # Create a subscriber that subscribes to the cmd_vel topic
         self.cmd_vel_subscription = self.create_subscription(Twist, 'nexus1/cmd_vel', self.cmd_vel_callback, 10)
@@ -54,6 +58,11 @@ class pi_control(Node):
         
         left_wheel_velocity = round(left_wheel_velocity, 2)
         right_wheel_velocity = round(right_wheel_velocity, 2)
+
+        msg = PiControl()
+        msg.left_vel = left_wheel_velocity
+        msg.right_vel = right_wheel_velocity
+        self.left_vel_observation.publish(msg)
 
         l_array = struct.pack('d',left_wheel_velocity)
         r_array = struct.pack('d',right_wheel_velocity)
