@@ -18,6 +18,7 @@
                 <Peer Address="143.167.47.43"/>
                 <Peer Address="143.167.47.26"/>
                 <Peer Address="192.168.68.109"/>
+                <Peer Address="172.30.58.222"/>
             </Peers>
         </Discovery>
         <Internal>
