@@ -55,6 +55,8 @@ class Mover6(Node):
         # reverse it
         # ik = ik[::-1]
         joint_state.position = [ik[i+1] for i in range(6)]
+        angles = np.rad2deg(joint_state.position)
+        self.get_logger().info("Angles:" + str(angles))
         # self.get_logger().info('Publishing: "%s"' % joint_state)
         self.joint_state_publisher.publish(joint_state)
 
