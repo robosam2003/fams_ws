@@ -52,9 +52,6 @@ class Mover6(Node):
         # self.get_logger().info(self.my_chain.__repr__())
 
         
-        ik_copy = ik.copy()
-
-        
         # reverse it
         # ik = ik[::-1]
         joint_state.position = [ik[i+1] for i in range(6)]

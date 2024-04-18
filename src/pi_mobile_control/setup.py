@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "pi_mobile_control = pi_mobile_control.pi_mobile_control:main"
         ],
     },
 )

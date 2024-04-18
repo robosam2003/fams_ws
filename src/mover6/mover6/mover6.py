@@ -60,7 +60,6 @@ class mover6(Node):
         super().__init__('mover6')
 
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
-        self.target_pose = [0.2, 0.0, 0.3]
 
         # Setup robot joint state publisher subscription
         self.joint_control_subscription = self.create_subscription(
@@ -178,17 +177,17 @@ class mover6(Node):
         self.joint_states_publisher.publish(self.joint_states)
 
     def mover6_pose_control_callback(self, msg):
-        point = [msg.position.x, msg.position.y, msg.position.z]
+        target_point = [msg.position.x, msg.position.y, msg.position.z]
         orientation_quat = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
         # Convert the orientation to euler angles
         orientation_euler = plot_utils.quaternion_to_euler(orientation_quat)
-        
 
-
-        # print("Received: ", msg)
-               
-        
-        
+        # Do the inverse kinematics
+        ik = self.my_chain.inverse_kinematics(target_point) # , orientation_euler)  # Uncommment to include orientation
+        angles = [ik[i+1] for i in range(6)] # Skip the first angle, it's for the joint from the base_link to the first joint
+        angles = [np.rad2deg(a) for a in angles]
+        # Set the desired joint angles to calculated joint angles from the IK
+        self.desired_joint_angles = angles        
 
     def mover6_joints_control_callback(self, msg):
         # print("Received: ", msg)
