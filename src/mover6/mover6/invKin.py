@@ -5,8 +5,10 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import time
 import numpy as np
+import math
 
-def pose(theta, alpha, a, d):
+#def pose(theta, alpha, a, d):
+def pose(a, alpha,d,theta):
   # returns the pose T of one joint frame i with respect to the previous joint frame (i - 1)
   # given the parameters:
   # theta: theta[i]
@@ -40,43 +42,45 @@ def forward_kin(q1,q2,q3,q4,q5,q6):
   Y = []
   Z = []
   d90 = pi/2
-  T01 = pose(q1, 0, 0, 0.75)
+  #pose(theta, alpha, a, d)
+  T01 = pose(0,0,0.130,0)
   T0g = T01
   px,py,pz = T0g[0,3], T0g[1,3], T0g[2,3]
   X.append(px)
   Y.append(py)
   Z.append(pz)
-  T12 = pose(q2 - d90, -d90, 0.35, 0)
+  T12 = pose(0,-d90, 0.0625,q1)
   T0g = T0g* T12
   px,py,pz = T0g[0,3], T0g[1,3], T0g[2,3]
   X.append(px)
   Y.append(py)
   Z.append(pz)
-  T23 = pose(q3, 0, 1.25, 0)
+  T23 = pose(0.190,0,0,-d90+q2)
   T0g = T0g* T23
   px,py,pz = T0g[0,3], T0g[1,3], T0g[2,3]
   X.append(px)
   Y.append(py)
   Z.append(pz)
-  T34 = pose(q4, -d90, -0.054, 1.5)
+  T34 = pose(-0.06,-d90,0,q3)
   T0g = T0g* T34
   px,py,pz = T0g[0,3], T0g[1,3], T0g[2,3]
   X.append(px)
   Y.append(py)
   Z.append(pz)
-  T45 = pose(q5, d90, 0, 0)
+  #T45 = pose(q5, d90, 0, 0)#
+  T45 = pose(0,d90,0.29,q4)#
   T0g = T0g* T45
   px,py,pz = T0g[0,3], T0g[1,3], T0g[2,3]
   X.append(px)
   Y.append(py)
   Z.append(pz)
-  T56 = pose(q6, -d90, 0, 0)
+  T56 = pose(0.055,q6,0,q5+d90)
   T0g = T0g* T56
   px,py,pz = T0g[0,3], T0g[1,3], T0g[2,3]
   X.append(px)
   Y.append(py)
   Z.append(pz)
-  T6g = pose(0, 0, 0, 0.303)
+  T6g = pose(0, d90, 0, d90)
   #final position and rotation
   T0g = T0g* T6g
   px,py,pz = T0g[0,3], T0g[1,3], T0g[2,3]
@@ -365,7 +369,7 @@ def get_angles(x, y, z, roll, pitch, yaw):
 
 
 def main():
-        px, py, pz = 0.49792, 1.3673,3
+        px, py, pz = 0, 0.1,0
         #px, py, pz = 0.49792, 1.3673, 2.4988
         roll, pitch, yaw = 1, -1, -1
         #roll, pitch, yaw = 0.366, -0.078, 2.561
@@ -378,7 +382,9 @@ def main():
         print("q6 : ",q6)
 
         #now plot the arm with updated angles
-        forward_kin(q1,q2,q3,q4,q5,q6)
+        a = forward_kin(q1,q2,q3,q4,q5,q6)
+        for k in a:
+           print(k)
 
 if __name__=="__main__":
   main()
