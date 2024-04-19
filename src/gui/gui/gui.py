@@ -101,8 +101,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.jobObj.subprocesses.append(sub1)
         self.jobObj.start_time = 0
         self.jobObj.end_time = 0
-        self.jobObj.status = ''
-        self.jobObj.add_remove = 'REMOVE'
+        self.jobObj.status = 'REMOVED'
+        #self.jobObj.add_remove = 'REMOVE'
         self.rosnode.job_publisher.publish(self.jobObj)
 
     def addToListHandler(self):
@@ -144,7 +144,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         self.jobObj.status = 'PENDING'
 
-        
+        #self.jobObj.add_remove = 'ADD'
 
         print((self.jobObj))
 
@@ -157,8 +157,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #     10
         # )
         # interfaceNodeObj.job_publisher.publish(self.jobObj)
-        
-        self.get_logger().info('Job message has been published')
+        self.rosnode.job_publisher.publish(self.jobObj)
+        print('Job message has been published with job_id: ', self.jobObj.job_id)
         # self.interface.label.setText('Job message has been published')
 
 
@@ -179,12 +179,12 @@ class InterfaceNode(Node):
             10
         )
 
-        self.chatter_subscriber = self.create_subscription(
-            String,
-            "/chatter", 
-            self.string_callback,
-            10
-        )
+        #self.chatter_subscriber = self.create_subscription(
+        #    String,
+        #    "/chatter", 
+        #    self.string_callback,
+        #    10
+        #)
 
         #Vid_subscriber
         self.subscription = self.create_subscription(
@@ -254,13 +254,14 @@ class InterfaceNode(Node):
         # for loop to add jobs from jobList into gui
 
         #print(self.jobList[0])
-        print(str(self.jobList[0].job_id))
+        
         #self.interface.listWidget.addItems(["Two","Three"])
         print(str(len(self.jobList)))
 
         for i in range(len(self.jobList)):
-            self.interface.listWidget.addItem(str(self.jobList[i].job_id))
+            self.interface.listWidget.addItem(str(self.jobList[i].job_id)) #******* NEED TO REMOVE ITEMS FROM WIDGET FIRST*********
             print(str(i))
+            print('jobList[i].job_id = ', str(self.jobList[i].job_id))
 
         #self.interface.listWidget.addItem(str(self.jobList[0].job_id))
         
