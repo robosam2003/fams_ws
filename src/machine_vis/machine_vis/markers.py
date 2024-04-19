@@ -16,6 +16,9 @@ from geometry_msgs.msg import Point
 import math
 import csv
 from time import sleep
+import subprocess
+
+
 
 class ArucoReader(Node):
 
@@ -33,39 +36,71 @@ class ArucoReader(Node):
     self.video_publisher=self.create_publisher(Image,'video_stream',10)
 
     # Create a VideoCapture object and set parameters
-    
     camType=1
     self.camera_setup(camType)
+
     aruco_type = "DICT_4X4_100" #Is looking for 4x4 only
-    
-   
 
     self.main_loop(aruco_type,camType)
 
   def camera_setup(self,CamIndex):
+    
+    # self.get_logger().info('Querying Camera Device Paths...')
+    # command="udevadm info --query=property --name=/dev/video2 | grep ID_SERIAL_SHORT"
+    # os.system(command)
+    # result=os.popen(command).read()
+    # result=result.strip()
+    # if result=="ID_SERIAL_SHORT=9A6239BF":
+    #   maincam=2
+    #   workcam1=0
+    # elif result=="ID_SERIAL_SHORT=38A907E0":
+    #   maincam=0
+    #   workcam1=2
+    
+    # print(maincam)
+
     match CamIndex:
       case 0:
-        self.get_logger().info('Setting Up Main Camera')
+        self.get_logger().info('Setting Up Main Camera...')
+        
         self.cap = cv2.VideoCapture(-1)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,1920)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-        os.system('v4l2-ctl -d /dev/video1 --set-ctrl=auto_exposure=1')
-        os.system('v4l2-ctl -d /dev/video1 --set-ctrl=white_balance_automatic=0')
-        os.system('v4l2-ctl -d /dev/video1 --set-ctrl=exposure_time_absolute=130')
-        os.system('v4l2-ctl -d /dev/video1 --set-ctrl=white_balance_temperature=3700')
-        os.system('v4l2-ctl -d /dev/video1 --set-ctrl=gain=30')
+        self.cap.set(cv2.CAP_PROP_FPS,30)
+        
+        fps=self.cap.get(cv2.CAP_PROP_FPS)
+        print(fps)
+        width=self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        print(width)
+        
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1')
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0')
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=focus_automatic_continuous=0')
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=focus_absolute=0')
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=130')
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=3700')
+        os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
+        
       case 1:
-        self.get_logger().info('Setting Up Workstation 1 Camera')
-        self.cap = cv2.VideoCapture(3)
+        self.get_logger().info('Setting Up Workstation 1 Camera...')
+        
+        self.cap = cv2.VideoCapture(2)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
-        os.system('v4l2-ctl -d /dev/video3 --set-ctrl=auto_exposure=1')
-        os.system('v4l2-ctl -d /dev/video3 --set-ctrl=white_balance_automatic=0')
-        os.system('v4l2-ctl -d /dev/video3 --set-ctrl=exposure_time_absolute=130')
-        os.system('v4l2-ctl -d /dev/video3 --set-ctrl=white_balance_temperature=3700')
-        os.system('v4l2-ctl -d /dev/video3 --set-ctrl=gain=30')
+        # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
+        self.cap.set(cv2.CAP_PROP_FPS,30)
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=auto_exposure=1')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_automatic=0')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=exposure_time_absolute=150')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_temperature=3700')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=gain=50')
+
+
+        fps=self.cap.get(cv2.CAP_PROP_FPS)
+        print(fps)
+        width=self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        print(width)
       case 2:
         self.cap = cv2.VideoCapture(4)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
@@ -75,8 +110,6 @@ class ArucoReader(Node):
         os.system('v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_automatic=0')
     return self.cap
         
-
-
 
   def obstacle_initial(self):
     Ob_ids=[8,9,10,11] # IDs associated to fixed obstacles (workstation, loading area)
@@ -137,7 +170,7 @@ class ArucoReader(Node):
         locations=tvec-origin
         x=(round(locations[0,0,0],5))
         y=(round(locations[0,0,1],5))
-        #z=(round(locations[0,0,2],5))
+        z=(round(locations[0,0,2],5))
 
         rmat=cv2.Rodrigues(rvec)[0]
         angles=self.rotationMatrixToEulerAngles(rmat)
@@ -152,17 +185,35 @@ class ArucoReader(Node):
             mobilelocation_msg.x=x
             mobilelocation_msg.y=y
             mobilelocation_msg.z=yaw
-          self.moblocation_pub.publish(mobilelocation_msg)
-          self.get_logger().info('{}:{}'.format("Publishing",mobilelocation_msg))
-
+          
+        
         if switch==0:
-          if ids[i,0] in range(80,91):
+          if ids[i,0]==81:
+            print(tvec)
+            origin_x=tvec[0][0][0]
+            origin_y=tvec[0][0][1]
+            origin_z=tvec[0][0][2]
+            print(origin_x,origin_y,origin_z)
+            
+            originmarkerpoint=np.array(((x),(y),(origin_z),1))
+            
+            Transf_to_Arm=np.array(((math.cos(yaw), -math.sin(yaw), 0, 0.185),
+                               (math.sin(yaw), math.cos(yaw), 0, 0),
+                               (0, 0, 1, 0),
+                               (0, 0, 0, 1)))
+            new_origin=np.dot(Transf_to_Arm,originmarkerpoint)
+            
+            
+          if ids[i,0] in range(82,91):
             part_id_msg.append(int(ids[i,0]))
             part_loc_msg.extend([x,y,yaw])
           partlocation_msg.part_id=part_id_msg
           partlocation_msg.part_location=part_loc_msg
-          self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg.part_id))
-          self.partlocation_pub.publish(partlocation_msg)   
+
+      # self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
+      self.partlocation_pub.publish(partlocation_msg)
+      self.moblocation_pub.publish(mobilelocation_msg)
+      # self.get_logger().info('{}:{}'.format("Publishing",mobilelocation_msg))   
 
           # if ids[i,0] in (8,9):
           #   ob_id_msg.append(int(ids[i,0]))
@@ -261,7 +312,7 @@ class ArucoReader(Node):
       Cam_Mtrx = np.array(((1.21665111e+03, 0, 6.54768787e+02),(0, 1.21478888e+03, 5.00652432e+02),(0,0,1)))
       Distort = np.array((0.04315798,  0.50036972, -0.01800276, -0.00592732, -1.26928846))
       markerSize=0.0325
-      origin=[-0.00571422,  0.14421631,  0.91450818]
+      origin=[(-0.03480-0.185),  0.28, -0.0202]
       detectObstacles=0
     else:
       self.get_logger().info('Camera Selection Fail Abort')
@@ -269,9 +320,9 @@ class ArucoReader(Node):
       cv2.destroyAllWindows()
     
     while self.cap.isOpened():
-      os.system('v4l2-ctl -d /dev/video1 --set-ctrl=exposure_time_absolute=130')
-      os.system('v4l2-ctl -d /dev/video1 --set-ctrl=white_balance_temperature=3700')
-      os.system('v4l2-ctl -d /dev/video1 --set-ctrl=gain=30')
+      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=130'.format(2))
+      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(2))
+      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=30'.format(2))
       
       ret, img = self.cap.read()
       # cv2.imshow('cam',img)
