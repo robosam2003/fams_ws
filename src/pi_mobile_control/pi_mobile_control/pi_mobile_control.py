@@ -3,8 +3,10 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import TransformStamped, Point
+from geometry_msgs.msg import TransformStamped
 import serial
+import struct
+from fams_interfaces.msg import PiControl
 
 class pi_control(Node):
 
@@ -15,8 +17,11 @@ class pi_control(Node):
         # Create a publisher that publishes the joint states so rivz can be run to visulaise system
         self.wheel_states_publisher = self.create_publisher(JointState, 'wheel_states', 10)
 
+        self.left_vel_observation = self.create_publisher(PiControl, 'left_vel', 10)
+        self.right_vel_observation = self.create_publisher(PiControl, 'right_vel', 10)
+
         # Create a subscriber that subscribes to the cmd_vel topic
-        self.cmd_vel_subscription = self.create_subscription(Twist, 'cmd_vel', self.cmd_vel_callback, 10)
+        self.cmd_vel_subscription = self.create_subscription(Twist, 'nexus1/cmd_vel', self.cmd_vel_callback, 10)
 
         #Initiate Serial communication to arduino
         self.ser = serial.Serial('/dev/ttyACM0', 115200)
@@ -27,7 +32,10 @@ class pi_control(Node):
         # Initialize the joint states for rviz
         self.wheel_states = JointState()
         self.wheel_states.name = ['upper_left_wheel_joint', 'upper_right_wheel_joint', 'lower_left_wheel_joint', 'lower_right_wheel_joint']
-        self.wheepi_control_logger().info('pi_control node has been started')
+        self.wheel_states.position = [0.0, 0.0, 0.0, 0.0]
+        self.wheel_states.velocity = [0.0, 0.0, 0.0, 0.0]
+        self.wheel_states.effort = [0.0, 0.0, 0.0, 0.0]
+        self.get_logger().info('pi_control node has been started')
 
     def cmd_vel_callback(self, msg):
 
@@ -51,8 +59,16 @@ class pi_control(Node):
         left_wheel_velocity = round(left_wheel_velocity, 2)
         right_wheel_velocity = round(right_wheel_velocity, 2)
 
-        self.ser.write(left_wheel_velocity)
-        self.ser.write(right_wheel_velocity)
+        msg = PiControl()
+        msg.left_vel = left_wheel_velocity
+        msg.right_vel = right_wheel_velocity
+        self.left_vel_observation.publish(msg)
+
+        l_array = struct.pack('d',left_wheel_velocity)
+        r_array = struct.pack('d',right_wheel_velocity)
+
+        self.ser.write(l_array)
+        self.ser.write(r_array)
 
         # Compute the left and right wheel positions
         left_wheel_position = self.wheel_states.position[0] + left_wheel_velocity * elapsed_time
@@ -64,9 +80,6 @@ class pi_control(Node):
 
         # Publish the joint states - this will make the wheels spin
         self.wheel_states_publisher.publish(self.wheel_states)
-
-
-
 
 
 # Define the main function

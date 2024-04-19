@@ -21,4 +21,4 @@ uint64 end_time
 string status
 
 # Whether a job is to be added or reomoved - Can be "ADD" or "REMOVE"
-string add_remove
+#string add_remove

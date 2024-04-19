@@ -45,13 +45,23 @@ def generate_launch_description():
         name='joint_state_publisher_gui',
         condition=launch.conditions.IfCondition(LaunchConfiguration('gui'))
     )
+    # mover6_node = launch_ros.actions.Node(
+    #     package='mover6_sim',
+    #     executable='mover6',
+    #     namespace='mover6',
+    #     name='mover6',
+    #     output='screen',
+    # )
+
     mover6_node = launch_ros.actions.Node(
-        package='mover6_sim',
+        package='mover6',
         executable='mover6',
         namespace='mover6',
         name='mover6',
         output='screen',
     )
+
+
 
     rviz_node = launch_ros.actions.Node(
         package='rviz2',
@@ -59,6 +69,7 @@ def generate_launch_description():
         name='rviz2',
         output='screen',
         arguments=['-d', LaunchConfiguration('rvizconfig')],
+        condition=launch.conditions.IfCondition(LaunchConfiguration("run_rviz")),
     )
 
 
@@ -76,9 +87,9 @@ def generate_launch_description():
                                              description="whether or not this launch file runs RVIZ2"),
         # launch.actions.ExecuteProcess(cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world_path], output='screen'),
         # load_param,
-        rviz_node,
         mover6_node,
         joint_state_publisher_node, # Commented out because gazebo plugin publishes joint states
         robot_state_publisher_node,
+        rviz_node,
     ])
 
