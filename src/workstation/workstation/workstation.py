@@ -9,6 +9,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Pose
 import numpy as np
 import math
+import time
 #from machine_vision import eStop
 #from mover6 import mover6
 
@@ -57,7 +58,8 @@ class Workstation(Node):
                                                                      'WorkstationCommand',
                                                                      self.workstation_cmd_callback,
                                                                      10 )
-
+    
+        
         #know how to determine if state= free/busy
         # self.workstation_publisher = self.create_publisher(
         #     SystemState,
@@ -70,7 +72,7 @@ class Workstation(Node):
 
         # SystemState1=SystemState
         # # Workstations State
-        # workstation1.state='busy'
+        
 
         # # Part State
         #     workstation1.parts
@@ -87,14 +89,38 @@ class Workstation(Node):
         locations = self.vision_locations.part_location
         location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
 
-        part = location_array_2D[0]
+        #from bot to floor
+        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.2,1.57,0,0)
+        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.3,1.57,0,0)
+        self.move_robot(self,0.25,0.25,0.3,1.57,0,0)
+        self.move_robot(self,0.25,0.25,0.1,1.57,0,0)
+
+
+        
+#function move to box 
+#find out which id is where
+        part_id=self.vision_locations.part_id
+        print(
+        part_id,
+        location_array_2D[0])
+        self.get_logger().info(part_id,
+        location_array_2D[0])
+        
+        workstation1=Workstation
+        workstation1.state='free'
+
+
+    
+    def move_robot(self,x,y,z, theta,phi,psi):
+        #generic fx 3d coord ip, move robot there
+      
+        
         
         mover6_pose_msg = Pose()
-        mover6_pose_msg.position.x = part[0]
-        mover6_pose_msg.position.y = part[1]
-        mover6_pose_msg.position.z = 0.1
-
-        q = quaternion_from_euler(-math.pi/2, 0, part[2])
+        mover6_pose_msg.position.x = x
+        mover6_pose_msg.position.y = y
+        mover6_pose_msg.position.z = z
+        q = quaternion_from_euler(theta,phi,psi)
         mover6_pose_msg.orientation.x = q[0]
         mover6_pose_msg.orientation.y = q[1]
         mover6_pose_msg.orientation.z = q[2]
@@ -102,10 +128,14 @@ class Workstation(Node):
 
         self.mover6Publisher.publish(mover6_pose_msg)
         self.get_logger().info("Published pose to mover6")
-
+        time.sleep(2)
+        
         
     def vision_callback(self, msg):
         self.vision_locations = msg
+        print("tftgbhjn")
+        self.handle_part_output()
+
 
     def workstation_cmd_callback(self, command:WorkstationCommand,msg):
         self.get_logger().info('Received Command: ' )

@@ -62,7 +62,7 @@ class WorkstationController(Node):
 
         self.vision_locations_subscriber = self.create_subscription(
             Vision,
-            'vision_locations', # Consider naming to something better - maybe 'amr_vision_locations'
+            'amr_vision_locations', # Consider naming to something better - maybe 'amr_vision_locations'
             self.vision_locations_handler,
             10 
         )
@@ -78,20 +78,44 @@ class WorkstationController(Node):
         amr_locations = location_array_2D=np.reshape(self.vision_locations.part_location,(int(len(self.vision_locations.part_location)/3),3))
 
         # Check if the AMRs are close enough to any of the docking poses
-        for i, amr_location in enumerate(amr_locations):
-            for j, docking_pose in enumerate(self.workstation_docking_poses):
+        for i, amr_location in enumerate(amr_locations): # For every amr location
+            for j, docking_pose in enumerate(self.workstation_docking_poses): # For every possible docking pose
                 distance = math.sqrt((amr_location[0] - docking_pose.position.x)**2 + (amr_location[1] - docking_pose.position.y)**2)
+                # If the AMR is close enough to the docking pose
                 if distance < 0.1 and amr_location[2] - docking_pose.position.z < 0.1:
                     # The AMR is close enough and aligned with the docking pose of the workstation
-                    parts = self.schedule.parts
-                    subprocesses = self.schedule.subprocesses
-                    workstations = self.schedule.workstations
+                    parts_schedule = self.schedule.parts
+                    subprocesses_schedule = self.schedule.subprocesses
+                    workstations_schedule = self.schedule.workstations
+                    
+                    # Check if the part on that robot is supposed to be processed at that workstation
+                    amr_id = self.vision_locations.part_id[i] # "Part  ID here is actually the AMR ids"
+                    for part in parts_schedule:
+                        if part.location == amr_id: # The location field of the part should be the same as the amr_id
+                            index = parts_schedule.index(part) # Find the index of the chosen part in the schedule
+                            workstation = workstations_schedule[index] # Match the index with the workstation in the schedule
+                            
+                            # Check if the workstation is available
+                            for state_workstation in self.system_state.workstations:
+                                if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
+                                    if state_workstation.status == 'FREE':
+                                        # Send a command to the AMR to move to the workstation
+                                        self.send_workstation_command(workstation.id, "PART_INPUT")
+                                    elif state_workstation.status == 'BUSY':
+                                        self.send_workstation_command(workstation.id, "PART_OUTPUT")
+                                    else:
+                                        # The workstation is busy or broken
+                                        pass
 
-    
-    def send_workstation_command(self, amr_index, workstation_index):  
+
+                            
+
+    def send_workstation_command(self, workstation_id, command):  
         # Create a Workstation message
         workstation_command = WorkstationCommand()
-        workstation_command.command = 'DOCK'
+        workstation_command.id = command
+
+
         
 
     
