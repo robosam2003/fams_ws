@@ -182,7 +182,14 @@ void loop() {
     right_vel = control_string.substring(ind1+1,ind2).toFloat();
   }
   Serial.print(left_vel);
-  Serial.println(right_vel);
+  Serial.print(" ");
+  Serial.print(right_vel);
+  Serial.print("    ");
+
+  Serial.print(pwm3);   Serial.print(" ");   Serial.print(pwm4);   Serial.print(" ");   Serial.print(pwm1);   Serial.print(" ");   Serial.print(pwm2);Serial.print("    ");
+  Serial.print(err3);   Serial.print(" ");   Serial.print(err4);   Serial.print(" ");   Serial.print(err1);   Serial.print(" ");   Serial.print(err2);Serial.print("    ");
+  Serial.print(err3_i);   Serial.print(" ");   Serial.print(err4_i);   Serial.print(" ");   Serial.print(err1_i);   Serial.print(" ");   Serial.println(err2_i);
+
 
   if(right_vel < 0 && left_vel > 0){
     dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1;// Sets all motors to rotate clockwise
@@ -265,7 +272,7 @@ void controlLoop(){
   int k_i = 0.1;// Integral control gain
   float u_i1 = k_i*err1_i, u_i2 = k_i*err2_i, u_i3 = k_i*err3_i, u_i4 = k_i*err4_i;// Integral control
 
-  pwm1 = (int)u1 + (int)u_i1;// Adds integral control to control signal
+  pwm1 = (int)u1 + (int)u_i1; // Adds integral control to control signal
   pwm2 = (int)u2 + (int)u_i2;
   pwm3 = (int)u3 + (int)u_i3;
   pwm4 = (int)u4 + (int)u_i4;
@@ -300,7 +307,7 @@ void controlLoop(){
 void doM1EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M1PinA) == HIGH) {
-    M1encoderPos = M1encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+    M1encoderPos = M1encoderPos + 1 ; // If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
   }
 }
 
@@ -309,7 +316,7 @@ void doM2EncoderA() {
   if (digitalRead(M2PinA) == HIGH) {
     M2encoderPos = M2encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
   }
-  }
+}
 
 
 void doM3EncoderA() {
@@ -325,4 +332,4 @@ void doM4EncoderA() {
   if (digitalRead(M4PinA) == HIGH) {
     M4encoderPos = M4encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
   }
-  }
+}
