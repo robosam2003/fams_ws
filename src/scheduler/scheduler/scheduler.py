@@ -13,6 +13,9 @@ class Scheduler(Node):
         self.temp_job_log_path = "./src/scheduler/scheduler/tempJobLog.csv"  # Relative so that it works on any machine
         self.get_logger().info('Scheduler node has been started')
 
+        # clear job log here
+        
+
         self.job_subscriber = self.create_subscription(
             Job,
             'job', # Topic name
@@ -100,15 +103,24 @@ class Scheduler(Node):
 
         if msg.status == 'REMOVED':
             self.remove_job_from_log(msg)
+            print("range ", range(len(self.system_state.parts)))
+            print("len of parts: ", len(self.system_state.parts))
+            for i in range(len(self.system_state.parts)):
+                print("Parts loop iteration: ", i)
+                if self.system_state.parts[i].job_id == msg.job_id:
+                    removedPart = self.system_state.parts.pop(i)
+                    self.get_logger().info('Part corresponding to removed job of job_id: ' + self.system_state.parts[i].job_id + 'has been removed from system state with part_id: ' + removedPart.part_id)
         else:
             self.save_job_to_log(msg) # Add Job to Job Log
-            self.get_logger().info('Job message has been added to the job log')
-
-        if msg.status == 'PENDING' or msg.status == 'IN PROGRESS':
             self.active_job_list.append(msg)
             self.get_logger().info('Job message has been added to the active job list, which now has ' + str(len(self.active_job_list)) + ' jobs')
+            self.system_state.parts.append(msg.part) # Add parts to system state parts list
 
-        self.system_state.parts.append(msg.part) # Add parts to system state parts list
+        #if msg.status == 'PENDING' or msg.status == 'IN PROGRESS':
+        #    self.active_job_list.append(msg)
+        #    self.get_logger().info('Job message has been added to the active job list, which now has ' + str(len(self.active_job_list)) + ' jobs')
+
+        #self.system_state.parts.append(msg.part) # Add parts to system state parts list
         self.state_publisher.publish(self.system_state) # Publish /SystemState message
         self.update_active_job_list()
 
@@ -140,8 +152,8 @@ class Scheduler(Node):
                 #f.truncate()                           # may be needed to clear JobLog
                 for line in ff:
                     f.write(line)                       # writes each line of tempJobLog to JobLog
-                f.write('\n')
-        self.update_active_job_list()                   # Update active job list from job log
+                #f.write('\n')
+        #self.update_active_job_list()                   # Update active job list from job log
 
     def system_state_callback(self, msg):
         self.get_logger().info('System state message received')

@@ -110,7 +110,9 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #print(str(self.opType.text()))
                
         #self.listView.create
-        
+        print(isinstance(self.subID.text(), int))
+
+        #if isinstance(self.subID.text(), int) and isinstance(self.opType.text(), str) and isinstance(self.subStartTime.text(), (int, float)) and isinstance(self.subEndTime.text(), (int, float)):
         sub1=SubProcess()   #create subprocess object
         sub1.sub_process_id=int(self.subID.text())
         sub1.operation_type=self.opType.text()
@@ -122,6 +124,11 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print((sub1.end_time))
         self.jobObj.subprocesses.append(sub1)
         print((self.jobObj.subprocesses[0]))
+        
+        self.addJobButton.setStyleSheet("background-color: rgb(0, 255, 0)")
+        #else:
+            #self.addToList.setStyleSheet("background-color: rgb(50, 71, 143)")
+            #self.addToList.setText("All fields must be filled correctly.")
         
         
         
@@ -161,7 +168,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print('Job message has been published with job_id: ', self.jobObj.job_id)
         # self.interface.label.setText('Job message has been published')
 
-
+        self.jobObj.subprocesses=[] #clears subprocesses list
 
 class InterfaceNode(Node):
     def __init__(self):
