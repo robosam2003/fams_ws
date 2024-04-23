@@ -14,7 +14,8 @@ class Scheduler(Node):
         self.get_logger().info('Scheduler node has been started')
 
         # clear job log here
-        
+        with open(self.job_log_path, 'w') as f:
+            f.truncate()
 
         self.job_subscriber = self.create_subscription(
             Job,
@@ -22,13 +23,11 @@ class Scheduler(Node):
             self.job_message_callback,
             10 # QoS profile
         )
-
         self.active_job_publisher = self.create_publisher(
             JobList,
             'active_jobs',
             10
         )
-
         self.state_subscriber = self.create_subscription(
             SystemState,
             'system_state',
