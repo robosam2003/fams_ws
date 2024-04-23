@@ -82,21 +82,21 @@ class WorkstationController(Node):
             for j, docking_pose in enumerate(self.workstation_docking_poses): # For every possible docking pose
                 distance = math.sqrt((amr_location[0] - docking_pose.position.x)**2 + (amr_location[1] - docking_pose.position.y)**2)
                 # If the AMR is close enough to the docking pose
-                if distance < 0.1 and amr_location[2] - docking_pose.position.z < 0.1:
+                if distance < 0.1 and amr_location[2] - docking_pose.position.z < 0.1: # There could be a better way of checking that the robot is at the docking location. 
                     # The AMR is close enough and aligned with the docking pose of the workstation
                     parts_schedule = self.schedule.parts
                     subprocesses_schedule = self.schedule.subprocesses
                     workstations_schedule = self.schedule.workstations
                     
                     # Check if the part on that robot is supposed to be processed at that workstation
-                    amr_id = self.vision_locations.part_id[i] # "Part  ID here is actually the AMR ids"
+                    amr_id = self.vision_locations.part_id[i] # "Part ID" here is actually the AMR ids
                     for part in parts_schedule:
-                        if part.location == amr_id: # The location field of the part should be the same as the amr_id
-                            index = parts_schedule.index(part) # Find the index of the chosen part in the schedule
-                            workstation = workstations_schedule[index] # Match the index with the workstation in the schedule
+                        if part.location == amr_id: # Select the part that is on the AMR
+                            index = parts_schedule.index(part) # Find the index (in the schedule) of the part that is on the AMR
+                            workstation = workstations_schedule[index] # Match that index with the workstation in the schedule
                             
                             # Check if the workstation is available
-                            for state_workstation in self.system_state.workstations:
+                            for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
                                 if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
                                     if state_workstation.status == 'FREE':
                                         # Send a command to the AMR to move to the workstation
@@ -106,6 +106,9 @@ class WorkstationController(Node):
                                     else:
                                         # The workstation is busy or broken
                                         pass
+                    # If here, there is no part on the AMR that is at a docking location.
+                    pass
+        # If here, there are no AMRs close enough to any of the docking poses
 
 
                             
