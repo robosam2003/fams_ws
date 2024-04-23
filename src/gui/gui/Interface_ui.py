@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        mainWindowSize=[752, 695]
+        mainWindowSize=[1000, 750]
         MainWindow.resize(mainWindowSize[0],mainWindowSize[1])
 
         xLabel = 20
@@ -32,7 +32,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.stopButton = QPushButton(self.centralwidget)
         self.stopButton.setObjectName(u"stopButton")
-        self.stopButton.setGeometry(QRect(165, 15, 500, 25))
+        self.stopButton.setGeometry(QRect(165, 15, 500, 25))    # xLocation, yLocation, Width, Height (From top left)
         self.stopButton.setAutoRepeat(False)
         self.stopButton.setStyleSheet("background-color: rgb(255, 0, 0)")
         self.JobID = QLabel(self.centralwidget)
@@ -108,16 +108,32 @@ class Ui_MainWindow(object):
         self.addJobButton.setStyleSheet("background-color: rgb(60, 60, 80)")
         self.ActiveJobList = QLabel(self.centralwidget)
         self.ActiveJobList.setObjectName(u"ActiveJobList")
-        self.ActiveJobList.setGeometry(QRect(165, 538, 99, 17))
-        self.listWidget = QListWidget(self.centralwidget)
-        self.listWidget.setObjectName(u"listWidget")
-        self.listWidget.setGeometry(QRect(165, 560, 250, 72))
+        self.ActiveJobList.setGeometry(QRect(10, 538, 99, 17))
+        self.jobListWidget = QListWidget(self.centralwidget)
+        self.jobListWidget.setObjectName(u"JobListWidget")
+        self.jobListWidget.setGeometry(QRect(10, 560, 250, 72))
         self.JobDeleteButton = QPushButton(self.centralwidget)
         self.JobDeleteButton.setObjectName(u"JobDeleteButton")
-        self.JobDeleteButton.setGeometry(QRect(165, 639, 500, 25))
-        self.listWidget_2 = QListWidget(self.centralwidget)
-        self.listWidget_2.setObjectName(u"listWidget_2")
-        self.listWidget_2.setGeometry(QRect(420, 560, 250, 72))
+        self.JobDeleteButton.setGeometry(QRect(165, 670, 500, 25))
+        xListWidget_1 = 10+250+20
+        wListWidget_1 = 150
+        wListWidget_2 = 150
+        xListWidget_2 = xListWidget_1+wListWidget_1+20
+        self.SubprocessList = QLabel(self.centralwidget)
+        self.SubprocessList.setObjectName(u"SubprocessList")
+        self.SubprocessList.setGeometry(QRect(xListWidget_1, 538, 110, 17))
+        self.SubprocessList_id = QLabel(self.centralwidget)
+        self.SubprocessList_id.setObjectName(u"SubprocessList_id")
+        self.SubprocessList_id.setGeometry(QRect(xListWidget_1, 568, 110, 17))
+        self.SubprocessList_operation = QLabel(self.centralwidget)
+        self.SubprocessList_operation.setObjectName(u"SubprocessList_id")
+        self.SubprocessList_operation.setGeometry(QRect(xListWidget_2, 568, 150, 17))
+        self.subprocessListWidget_1 = QListWidget(self.centralwidget)
+        self.subprocessListWidget_1.setObjectName(u"listWidget_1")
+        self.subprocessListWidget_1.setGeometry(QRect(xListWidget_1, 590, wListWidget_1, 72))
+        self.subprocessListWidget_2 = QListWidget(self.centralwidget)
+        self.subprocessListWidget_2.setObjectName(u"listWidget_2")
+        self.subprocessListWidget_2.setGeometry(QRect(xListWidget_2, 590, wListWidget_2, 72))
         self.frame = QFrame(self.centralwidget)     # Subprocess Frame
         self.frame.setObjectName(u"frame")
         self.frame.setGeometry(QRect(xLabel, 200, 645, 168))
@@ -133,7 +149,7 @@ class Ui_MainWindow(object):
         self.widget.setStyleSheet("background-color: rgb(155, 155, 155)") # background colour of widget that covers whole background
         self.frame1 = QFrame(self.centralwidget)    # Job Frame
         self.frame1.setObjectName(u"frame")
-        self.frame1.setGeometry(QRect(10, 74, 665, 442))
+        self.frame1.setGeometry(QRect(10, 74, mainWindowSize[0]-10-10, 442))
         self.frame1.setFrameShape(QFrame.Panel)
         self.frame1.setFrameShadow(QFrame.Raised)
         self.frame1.setLineWidth(3)
@@ -170,9 +186,13 @@ class Ui_MainWindow(object):
         self.priority.raise_()
         self.addJobButton.raise_()
         self.ActiveJobList.raise_()
-        self.listWidget.raise_()
+        self.SubprocessList.raise_()
+        self.SubprocessList_id.raise_()
+        self.SubprocessList_operation.raise_()
+        self.jobListWidget.raise_()
         self.JobDeleteButton.raise_()
-        self.listWidget_2.raise_()
+        self.subprocessListWidget_1.raise_()
+        self.subprocessListWidget_2.raise_()
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
@@ -203,6 +223,9 @@ class Ui_MainWindow(object):
 
         self.addJobButton.setText(QCoreApplication.translate("MainWindow", u"Add job", None))
         self.ActiveJobList.setText(QCoreApplication.translate("MainWindow", u"Active Job List", None))
+        self.SubprocessList.setText(QCoreApplication.translate("MainWindow", u"Subprocess List", None))
+        self.SubprocessList_id.setText(QCoreApplication.translate("MainWindow", u"Subprocess ID:", None))
+        self.SubprocessList_operation.setText(QCoreApplication.translate("MainWindow", u"Subprocess Operation:", None))
         self.JobDeleteButton.setText(QCoreApplication.translate("MainWindow", u"Delete selected job", None))
     # retranslateUi
 

@@ -320,7 +320,7 @@
      <string>Active Job List</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="listWidget">
+   <widget class="QListWidget" name="JobListWidget">
     <property name="geometry">
      <rect>
       <x>165</x>
@@ -341,6 +341,16 @@
     </property>
     <property name="text">
      <string>Delete selected job</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="listWidget_1">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>560</y>
+      <width>250</width>
+      <height>72</height>
+     </rect>
     </property>
    </widget>
    <widget class="QListWidget" name="listWidget_2">
@@ -424,8 +434,9 @@
    <zorder>priority</zorder>
    <zorder>addJobButton</zorder>
    <zorder>ActiveJobList</zorder>
-   <zorder>listWidget</zorder>
+   <zorder>JobListWidget</zorder>
    <zorder>JobDeleteButton</zorder>
+   <zorder>listWidget_1</zorder>
    <zorder>listWidget_2</zorder>
    <zorder>widget</zorder>
   </widget>
