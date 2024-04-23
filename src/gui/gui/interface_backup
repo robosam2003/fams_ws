@@ -105,7 +105,7 @@ class Ui_MainWindow(object):
         self.addJobButton = QPushButton(self.centralwidget)
         self.addJobButton.setObjectName(u"addJobButton")
         self.addJobButton.setGeometry(QRect(165, 473, 500, 25))
-        self.addJobButton.setStyleSheet("background-color: rgb(60, 60, 80)")
+        self.addJobButton.setStyleSheet("background-color: rgb(100, 100, 120)")
         self.ActiveJobList = QLabel(self.centralwidget)
         self.ActiveJobList.setObjectName(u"ActiveJobList")
         self.ActiveJobList.setGeometry(QRect(165, 538, 99, 17))
@@ -201,7 +201,7 @@ class Ui_MainWindow(object):
         self.priority.setItemText(1, QCoreApplication.translate("MainWindow", u"2", None))
         self.priority.setItemText(2, QCoreApplication.translate("MainWindow", u"3", None))
 
-        self.addJobButton.setText(QCoreApplication.translate("MainWindow", u"Add job", None))
+        self.addJobButton.setText(QCoreApplication.translate("MainWindow", u"add job", None))
         self.ActiveJobList.setText(QCoreApplication.translate("MainWindow", u"Active Job List", None))
         self.JobDeleteButton.setText(QCoreApplication.translate("MainWindow", u"Delete selected job", None))
     # retranslateUi

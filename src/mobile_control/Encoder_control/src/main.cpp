@@ -59,6 +59,7 @@ long currT = 0;// Current time of system
 float deltaT = 0;// Time taken to measure certain amount of encoder pings
 volatile long prevT = 0;// Previous time measurement was taken at
 volatile float velocity_i1 = 0, velocity_i2 = 0, velocity_i3 = 0, velocity_i4 = 0, left_vel = 0, right_vel = 0;// Velocities of wheels and target velocities from node
+
 volatile int pos1, pos2, pos3, pos4;// Current count of encoder position
 volatile int posprev1, posprev2, posprev3, posprev4;// Previous count of encoder position
 float vt1, vt2, vt3, vt4, err1, err2, err3, err4, u1, u2, u3, u4;// Contorl variables

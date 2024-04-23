@@ -55,6 +55,8 @@ class mover6(Node):
         # subprocess.run(["sudo", "modprobe", "peak_pci"])
         # subprocess.run(["sudo", "ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"])
         # time.sleep(1)
+        #         sudo modprobe peak_usb && sudo modprobe peak_pci && sudo ip link set can0 up type can bitrate 500000
+
 
         # Node init
         super().__init__('mover6')
@@ -71,7 +73,7 @@ class mover6(Node):
 
         self.pose_control_subscription = self.create_subscription(
             Pose,
-            'mover6_pose_control',
+            'mover6_goal_pose',
             self.mover6_pose_control_callback,
             10
         )
@@ -137,7 +139,7 @@ class mover6(Node):
         for joint in self.joints[0:max_joint]:
             joint.set_max_lag(self.MAX_LAG)
             time.sleep(2/1000)
-            joint.set_pos_pid(0.1, 0.1, 0)
+            joint.set_pos_pid(0.2, 0.1, 0)
             time.sleep(2/1000)
             joint.set_vel_pid(0.5, 0, 0)
             time.sleep(2/1000)
@@ -176,16 +178,43 @@ class mover6(Node):
         self.joint_states.position = [float(j.current_position_deg) for j in self.joints] # convert to radians
         self.joint_states_publisher.publish(self.joint_states)
 
+    def quaternion_to_euler(self, quat):
+        # Convert the orientation to euler angles
+        x = quat[0]
+        y = quat[1]
+        z = quat[2]
+        w = quat[3]
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        X = np.arctan2(t0, t1)
+        t2 = +2.0 * (w * y - z * x)
+        t2 = +1.0 if t2 > +1.0 else t2
+        t2 = -1.0 if t2 < -1.0 else t2
+        Y = np.arcsin(t2)
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        Z = np.arctan2(t3, t4)
+        return X, Y, Z
+
     def mover6_pose_control_callback(self, msg):
         target_point = [msg.position.x, msg.position.y, msg.position.z]
         orientation_quat = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
         # Convert the orientation to euler angles
-        orientation_euler = plot_utils.quaternion_to_euler(orientation_quat)
+        orientation_euler = self.quaternion_to_euler(orientation_quat)
 
         # Do the inverse kinematics
         ik = self.my_chain.inverse_kinematics(target_point) # , orientation_euler)  # Uncommment to include orientation
         angles = [ik[i+1] for i in range(6)] # Skip the first angle, it's for the joint from the base_link to the first joint
+        angles[0] = angles[0]
+        angles[1] = -angles[1]
+        angles[2] = angles[2]
+        angles[3] = angles[3]
+        angles[4] = angles[4]
+        angles[5] = angles[5]
+        
+
         angles = [np.rad2deg(a) for a in angles]
+        print("IK angles: ", angles)
         # Set the desired joint angles to calculated joint angles from the IK
         self.desired_joint_angles = angles        
 
