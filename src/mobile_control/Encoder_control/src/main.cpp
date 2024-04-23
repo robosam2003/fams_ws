@@ -17,7 +17,7 @@ Contains no unnecessary functions, not capable of exporting data for analysis.
 #include <Arduino.h>
 #include <SPI.h>
 #include <EnableInterrupt.h>
-#include <String.h>
+#include <string.h>
 
 // Encoder Pins
 #define M1PinA  A8
@@ -172,21 +172,34 @@ void setup() {
   enableInterrupt(M4PinA, doM4EncoderA, CHANGE);
 }
 
-void loop() {  
-  if right_vel < 0 && left_vel > 0{
+void loop() {
+  if (Serial.available()) {
+    String control_string = Serial.readString();
+
+    int ind1 = control_string.indexOf(",");
+    int ind2 = control_string.indexOf("#");
+    left_vel = control_string.substring(0,ind1).toFloat();
+    right_vel = control_string.substring(ind1+1,ind2).toFloat();
+  }
+  Serial.print(left_vel);
+  Serial.println(right_vel);
+
+  if(right_vel < 0 && left_vel > 0){
     dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1;// Sets all motors to rotate clockwise
   }
-  else if left_vel < 0 && right_vel > 0{
+  else if(left_vel < 0 && right_vel > 0){
     dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0;// Sets all motors to rotate anticlockwise
   }
-  else if left_vel > 0 && right_vel > 0{
+  else if(left_vel > 0 && right_vel > 0){
     dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1;// Sets all motors to forwards
   }
-  else if left_vel < 0 && right_vel < 0{
+  else if(left_vel < 0 && right_vel < 0){
     dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0;// Sets all motors to backwards
   }
-  vt1 = vt2 = right_vel;// Set diff drive wheel velocities to control loop targets
-  vt3 = vt4 = left_vel;
+  vt1 = right_vel;
+  vt2 = right_vel;// Set diff drive wheel velocities to control loop targets
+  vt3 = left_vel;
+  vt4 = left_vel;
   motor();// Update motor parameters
   controlLoop();// Update control loop
 }
@@ -229,7 +242,7 @@ void controlLoop(){
   prevT = currT;// Sets new previous time
   
   float scl_fctr = 10.625;// Adjust if speed behaviour is odd, matches ranges of rad/s to PWM
-  float Kp = 0.5*scl_fctr;// Adjust if control behaviour erratic/oscillatory
+  float Kp = 0.05*scl_fctr;// Adjust if control behaviour erratic/oscillatory
   
   err1 = vt1 - velocity_i1*(768/(2*PI));// Sets to units of rad/s
   err2 = vt2 - velocity_i2*(768/(2*PI));// Generates error from target velocity
