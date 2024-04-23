@@ -27,13 +27,13 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         
         #self.stopButton.clicked.connect(self.rosnode.start) # if stopButton is clicked
         
-        # listWidget testing vvv
-        # self.listWidget.setSelectionMode(QAbstractItemView.Mul)
-        #self.listWidget.addItem("One")
-        #self.listWidget.addItems(["Two","Three"])
+        # jobListWidget testing vvv
+        # self.jobListWidget.setSelectionMode(QAbstractItemView.Mul)
+        #self.jobListWidget.addItem("One")
+        #self.jobListWidget.addItems(["Two","Three"])
         
-        #self.listWidget.setCurrentRow(1)
-        #print(self.listWidget.currentRow)
+        #self.jobListWidget.setCurrentRow(1)
+        #print(self.jobListWidget.currentRow)
 
         self.jobObj=Job() # creates an object of class Job
         self.jobObj.subprocesses=[] # creates a blank array to store a list of subprocesses
@@ -46,19 +46,19 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.addToList.clicked.connect(self.addToListHandler)
         self.addJobButton.clicked.connect(self.addJobButtonHandler)#add job btn
 
-        self.listWidget.clicked.connect(self.listWidgetHandler) # if listWidget is clicked
-        #self.listWidget.selectedItems()
-        self.listWidget.currentItemChanged.connect(self.current_item_changed) # if the selected item has changed
-        self.listWidget.currentTextChanged.connect(self.current_text_changed) # if the selected text has changed
+        self.jobListWidget.clicked.connect(self.jobListWidgetHandler) # if jobListWidget is clicked
+        #self.jobListWidget.selectedItems()
+        self.jobListWidget.currentItemChanged.connect(self.current_item_changed) # if the selected item has changed
+        self.jobListWidget.currentTextChanged.connect(self.current_text_changed) # if the selected text has changed
 
         self.JobDeleteButton.clicked.connect(self.JobDeleteButtonHandler)
        
-    def listWidgetHandler(self, text):
-        #self.listWidget.takeItem(self.listWidget.currentRow())
-        #self.label_10.setText(str(self.listWidget.selectedItems()))
+    def jobListWidgetHandler(self, text):
+        #self.jobListWidget.takeItem(self.jobListWidget.currentRow())
+        #self.label_10.setText(str(self.jobListWidget.selectedItems()))
         #print("Current item : ",item.text())
         #print("Current text changed : ",text)
-        print("listWidgetHandler")
+        print("jobListWidgetHandler")
 
     def current_item_changed(self, item):
         print("Current item : ",item.text())
@@ -77,11 +77,11 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #print(str(self.rosnode.jobList[0].job_id))
         
     def JobDeleteButtonHandler(self):
-        #print('currentRow: ',str(self.listWidget.currentRow()))
-        #self.listWidget.takeItem(self.listWidget.currentRow())
+        #print('currentRow: ',str(self.jobListWidget.currentRow()))
+        #self.jobListWidget.takeItem(self.jobListWidget.currentRow())
 
-        #self.rosnode.get_logger().info(str(self.listWidget.currentRow()))
-        print('currentRow: ',str(self.listWidget.currentRow()))
+        #self.rosnode.get_logger().info(str(self.jobListWidget.currentRow()))
+        print('currentRow: ',str(self.jobListWidget.currentRow()))
 
         print('currentItem***: ',str(self.widgetItem.text()))
         self.jobObj.job_id = int(self.widgetItem.text())
@@ -110,7 +110,9 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #print(str(self.opType.text()))
                
         #self.listView.create
-        
+        print(isinstance(self.subID.text(), int))
+
+        #if isinstance(self.subID.text(), int) and isinstance(self.opType.text(), str) and isinstance(self.subStartTime.text(), (int, float)) and isinstance(self.subEndTime.text(), (int, float)):
         sub1=SubProcess()   #create subprocess object
         sub1.sub_process_id=int(self.subID.text())
         sub1.operation_type=self.opType.text()
@@ -122,6 +124,18 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print((sub1.end_time))
         self.jobObj.subprocesses.append(sub1)
         print((self.jobObj.subprocesses[0]))
+        
+        self.addJobButton.setStyleSheet("background-color: rgb(0, 255, 0)")
+        self.subprocessListWidget_1.clear() # clears subprocess_id listWidget
+        self.subprocessListWidget_2.clear() # clears subprocess operation listWidget
+        for i in range(len(self.jobObj.subprocesses)):
+            self.subprocessListWidget_1.addItem(str(self.jobObj.subprocesses[i].sub_process_id))
+            self.subprocessListWidget_2.addItem(str(self.jobObj.subprocesses[i].operation_type))
+            print(str(i))
+            print('subList[i].sub_id = ', str(self.jobObj.subprocesses[i].sub_process_id))
+        #else:
+            #self.addToList.setStyleSheet("background-color: rgb(50, 71, 143)")
+            #self.addToList.setText("All fields must be filled correctly.")
         
         
         
@@ -148,7 +162,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         print((self.jobObj))
 
-        #self.listWidget.addItem(self.jobObj)
+        #self.jobListWidget.addItem(self.jobObj)
 
         # interfaceNodeObj = InterfaceNode()
         # interfaceNodeObj.job_publisher = interfaceNodeObj.create_publisher(
@@ -161,7 +175,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print('Job message has been published with job_id: ', self.jobObj.job_id)
         # self.interface.label.setText('Job message has been published')
 
-
+        self.jobObj.subprocesses=[] #clears subprocesses list
 
 class InterfaceNode(Node):
     def __init__(self):
@@ -249,21 +263,21 @@ class InterfaceNode(Node):
         self.get_logger().info('jobList callback')
         self.jobList = msg.list
 
-        self.interface.listWidget.clear()
+        self.interface.jobListWidget.clear()
         
         # for loop to add jobs from jobList into gui
 
         #print(self.jobList[0])
         
-        #self.interface.listWidget.addItems(["Two","Three"])
+        #self.interface.jobListWidget.addItems(["Two","Three"])
         print(str(len(self.jobList)))
 
         for i in range(len(self.jobList)):
-            self.interface.listWidget.addItem(str(self.jobList[i].job_id)) #******* NEED TO REMOVE ITEMS FROM WIDGET FIRST*********
+            self.interface.jobListWidget.addItem(str(self.jobList[i].job_id)) #******* NEED TO REMOVE ITEMS FROM WIDGET FIRST*********
             print(str(i))
             print('jobList[i].job_id = ', str(self.jobList[i].job_id))
 
-        #self.interface.listWidget.addItem(str(self.jobList[0].job_id))
+        #self.interface.jobListWidget.addItem(str(self.jobList[0].job_id))
         
 
     def start(self):

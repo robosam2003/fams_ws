@@ -71,9 +71,10 @@ map_path = '/home/robosam/fams_ws/src/sam_bot_description/maps'
 map_name = 'test_map'
 resolution = 0.05 # in metres per pixel
 origin = [0.0, 0.0, 0.0] # Origin of the map in absolute coordinates
-map_size = (3.65, 2.66) # Size of the map in metres (width, height)
+map_size = (3.65, 2.06) # Size of the map in metres (width, height)
 rectangles = [
-    Rectangle(0, 0, 3.6, 2.6, hollow=True), # Hollow rectangle, (x, y, w, h)
+    Rectangle(0, 0, 3.6, 2.00, hollow=True), # Hollow rectangle, (x, y, w, h)
+    Rectangle(3.65 - 0.21, 0, 0.21, 0.21) # Filled rectangle, (x, y, w, h)
 ] # Rectangles in absolute coordinates, (x, y, w, h)
 map_generator = MapGenerator(map_path, map_name, map_size, resolution, origin)
 map_image_path, map_yaml_path = map_generator.create_map(rectangles)

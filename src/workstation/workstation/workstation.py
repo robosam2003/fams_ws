@@ -125,8 +125,11 @@ class Workstation(Node):
         
         #from bot to floor
         self.move_robot(self,location_array_2D[0],location_array_2D[1],0.2,1.57,0,0)
+        time.sleep(1)
         self.move_robot(self,location_array_2D[0],location_array_2D[1],0.3,1.57,0,0)
+        time.sleep(1)
         self.move_robot(self,0.25,0.25,0.3,1.57,0,0)
+        time.sleep(1)
         self.move_robot(self,0.25,0.25,0.1,1.57,0,0)
 
         
@@ -155,9 +158,6 @@ class Workstation(Node):
         
     def move_robot(self,x,y,z, theta,phi,psi):
         #generic fx 3d coord ip, move robot there
-      
-        
-        
         mover6_pose_msg = Pose()
         mover6_pose_msg.position.x = x
         mover6_pose_msg.position.y = y
@@ -170,7 +170,6 @@ class Workstation(Node):
 
         self.mover6Publisher.publish(mover6_pose_msg)
         self.get_logger().info("Published pose to mover6")
-        time.sleep(2)
         
         
     def vision_callback(self, msg):

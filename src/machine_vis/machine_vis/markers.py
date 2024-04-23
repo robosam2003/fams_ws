@@ -21,7 +21,7 @@ import subprocess
 
 
 class ArucoReader(Node):
-
+  
   def __init__(self):
     """
     Class constructor to set up the node
@@ -36,11 +36,12 @@ class ArucoReader(Node):
     self.video_publisher=self.create_publisher(Image,'video_stream',10)
 
     # Create a VideoCapture object and set parameters
-    camType=1
+    camType=0
     self.camera_setup(camType)
 
     aruco_type = "DICT_4X4_100" #Is looking for 4x4 only
-
+    self.armOrigin=[]
+    
     self.main_loop(aruco_type,camType)
 
   def camera_setup(self,CamIndex):
@@ -87,14 +88,15 @@ class ArucoReader(Node):
         
         self.cap = cv2.VideoCapture(2)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
-        self.cap.set(cv2.CAP_PROP_FPS,30)
+        # self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        # self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.cap.set(cv2.CAP_PROP_FPS,10)
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=auto_exposure=1')
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_automatic=0')
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=exposure_time_absolute=150')
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_temperature=3700')
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=gain=50')
+
 
 
         fps=self.cap.get(cv2.CAP_PROP_FPS)
@@ -139,9 +141,21 @@ class ArucoReader(Node):
         y = math.atan2(-R[2,0], sy)
         z = 0
     return np.array([x, y, z])
+  
+  def calculate_location(self,tvec,origin,rvec):
+    locations=tvec-origin
+    x=(round(locations[0,0,0],5))
+    y=(round(locations[0,0,1],5))
+    z=(round(locations[0,0,2],5))
 
+    rmat=cv2.Rodrigues(rvec)[0]
+    angles=self.rotationMatrixToEulerAngles(rmat)
+    yaw=round((angles[2]),4)
 
-  def pose_estimation(self,frame,aruco_dict_type,camera_matrix, distortion_vector,markerSize,origin,switch):
+    return x,y,z,yaw
+
+  
+  def pose_estimation(self,frame,aruco_dict_type,camera_matrix, distortion_vector,markerSize,switch):
     anti_ob_flag=[]
     locations=[]
     id_msg=[]
@@ -160,14 +174,43 @@ class ArucoReader(Node):
     parameters = cv2.aruco.DetectorParameters_create()
 
     corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, cv2.aruco_dict,parameters=parameters,cameraMatrix=camera_matrix,distCoeff=distortion_vector)
-   
+    
     if len(corners) > 0:
+      for i in range(0,len(ids)):
+        if ids[i,0]==81 and switch==0:
+          rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], markerSize, camera_matrix, distortion_vector)
+          origin_x=tvec[0][0][0]
+          origin_y=tvec[0][0][1]
+          origin_z=tvec[0][0][2]
+          
+
+          originmarkerpoint=np.array([origin_x,origin_y,origin_z])
+          rmat=cv2.Rodrigues(rvec)[0]
+          angles=self.rotationMatrixToEulerAngles(rmat)
+          yaw=round((angles[2]),4)
+
+          Rot_to_Arm=np.array(((math.cos(yaw), -math.sin(yaw), 0, 0),
+                               (math.sin(yaw), math.cos(yaw), 0, 0),
+                               (0, 0, 1, 0),
+                               (0, 0, 0, 1)))
+          Trans_to_Arm=np.array(((1, 0, 0, 0),
+                               (0, 1, 0, -0.185),
+                               (0, 0, 1, 0),
+                               (0, 0, 0, 1))) #0.185
+          new_origin=np.dot(Rot_to_Arm,Trans_to_Arm)
+          originTrans=new_origin[0:3,3]
+          
+          origin=originmarkerpoint+originTrans
+          self.Origin=origin
+         
+        
+
       for i in range(0, len(ids)):
         rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], markerSize, camera_matrix, distortion_vector)         
         cv2.aruco.drawDetectedMarkers(frame, corners,ids) 
         cv2.aruco.drawAxis(frame, camera_matrix, distortion_vector, rvec, tvec, 0.03)  
-
-        locations=tvec-origin
+        
+        locations=tvec-self.Origin
         x=(round(locations[0,0,0],5))
         y=(round(locations[0,0,1],5))
         z=(round(locations[0,0,2],5))
@@ -175,6 +218,8 @@ class ArucoReader(Node):
         rmat=cv2.Rodrigues(rvec)[0]
         angles=self.rotationMatrixToEulerAngles(rmat)
         yaw=round((angles[2]),4)
+
+        
         
         if switch==1:
           if ids[i,0] in (0,1):
@@ -188,32 +233,21 @@ class ArucoReader(Node):
           
         
         if switch==0:
-          if ids[i,0]==81:
-            print(tvec)
-            origin_x=tvec[0][0][0]
-            origin_y=tvec[0][0][1]
-            origin_z=tvec[0][0][2]
-            print(origin_x,origin_y,origin_z)
-            
-            originmarkerpoint=np.array(((x),(y),(origin_z),1))
-            
-            Transf_to_Arm=np.array(((math.cos(yaw), -math.sin(yaw), 0, 0.185),
-                               (math.sin(yaw), math.cos(yaw), 0, 0),
-                               (0, 0, 1, 0),
-                               (0, 0, 0, 1)))
-            new_origin=np.dot(Transf_to_Arm,originmarkerpoint)
-            
-            
           if ids[i,0] in range(82,91):
             part_id_msg.append(int(ids[i,0]))
             part_loc_msg.extend([x,y,yaw])
+            print('part coords',x,y,yaw)
+            fps=self.cap.get(cv2.CAP_PROP_FPS)
+            print(fps)
+            
           partlocation_msg.part_id=part_id_msg
           partlocation_msg.part_location=part_loc_msg
 
-      # self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
+      #self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
       self.partlocation_pub.publish(partlocation_msg)
       self.moblocation_pub.publish(mobilelocation_msg)
-      # self.get_logger().info('{}:{}'.format("Publishing",mobilelocation_msg))   
+      #self.get_logger().info('{}:{}'.format("Publishing",mobilelocation_msg))  
+      
 
           # if ids[i,0] in (8,9):
           #   ob_id_msg.append(int(ids[i,0]))
@@ -306,13 +340,22 @@ class ArucoReader(Node):
       Cam_Mtrx = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
       Distort = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,1.36994424e+01))
       markerSize=0.15
-      origin=[-0.64196,-0.341637,9.68856]
+      self.Origin=[-0.64196,-0.341637,9.68856]
       detectObstacles=1
     elif camera_type==1:
       Cam_Mtrx = np.array(((1.21665111e+03, 0, 6.54768787e+02),(0, 1.21478888e+03, 5.00652432e+02),(0,0,1)))
       Distort = np.array((0.04315798,  0.50036972, -0.01800276, -0.00592732, -1.26928846))
+      
+      # Cam_Mtrx = np.array(((1.42681036e+03, 0, 6.56047388e+02),(0, 1.18825061e+03, 4.85613862e+02),(0,0,1)))
+      # Distort = np.array((-0.03552921,  0.67978045,  0.07157768, -0.00627541, -1.69608277))
+#       Camera Matrix
+# [[1.42681036e+03 0.00000000e+00 6.56047388e+02]
+#  [0.00000000e+00 1.18825061e+03 4.85613862e+02]
+#  [0.00000000e+00 0.00000000e+00 1.00000000e+00]]
+# Distortion Matrix
+# [[-0.03552921  0.67978045  0.07157768 -0.00627541 -1.69608277]]
       markerSize=0.0325
-      origin=[(-0.03480-0.185),  0.28, -0.0202]
+      
       detectObstacles=0
     else:
       self.get_logger().info('Camera Selection Fail Abort')
@@ -320,16 +363,17 @@ class ArucoReader(Node):
       cv2.destroyAllWindows()
     
     while self.cap.isOpened():
-      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=130'.format(2))
-      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(2))
-      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=30'.format(2))
+      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=130'.format(0))
+      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(0))
+      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=30'.format(0))
       
       ret, img = self.cap.read()
+      
       # cv2.imshow('cam',img)
       
-      output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],Cam_Mtrx, Distort,markerSize,origin,detectObstacles)
+      output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],Cam_Mtrx, Distort,markerSize,detectObstacles)
       
-      # FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+      # # FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
       cv2.imshow('Estimated Pose', output)
       
       
@@ -375,3 +419,4 @@ def main(args=None):
    
 if __name__ == '__main__':
   main()
+
