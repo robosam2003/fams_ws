@@ -173,13 +173,19 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available()) {
-    String control_string = Serial.readString();
-
-    int ind1 = control_string.indexOf(",");
-    int ind2 = control_string.indexOf("#");
-    left_vel = control_string.substring(0,ind1).toFloat();
-    right_vel = control_string.substring(ind1+1,ind2).toFloat();
+  if (Serial.available()) { // Checks for serial data
+    String control_string = Serial.readStringUntil('\n');
+    if (control_string == "YOU ALIVE?") {
+      Serial.println("IM ALIVE!");
+    }
+    else {
+      int ind1 = control_string.indexOf(",");
+      int ind2 = control_string.indexOf("#");
+      left_vel = control_string.substring(0,ind1).toFloat();
+      right_vel = control_string.substring(ind1+1,ind2).toFloat();
+      err1_i = 0; err2_i = 0; err3_i = 0; err4_i = 0;// Resets integral control
+      // Serial.println("I RECIEVED: " + String(left_vel) + " " + String(right_vel));
+    }
   }
   /*
   Serial.print(left_vel);
@@ -192,7 +198,7 @@ void loop() {
   Serial.print(err3_i);   Serial.print(" ");   Serial.print(err4_i);   Serial.print(" ");   Serial.print(err1_i);   Serial.print(" ");   Serial.print(err2_i); Serial.print("    ");
   Serial.print(velocity_i3);   Serial.print(" ");   Serial.print(velocity_i4);   Serial.print(" ");   Serial.print(velocity_i1);   Serial.print(" ");   Serial.print(velocity_i2); Serial.print("    ");
   */
-  if(right_vel < 0 && left_vel > 0){
+  if(right_vel < 0 && left_vel > 0) {
     dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0;// Sets all motors to rotate robot anticlockwise
     //Serial.println("E");
   }
@@ -208,7 +214,9 @@ void loop() {
     dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1;// Sets all motors to drive forwards
     //Serial.println("S");
   }
-  else{
+  else{ // vels are 0
+    pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0;// Sets all motors to stop
+    err1_i = 0; err2_i = 0; err3_i = 0; err4_i = 0;// Resets integral control
     //Serial.println("B");
   }
   vt1 = right_vel;
