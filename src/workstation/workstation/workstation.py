@@ -113,14 +113,15 @@ class Workstation(Node):
 
 
     def handle_part_output(self,msg):
-        self.read_raspberry_pi_(self)
+        self.read_raspberry_pi_()
     
 
 
         #update x y attributes when receive a visionLocations msg
 
-        # locations = self.vision_locations.part_location
-        # location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
+        locations = self.vision_locations.part_location
+        print(locations)
+        location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
         print("part location changed to: ")
         
         #from bot to floor
@@ -175,7 +176,7 @@ class Workstation(Node):
     def vision_callback(self, msg):
         self.vision_locations = msg
         print("tftgbhjn")
-        self.handle_part_output()
+        self.handle_part_output(msg)
 
 
     def workstation_cmd_callback(self, command:WorkstationCommand,msg):
@@ -183,7 +184,7 @@ class Workstation(Node):
         if command == "PART INPUT":
             self.handle_part_input()
         elif command == "PART OUTPUT":
-            self.handle_part_output()
+            self.handle_part_output(msg)
 
 
 
@@ -206,7 +207,7 @@ class Workstation(Node):
             self.RFID_publisher.publish(msg)
             self.get_logger().info(msg.rfid_code)
             print(len(msg.rfid_code))
-        if len(msg.rfid_code)==37:
+            if len(msg.rfid_code)!=37:
                 switch=1
 
     # def read_raspberry_pi_(self):
