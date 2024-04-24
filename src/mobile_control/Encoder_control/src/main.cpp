@@ -181,6 +181,7 @@ void loop() {
     left_vel = control_string.substring(0,ind1).toFloat();
     right_vel = control_string.substring(ind1+1,ind2).toFloat();
   }
+  /*
   Serial.print(left_vel);
   Serial.print(" ");
   Serial.print(right_vel);
@@ -190,25 +191,25 @@ void loop() {
   Serial.print(u3);   Serial.print(" ");   Serial.print(u4);   Serial.print(" ");   Serial.print(u1);   Serial.print(" ");   Serial.print(u2);Serial.print("    ");
   Serial.print(err3_i);   Serial.print(" ");   Serial.print(err4_i);   Serial.print(" ");   Serial.print(err1_i);   Serial.print(" ");   Serial.print(err2_i); Serial.print("    ");
   Serial.print(velocity_i3);   Serial.print(" ");   Serial.print(velocity_i4);   Serial.print(" ");   Serial.print(velocity_i1);   Serial.print(" ");   Serial.print(velocity_i2); Serial.print("    ");
-
+  */
   if(right_vel < 0 && left_vel > 0){
     dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0;// Sets all motors to rotate robot anticlockwise
-    Serial.println("E");
+    //Serial.println("E");
   }
   else if(left_vel < 0 && right_vel > 0){
     dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1;// Sets all motors to rotate robot clockwise
-    Serial.println("Q");
+    //Serial.println("Q");
   }
   else if(left_vel > 0 && right_vel > 0){
     dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0;// Sets all motors to drive backwards
-    Serial.println("W");
+    //Serial.println("W");
   }
   else if(left_vel < 0 && right_vel < 0){
     dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1;// Sets all motors to drive forwards
-    Serial.println("S");
+    //Serial.println("S");
   }
   else{
-    Serial.println("B");
+    //Serial.println("B");
   }
   vt1 = right_vel;
   vt2 = right_vel;// Set diff drive wheel velocities to control loop targets
