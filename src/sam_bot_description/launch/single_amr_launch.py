@@ -101,7 +101,7 @@ def launch_setup(context: LaunchContext):
         robot_state_publisher_node,
         joint_state_publisher_node,
         tf_broadcaster_node,
-        # sam_bot_node,
+        sam_bot_node,
         nav2_custom_launch
     ]
 
@@ -119,5 +119,10 @@ def generate_launch_description():
             description='Initial position of the robot in the map frame'
         ),
         # Run the OpaqueFunction
+        # run the ls command
+        ExecuteProcess(
+            cmd=['sudo', 'ls'],
+            output='screen'
+        ),
         OpaqueFunction(function=launch_setup),
     ])

@@ -13,19 +13,21 @@ class Scheduler(Node):
         self.temp_job_log_path = "./src/scheduler/scheduler/tempJobLog.csv"  # Relative so that it works on any machine
         self.get_logger().info('Scheduler node has been started')
 
+        # clear job log here
+        with open(self.job_log_path, 'w') as f:
+            f.truncate()
+
         self.job_subscriber = self.create_subscription(
             Job,
             'job', # Topic name
             self.job_message_callback,
             10 # QoS profile
         )
-
         self.active_job_publisher = self.create_publisher(
             JobList,
             'active_jobs',
             10
         )
-
         self.state_subscriber = self.create_subscription(
             SystemState,
             'system_state',
@@ -44,11 +46,12 @@ class Scheduler(Node):
         )
         self.system_state = SystemState()
 
-        self.active_job_list = []
+        
         self.update_active_job_list() # Update active job list from job log
 
     def update_active_job_list(self):
         # For all the jobs in the job log, if they are IN PROGRESS or PENDING, add them to the active job list
+        self.active_job_list = []
         with open(self.job_log_path, "r") as f:
             for line in f:
                 if "IN PROGRESS" in line or "PENDING" in line:
@@ -86,6 +89,9 @@ class Scheduler(Node):
             sub.end_time = int(csv_list[sub_start_id + sub_obj_size*i + 3])
             job.subprocesses.append(sub)
         
+        print('csv_list[-3] = ', csv_list[-3])
+        print('csv_list[-2] = ', csv_list[-2])
+        print('csv_list[-1] = ', csv_list[-1])
         job.start_time = int(csv_list[-3])
         job.end_time = int(csv_list[-2])
         job.status = str(csv_list[-1])
@@ -94,18 +100,28 @@ class Scheduler(Node):
 
     def job_message_callback(self, msg):
 
-        if msg.add_remove == 'REMOVE':
+        if msg.status == 'REMOVED':
             self.remove_job_from_log(msg)
+            print("range ", range(len(self.system_state.parts)))
+            print("len of parts: ", len(self.system_state.parts))
+            for i in range(len(self.system_state.parts)):
+                print("Parts loop iteration: ", i)
+                if self.system_state.parts[i].job_id == msg.job_id:
+                    removedPart = self.system_state.parts.pop(i)
+                    self.get_logger().info('Part corresponding to removed job of job_id: ' + self.system_state.parts[i].job_id + 'has been removed from system state with part_id: ' + removedPart.part_id)
         else:
             self.save_job_to_log(msg) # Add Job to Job Log
-            self.get_logger().info('Job message has been added to the job log')
-
-        if msg.status == 'PENDING' or msg.status == 'IN PROGRESS':
             self.active_job_list.append(msg)
             self.get_logger().info('Job message has been added to the active job list, which now has ' + str(len(self.active_job_list)) + ' jobs')
+            self.system_state.parts.append(msg.part) # Add parts to system state parts list
 
-        self.system_state.parts.append(msg.part) # Add parts to system state parts list
+        #if msg.status == 'PENDING' or msg.status == 'IN PROGRESS':
+        #    self.active_job_list.append(msg)
+        #    self.get_logger().info('Job message has been added to the active job list, which now has ' + str(len(self.active_job_list)) + ' jobs')
+
+        #self.system_state.parts.append(msg.part) # Add parts to system state parts list
         self.state_publisher.publish(self.system_state) # Publish /SystemState message
+        self.update_active_job_list()
 
     def save_job_to_log(self, msg):
         # Write to a job log csv file
@@ -113,27 +129,21 @@ class Scheduler(Node):
             csv = message_to_csv(msg)
             f.write(csv)
             f.write('\n')
+            print("saved job to log with message_to_csv")
 
     def remove_job_from_log(self, msg):
         # Remove a specific job from the job log csv file
         self.get_logger().info('Starting Removing Job')
-        with open(self.job_log_path, 'r') as f:                             # open csv file to read
-            with open(self.temp_job_log_path, 'w') as ff:                    # open csv file to write
-                csv_writer = csv.writer(ff)                                 # csv writer for tempJobLog
-                for line in f:                                              # for loop to run through each line in the file
-                    #line = f.readline                                      # line = current line
-                    lineList = line.split(',')                              # splits line into sections based on commas
-                    #self.get_logger().info('**going through a line**')
-                    #print('msg.job_id = ', msg.job_id)
-                    #print('lineList[0] = ', lineList[0])
-                    #print('lineList[last] = ', lineList[len(lineList)-1])
-                    if int(lineList[0]) == msg.job_id:                      # if the first part of the line is the specified job_id
-                        #print('**IF statement**')
-                        lineList[len(lineList)-1] = 'REMOVED'               # set the job status to 'REMOVED'
-                        csv_writer.writerow(lineList)                       # writes the edited line into tempJobLog
-                        #self.get_logger().info('**Set to removed**')
+        with open(self.job_log_path, 'r') as f:                     # open csv file to read
+            with open(self.temp_job_log_path, 'w') as ff:           # open csv file to write
+                csv_writer = csv.writer(ff)                         # csv writer for tempJobLog
+                for line in f:                                      # for loop to run through each line in the file
+                    lineList = line.split(',')                      # splits line into sections based on commas
+                    if int(lineList[0]) == msg.job_id:              # if the first part of the line is the specified job_id
+                        lineList[len(lineList)-1] = 'REMOVED'       # set the job status to 'REMOVED'
+                        csv_writer.writerow(lineList)               # writes the edited line into tempJobLog
                     else:
-                        ff.write(line)                                      # copies the unchanged lines from JobLog to tempJobLog
+                        ff.write(line)                              # copies the unchanged lines from JobLog to tempJobLog
 
         # copy tempJobLog into JobLog to update JobLog
         with open(self.temp_job_log_path, 'r') as ff:
@@ -141,6 +151,8 @@ class Scheduler(Node):
                 #f.truncate()                           # may be needed to clear JobLog
                 for line in ff:
                     f.write(line)                       # writes each line of tempJobLog to JobLog
+                #f.write('\n')
+        #self.update_active_job_list()                   # Update active job list from job log
 
     def system_state_callback(self, msg):
         self.get_logger().info('System state message received')

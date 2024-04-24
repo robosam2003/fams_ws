@@ -73,7 +73,7 @@ class mover6(Node):
 
         self.pose_control_subscription = self.create_subscription(
             Pose,
-            'mover6_pose_control',
+            'mover6_goal_pose',
             self.mover6_pose_control_callback,
             10
         )
@@ -139,7 +139,7 @@ class mover6(Node):
         for joint in self.joints[0:max_joint]:
             joint.set_max_lag(self.MAX_LAG)
             time.sleep(2/1000)
-            joint.set_pos_pid(0.1, 0.1, 0)
+            joint.set_pos_pid(0.2, 0.1, 0)
             time.sleep(2/1000)
             joint.set_vel_pid(0.5, 0, 0)
             time.sleep(2/1000)
