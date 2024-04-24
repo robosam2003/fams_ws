@@ -62,13 +62,14 @@ class pi_control(Node):
         msg = PiControl()
         msg.left_vel = left_wheel_velocity
         msg.right_vel = right_wheel_velocity
-        self.left_vel_observation.publish(msg)
+        
+        # self.left_vel_observation.publish(msg)
+        self.get_logger().info(f"Left: {left_wheel_velocity} Right: {right_wheel_velocity}")
+        # l_array = struct.pack('d',left_wheel_velocity)
+        # r_array = struct.pack('d',right_wheel_velocity)
+        control_string = f"{left_wheel_velocity},{right_wheel_velocity}#"
 
-        l_array = struct.pack('d',left_wheel_velocity)
-        r_array = struct.pack('d',right_wheel_velocity)
-
-        self.ser.write(l_array)
-        self.ser.write(r_array)
+        self.ser.write(control_string.encode("utf-8"))
 
         # Compute the left and right wheel positions
         left_wheel_position = self.wheel_states.position[0] + left_wheel_velocity * elapsed_time
