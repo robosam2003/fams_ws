@@ -108,7 +108,12 @@ class Scheduler(Node):
                 print("Parts loop iteration: ", i)
                 if self.system_state.parts[i].job_id == msg.job_id:
                     removedPart = self.system_state.parts.pop(i)
-                    self.get_logger().info('Part corresponding to removed job of job_id: ' + self.system_state.parts[i].job_id + 'has been removed from system state with part_id: ' + removedPart.part_id)
+                    print("REMOVED PART = ", removedPart.part_id)
+                    #print("i = ", i)
+                    #print("list of parts = ", self.system_state.parts)
+                    #print("job_id of part = ", self.system_state.parts[i].job_id)
+                    #self.get_logger().info('Part corresponding to removed job of job_id: ' + self.system_state.parts[i].job_id + 'has been removed from system state with part_id: ' + removedPart.part_id)
+                    break
         else:
             self.save_job_to_log(msg) # Add Job to Job Log
             self.active_job_list.append(msg)

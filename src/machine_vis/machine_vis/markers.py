@@ -31,7 +31,7 @@ class ArucoReader(Node):
     self.video_publisher=self.create_publisher(Image,'video_stream',10)
 
     # Create a VideoCapture object and set parameters
-    camType=1
+    camType=0
     
     self.camera_setup(camType)
 
@@ -291,12 +291,12 @@ class ArucoReader(Node):
   def main_loop(self,aruco_type,camera_type):
     
     while self.cap.isOpened():
-      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=130'.format(0))
-      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(0))
-      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=30'.format(0))
-      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=130'.format(2))
-      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(2))
-      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=50'.format(2))
+      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=130'.format(0))
+      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(0))
+      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=30'.format(0))
+      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=130'.format(2))
+      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(2))
+      # os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=50'.format(2))
       
       ret, img = self.cap.read()
       
@@ -304,8 +304,8 @@ class ArucoReader(Node):
       # cv2.imshow('cam',img)
       
       output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],self.Cam_Mtrx, self.Distort,self.markerSize,self.detectObstacles)
-      if self.detectObstacles!=0:
-        FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+      # if self.detectObstacles!=0:
+      #   FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
       cv2.namedWindow('Estimated Pose',cv2.WINDOW_NORMAL)
       cv2.resizeWindow('Estimated Pose',1728,972)
       cv2.imshow('Estimated Pose', output)

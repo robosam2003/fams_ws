@@ -70,7 +70,7 @@ class Workstation(Node):
         self.RFID_publisher = self.create_publisher(RFID, "RFID_Topic", 10)
         self.ser = serial.Serial('/dev/ttyACM0', 115200)
         self.read_raspberry_pi_()
-
+        self.rfid_tag=0
         
         #know how to determine if state= free/busy
         self.workstation_publisher = self.create_publisher(
@@ -85,7 +85,7 @@ class Workstation(Node):
         self.mover6Publisher=self.create_publisher(Pose,
                                                    'mover6_goal_pose',
                                                    10)
-
+        self.rfid_timer=self.create_timer(0.1,self.read_raspberry_pi_)
         # SystemState1=SystemState
         # # Workstations State
         
@@ -150,6 +150,8 @@ class Workstation(Node):
 
         #update x y attributes when receive a visionLocations msg
 
+        locations = self.vision_locations.part_location
+        location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
         locations = self.vision_locations.part_location
         print(locations)
         location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
@@ -232,16 +234,39 @@ class Workstation(Node):
         print("Time's up!")
     
     def read_raspberry_pi_(self):
-        switch=0
-        while True and switch==0:
+        
+        
             msg = RFID()
             a = self.ser.readline().strip()  # Remove leading/trailing whitespace
             msg.rfid_code = a.decode('utf-8')  #bytes to string
             self.RFID_publisher.publish(msg)
             self.get_logger().info(msg.rfid_code)
             print(len(msg.rfid_code))
-            if len(msg.rfid_code)!=37:
-                switch=1
+            print((msg.rfid_code))
+            #var = var[len("Tag ID:"):].strip()
+
+
+            if msg.rfid_code!=None:
+                self.rfid_tag=msg.rfid_code
+                print(self.rfid_tag)
+                print("update current rfid tag")
+
+            # if len(msg.rfid_code)!=37:
+                
+            # if a!=None:
+            #     print("no tag received")
+
+# def read_raspberry_pi_(self):
+#         switch=0
+#         while True and switch==0:
+#             msg = RFID()
+#             a = self.ser.readline().strip()  # Remove leading/trailing whitespace
+#             msg.rfid_code = a.decode('utf-8')  #bytes to string
+#             self.RFID_publisher.publish(msg)
+#             self.get_logger().info(msg.rfid_code)
+#             print(len(msg.rfid_code))
+#             if len(msg.rfid_code)!=37:
+#                 switch=1
 
     # def read_raspberry_pi_(self):
       

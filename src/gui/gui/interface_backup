@@ -109,21 +109,28 @@ class Ui_MainWindow(object):
         self.ActiveJobList = QLabel(self.centralwidget)
         self.ActiveJobList.setObjectName(u"ActiveJobList")
         self.ActiveJobList.setGeometry(QRect(10, 538, 99, 17))
+
+        wJobWidget=235
+        wSubWidget=200
+        xSubWidget1=10+wJobWidget+xLabel
+        xSubWidget2=xSubWidget1+wSubWidget+10
         self.jobListWidget = QListWidget(self.centralwidget)
         self.jobListWidget.setObjectName(u"JobListWidget")
-        self.jobListWidget.setGeometry(QRect(10, 560, 250, 72))
+        self.jobListWidget.setGeometry(QRect(10, 560, wJobWidget, 72))
         self.JobDeleteButton = QPushButton(self.centralwidget)
         self.JobDeleteButton.setObjectName(u"JobDeleteButton")
-        self.JobDeleteButton.setGeometry(QRect(165, 639, 500, 25))
+        self.JobDeleteButton.setGeometry(QRect(10, 639, wJobWidget, 25))
         self.SubprocessList = QLabel(self.centralwidget)
         self.SubprocessList.setObjectName(u"SubprocessList")
-        self.SubprocessList.setGeometry(QRect(10+250+20, 538, 110, 17))
+        self.SubprocessList.setGeometry(QRect(xSubWidget1, 538, 110, 17))
+        
         self.subprocessListWidget_1 = QListWidget(self.centralwidget)
         self.subprocessListWidget_1.setObjectName(u"listWidget_1")
-        self.subprocessListWidget_1.setGeometry(QRect(10+250+20, 560, 50, 72))
+        self.subprocessListWidget_1.setGeometry(QRect(xSubWidget1, 560, wSubWidget, 72))
         self.subprocessListWidget_2 = QListWidget(self.centralwidget)
         self.subprocessListWidget_2.setObjectName(u"listWidget_2")
-        self.subprocessListWidget_2.setGeometry(QRect(420, 560, 250, 72))
+        self.subprocessListWidget_2.setGeometry(QRect(xSubWidget2, 560, wSubWidget, 72))
+
         self.frame = QFrame(self.centralwidget)     # Subprocess Frame
         self.frame.setObjectName(u"frame")
         self.frame.setGeometry(QRect(xLabel, 200, 645, 168))
