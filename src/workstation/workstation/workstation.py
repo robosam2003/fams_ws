@@ -43,7 +43,7 @@ def quaternion_from_euler(ai, aj, ak):
 class Workstation(Node):
     def __init__(self):
         super().__init__('workstation')
-
+        self.systemState
         self.workstationName='Workstation1'
 
 
@@ -73,11 +73,11 @@ class Workstation(Node):
 
         
         #know how to determine if state= free/busy
-        # self.workstation_publisher = self.create_publisher(
-        #     SystemState,
-        #     'system_state',
-        #     10
-        # )
+        self.workstation_publisher = self.create_publisher(
+            SystemState,
+            'system_state',
+            10
+        )
         self.SystemStateSubscription=self.create_subscription(SystemState,
                                                                      'system_state',
                                                                      self.SystemState_callback,
@@ -96,7 +96,9 @@ class Workstation(Node):
         # # Mobile Fleet State
         #     workstation1.mobile_robots
     def SystemState_callback(self,msg):
-        pass# parts=msg.parts
+        
+        self.SystemState=msg
+    # parts=msg.parts
         
         
         # parts==self.msg.rfid_code
@@ -109,7 +111,36 @@ class Workstation(Node):
                 #msg.command
     def handle_part_input(self):
         #publish Workstation msg
-        pass
+        self.read_raspberry_pi_()
+    
+        locations = self.vision_locations.part_location
+        print(locations)
+        location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
+        
+
+        self.move_robot(self,0.25,0.25,0.3,1.57,0,0)
+        time.sleep(1)
+        self.move_robot(self,0.25,0.25,0.1,1.57,0,0)
+        time.sleep(1)
+        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.2,1.57,0,0)
+        time.sleep(1)
+        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.3,1.57,0,0)
+        time.sleep(1)
+        
+        parts=msg.parts
+        for i in parts:
+            if parts[i].part_id==self.msg.rfid_code:
+                #which part’s loc to assign workstation to
+                parts[i].location=self.workstationName
+                print("part location changed to: ", parts[i].location)
+      
+
+        #update part's current subprocess
+
+
+        workstation1=Workstation
+        workstation1.state='busy'
+
 
 
     def handle_part_output(self,msg):
@@ -135,14 +166,12 @@ class Workstation(Node):
 
         
         parts=msg.parts
-        
-        
-        parts==self.msg.rfid_code
         for i in parts:
             if parts[i].part_id==self.msg.rfid_code:
                 #which part’s loc to assign workstation to
                 parts[i].location=self.workstationName
                 print("part location changed to: ", parts[i].location)
+        
         
 #function move to box 
 #find out which id is where
@@ -153,6 +182,10 @@ class Workstation(Node):
         self.get_logger().info(part_id,
         location_array_2D[0])
         
+
+        #SAM: update part's current subprocess
+
+
         workstation1=Workstation
         workstation1.state='free'
 
