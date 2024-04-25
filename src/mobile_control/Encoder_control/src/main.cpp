@@ -173,35 +173,51 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available()) {
-    String control_string = Serial.readString();
-
-    int ind1 = control_string.indexOf(",");
-    int ind2 = control_string.indexOf("#");
-    left_vel = control_string.substring(0,ind1).toFloat();
-    right_vel = control_string.substring(ind1+1,ind2).toFloat();
+  if (Serial.available()) { // Checks for serial data
+    String control_string = Serial.readStringUntil('\n');
+    if (control_string == "YOU ALIVE?") {
+      Serial.println("IM ALIVE!");
+    }
+    else {
+      int ind1 = control_string.indexOf(",");
+      int ind2 = control_string.indexOf("#");
+      left_vel = control_string.substring(0,ind1).toFloat();
+      right_vel = control_string.substring(ind1+1,ind2).toFloat();
+      err1_i = 0; err2_i = 0; err3_i = 0; err4_i = 0;// Resets integral control
+      // Serial.println("I RECIEVED: " + String(left_vel) + " " + String(right_vel));
+    }
   }
+  /*
   Serial.print(left_vel);
   Serial.print(" ");
   Serial.print(right_vel);
   Serial.print("    ");
 
   Serial.print(pwm3);   Serial.print(" ");   Serial.print(pwm4);   Serial.print(" ");   Serial.print(pwm1);   Serial.print(" ");   Serial.print(pwm2);Serial.print("    ");
-  Serial.print(err3);   Serial.print(" ");   Serial.print(err4);   Serial.print(" ");   Serial.print(err1);   Serial.print(" ");   Serial.print(err2);Serial.print("    ");
-  Serial.print(err3_i);   Serial.print(" ");   Serial.print(err4_i);   Serial.print(" ");   Serial.print(err1_i);   Serial.print(" ");   Serial.println(err2_i);
-
-
-  if(right_vel < 0 && left_vel > 0){
-    dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1;// Sets all motors to rotate clockwise
+  Serial.print(u3);   Serial.print(" ");   Serial.print(u4);   Serial.print(" ");   Serial.print(u1);   Serial.print(" ");   Serial.print(u2);Serial.print("    ");
+  Serial.print(err3_i);   Serial.print(" ");   Serial.print(err4_i);   Serial.print(" ");   Serial.print(err1_i);   Serial.print(" ");   Serial.print(err2_i); Serial.print("    ");
+  Serial.print(velocity_i3);   Serial.print(" ");   Serial.print(velocity_i4);   Serial.print(" ");   Serial.print(velocity_i1);   Serial.print(" ");   Serial.print(velocity_i2); Serial.print("    ");
+  */
+  if(right_vel < 0 && left_vel > 0) {
+    dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0;// Sets all motors to rotate robot anticlockwise
+    //Serial.println("E");
   }
   else if(left_vel < 0 && right_vel > 0){
-    dir1 = 1; dir2 = 1; dir3 = 0; dir4 = 0;// Sets all motors to rotate anticlockwise
+    dir1 = 0; dir2 = 0; dir3 = 1; dir4 = 1;// Sets all motors to rotate robot clockwise
+    //Serial.println("Q");
   }
   else if(left_vel > 0 && right_vel > 0){
-    dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1;// Sets all motors to forwards
+    dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0;// Sets all motors to drive backwards
+    //Serial.println("W");
   }
   else if(left_vel < 0 && right_vel < 0){
-    dir1 = 0; dir2 = 0; dir3 = 0; dir4 = 0;// Sets all motors to backwards
+    dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1;// Sets all motors to drive forwards
+    //Serial.println("S");
+  }
+  else{ // vels are 0
+    pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0;// Sets all motors to stop
+    err1_i = 0; err2_i = 0; err3_i = 0; err4_i = 0;// Resets integral control
+    //Serial.println("B");
   }
   vt1 = right_vel;
   vt2 = right_vel;// Set diff drive wheel velocities to control loop targets
@@ -249,33 +265,36 @@ void controlLoop(){
   prevT = currT;// Sets new previous time
   
   float scl_fctr = 10.625;// Adjust if speed behaviour is odd, matches ranges of rad/s to PWM
-  float Kp = 0.05*scl_fctr;// Adjust if control behaviour erratic/oscillatory
+  float Kp = 0.5*scl_fctr;// Adjust if control behaviour erratic/oscillatory
   
-  err1 = vt1 - velocity_i1*(768/(2*PI));// Sets to units of rad/s
-  err2 = vt2 - velocity_i2*(768/(2*PI));// Generates error from target velocity
-  err3 = vt3 - velocity_i3*(768/(2*PI));
-  err4 = vt4 - velocity_i4*(768/(2*PI));
+  err1 = vt1 - velocity_i1*((2*PI)/768);// Sets to units of rad/s
+  err2 = vt2 - velocity_i2*((2*PI)/768);// Generates error from target velocity
+  err3 = vt3 - velocity_i3*((2*PI)/768);
+  err4 = vt4 - velocity_i4*((2*PI)/768);
 
-  u1 = (Kp*err1); // Converts from rad/s to PWM
+  u1 = (Kp*err1); // Converts from rad/s to PWM and proportions the 
   u2 = (Kp*err2);
   u3 = (Kp*err3);
   u4 = (Kp*err4);
-  
-  // int p1 = u1 + 0.5, p2 = u2 + 0.5, p3 = u3 + 0.5, p4 = u4 + 0.5; // Adds buffer so taht float to int will round correctly
-  
+
   // Intergal control
   err1_i = err1_i + err1*deltaT;
   err2_i = err2_i + err2*deltaT;
   err3_i = err3_i + err3*deltaT;
   err4_i = err4_i + err4*deltaT;
 
-  int k_i = 0.1;// Integral control gain
+  float k_i = 15;// Integral control gain
   float u_i1 = k_i*err1_i, u_i2 = k_i*err2_i, u_i3 = k_i*err3_i, u_i4 = k_i*err4_i;// Integral control
 
   pwm1 = (int)u1 + (int)u_i1; // Adds integral control to control signal
   pwm2 = (int)u2 + (int)u_i2;
   pwm3 = (int)u3 + (int)u_i3;
   pwm4 = (int)u4 + (int)u_i4;
+
+  pwm1 = abs(pwm1);
+  pwm2 = abs(pwm2);
+  pwm3 = abs(pwm3);
+  pwm4 = abs(pwm4);
 
   //Bounds PWM to prevent any escalating positive or negative out of range values
   if(pwm1>255){
@@ -307,29 +326,91 @@ void controlLoop(){
 void doM1EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M1PinA) == HIGH) {
-    M1encoderPos = M1encoderPos + 1 ; // If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M1PinB) == LOW) {
+      M1encoderPos = M1encoderPos + 1;         // CW
+    }
+    else {
+      M1encoderPos = M1encoderPos - 1;         // CCW
+    }
+  }
+  else   // must be a high-to-low edge on channel A
+  {
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M1PinB) == HIGH) {
+      M1encoderPos = M1encoderPos + 1;          // CW
+    }
+    else {
+      M1encoderPos = M1encoderPos - 1;          // CCW
+    }
   }
 }
 
 void doM2EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M2PinA) == HIGH) {
-    M2encoderPos = M2encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M2PinB) == LOW) {
+      M2encoderPos = M2encoderPos + 1;         // CW
+    }
+    else {
+      M2encoderPos = M2encoderPos - 1;         // CCW
+    }
+  }
+  else   // must be a high-to-low edge on channel A
+  {
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M2PinB) == HIGH) {
+      M2encoderPos = M2encoderPos + 1;          // CW
+    }
+    else {
+      M2encoderPos = M2encoderPos - 1;          // CCW
+    }
   }
 }
-
 
 void doM3EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M3PinA) == HIGH) {
-    M3encoderPos = M3encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M3PinB) == LOW) {
+      M3encoderPos = M3encoderPos + 1;         // CW
+    }
+    else {
+      M3encoderPos = M3encoderPos - 1;         // CCW
+    }
   }
+  else   // must be a high-to-low edge on channel A
+  {
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M3PinB) == HIGH) {
+      M3encoderPos = M3encoderPos + 1;          // CW
+    }
+    else {
+      M3encoderPos = M3encoderPos - 1;          // CCW
+    }
   }
-
+}
 
 void doM4EncoderA() {
   // look for a low-to-high on channel A
   if (digitalRead(M4PinA) == HIGH) {
-    M4encoderPos = M4encoderPos + 1;// If a encoder ping is detected, code is interrupted and the coutn increased before code restarts
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M4PinB) == LOW) {
+      M4encoderPos = M4encoderPos + 1;         // CW
+    }
+    else {
+      M4encoderPos = M4encoderPos - 1;         // CCW
+    }
+  }
+  else   // must be a high-to-low edge on channel A
+  {
+    // check channel B to see which way encoder is turning
+    if (digitalRead(M4PinB) == HIGH) {
+      M4encoderPos = M4encoderPos + 1;          // CW
+    }
+    else {
+      M4encoderPos = M4encoderPos - 1;          // CCW
+    }
   }
 }
