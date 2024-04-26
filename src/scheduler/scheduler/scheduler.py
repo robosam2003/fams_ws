@@ -72,7 +72,7 @@ class Scheduler(Node):
 
         part = Part()
         part.part_id = int(csv_list[2])
-        part.location = int(csv_list[3])
+        part.location = str(csv_list[3])
         part.current_subprocess_id = int(csv_list[4])
         part.job_id = int(csv_list[5])
         job.part = part
@@ -167,16 +167,13 @@ class Scheduler(Node):
         workstation1 = Workstation()
         workstation1.workstation_id = 1
         workstation1.state = 'FREE'
-        workstation1.available_operations = ['MILLING', 'DRILLING']
+        workstation1.available_operations = ['DRILLING']
         workstation2 = Workstation()
         workstation2.workstation_id = 2
         workstation2.state = 'FREE'
         workstation2.available_operations = ['MILLING']
-        workstation3 = Workstation()
-        workstation3.workstation_id = 3
-        workstation3.state = 'FREE'
-        workstation3.available_operations = ['DRILLING']
-        self.system_state.workstations = [workstation1, workstation2, workstation3]
+
+        self.system_state.workstations = [workstation1, workstation2]
 
         # "Update Job Log with Timings" ??? 
         
