@@ -86,7 +86,7 @@ class FamsTFBroadcaster(Node):
             t.transform.translation.x = self.initial_base_link_pos[0] # x
             t.transform.translation.y = self.initial_base_link_pos[1] # y
             t.transform.translation.z = 0.0
-            q = quaternion_from_euler(math.pi, 0, self.initial_base_link_pos[2])
+            q = quaternion_from_euler(0, 0, self.initial_base_link_pos[2])
             t.transform.rotation.x = q[0]
             t.transform.rotation.y = q[1]
             t.transform.rotation.z = q[2]
@@ -95,8 +95,8 @@ class FamsTFBroadcaster(Node):
 
             # ODOM->BASE_LINK transformation - This is fed from the aruco_tf topic
             x = self.current_aruco.x
-            y = self.current_aruco.y
-            yaw = self.current_aruco.z
+            y = -self.current_aruco.y
+            yaw = -self.current_aruco.z
             t = TransformStamped()
             t.header.stamp = self.get_clock().now().to_msg()
             t.header.frame_id = self.robot_name + '/odom'
@@ -131,6 +131,13 @@ class FamsTFBroadcaster(Node):
             self.tf_broadcaster.sendTransform(t)
         else: 
             self.get_logger().error('Unknown robot type. Please check the robot_type parameter')
+            """
+            - Look at ERP planning - Industrial feel.
+            - Wireless safety systems. 
+            - Cybersecurity
+            - Scaling to industry.
+            - 
+            """
         
 
 

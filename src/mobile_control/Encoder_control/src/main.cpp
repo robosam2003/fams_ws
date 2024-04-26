@@ -214,10 +214,14 @@ void loop() {
     dir1 = 1; dir2 = 1; dir3 = 1; dir4 = 1;// Sets all motors to drive forwards
     //Serial.println("S");
   }
-  else{ // vels are 0
-    pwm1 = 0; pwm2 = 0; pwm3 = 0; pwm4 = 0;// Sets all motors to stop
-    err1_i = 0; err2_i = 0; err3_i = 0; err4_i = 0;// Resets integral control
+  else if (right_vel == 0) { // vels are 0
+    pwm1 = 0; pwm2 = 0; // Sets all motors to stop
+    err1_i = 0; err2_i = 0; // Resets integral control
     //Serial.println("B");
+  }
+  else if (left_vel == 0) {
+    pwm3 = 0; pwm4 = 0; // Sets all motors to stop
+    err3_i = 0; err4_i = 0; // Resets integral control
   }
   vt1 = right_vel;
   vt2 = right_vel;// Set diff drive wheel velocities to control loop targets
