@@ -1,7 +1,7 @@
 # ID
-uint32 mobile_robot_id
+string amr_name
 
-string state # Can be "Free", "Busy", "Broken"
+string state # Can be "FREE", "BUSY", "BROKEN"
 
 float32[] physical_location
 

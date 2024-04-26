@@ -1,6 +1,6 @@
 uint32 part_id
 
-uint32 location
+string location
 
 uint32 next_subprocess_id
 
