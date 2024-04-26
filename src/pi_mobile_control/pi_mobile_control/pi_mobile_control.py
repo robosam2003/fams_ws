@@ -78,8 +78,17 @@ class pi_control(Node):
         left_wheel_velocity = (linear_velocity - angular_velocity * wheel_separation / 2.0) / wheel_radius
         right_wheel_velocity = -(linear_velocity + angular_velocity * wheel_separation / 2.0) / wheel_radius
         
-        left_wheel_velocity = round(left_wheel_velocity, 2)
-        right_wheel_velocity = round(right_wheel_velocity, 2)
+        gain = 6
+        minthreshold = 4
+        if ((left_wheel_velocity < 0) and (right_wheel_velocity < 0)) or ((left_wheel_velocity > 0) and (right_wheel_velocity > 0)):
+            print("Using rotation gain")
+            gain = 18 # Rotation gain is higher
+
+        # if left_wheel_velocity*gain < 4:
+        #     left_wheel_velocity = 4/gain
+        # if right_wheel_velocity*gain
+        left_wheel_velocity = round(left_wheel_velocity*gain, 2)
+        right_wheel_velocity = round(right_wheel_velocity*gain, 2)
         
         # self.left_vel_observation.publish(msg)
         self.get_logger().info(f"Left: {left_wheel_velocity} Right: {-right_wheel_velocity}")
