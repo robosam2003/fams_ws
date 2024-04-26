@@ -1,7 +1,7 @@
 # ID
-string amr_name
+string name
 
 string state # Can be "FREE", "BUSY", "BROKEN"
 
-float32[] physical_location
+float32[] physical_location # x, y, yaw
 

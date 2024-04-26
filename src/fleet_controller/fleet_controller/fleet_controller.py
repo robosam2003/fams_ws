@@ -1,8 +1,8 @@
 import rclpy
-from rclpy import Node
+from rclpy.node import Node
 
-from fams_interfaces.msg import Schedule, Vision, SystemState
-from geometry_msgs.msg import PoseStamped
+from fams_interfaces.msg import Schedule, Vision, SystemState, MobileRobot
+from geometry_msgs.msg import PoseStamped, Point
 import numpy as np
 import math
 
@@ -35,8 +35,8 @@ class FleetController(Node):
         self.get_logger().info('Fleet controller node has been started')
 
         self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES
-            'workstation1': [1, 1, 0],
-            'workstation2': [1, 2, 3.14159]
+            'workstation1': [1.0, 0.5, 0.0],
+            'workstation2': [1.0, 1.0, 3.14159]
         }
 
         self.schedule_subscription = self.create_subscription(
@@ -53,10 +53,23 @@ class FleetController(Node):
         #     10
         # )
 
+        self.system_state_publisher = self.create_publisher(
+            SystemState,
+            'system_state',
+            10,
+        )
+
         self.system_state_subscription = self.create_subscription(
             SystemState,
             'system_state',
             self.system_state_handler,
+            10
+        )
+
+        self.nexus1_aruco_tf_subscription = self.create_subscription(
+            Point,
+            'nexus1/aruco_tf',
+            self.nexus1_aruco_tf_handler,
             10
         )
 
@@ -73,6 +86,18 @@ class FleetController(Node):
         self.system_state = SystemState()
         self.schedule = Schedule()
 
+        self.fleet_init()
+
+    def fleet_init(self):
+        # Initialize the fleet
+        self.get_logger().info("Initializing fleet")
+        amr1 = MobileRobot()
+        amr1.name = "nexus1"
+        amr1.state = "FREE"
+        amr1.physical_location = [0.0, 0.0, 0.0]
+        self.system_state.mobile_robots.append(amr1)
+        self.system_state_publisher.publish(self.system_state)
+
     def system_state_handler(self, msg):
         self.system_state = msg # Update local system state
         # self.assign_fleet()
@@ -81,7 +106,20 @@ class FleetController(Node):
         self.schedule = msg
         # self.assign_fleet()
 
+    def nexus1_aruco_tf_handler(self, msg):
+        # Here, we update the location of the AMR in the system state
+        for amr_state in self.system_state.mobile_robots:
+            if amr_state.name == "nexus1":
+                amr_state.physical_location = [msg.x, -msg.y, -msg.z] # x, y, yaw
+                # y and yaw are negated because of camera frame being wierd.
+                break
+        
+        # Publish the new system state
+        self.system_state_publisher.publish(self.system_state)
+
+
     def assign_fleet(self):
+        self.get_logger().info("Assigning fleet")
         parts_schedule = self.schedule.parts
         subprocesses_schedule = self.schedule.subprocesses
         workstations_schedule = self.schedule.workstations
@@ -93,6 +131,7 @@ class FleetController(Node):
                 free_amrs.append(amr_sending)
 
         if len(free_amrs) != 0: # If there are free AMRs
+            self.get_logger().info("There are free AMRs! - Assigning them now")
             for i in range(n):
                 part = parts_schedule[i]
                 subprocess = subprocesses_schedule[i]
@@ -105,6 +144,7 @@ class FleetController(Node):
 
                     # Set the workstation goal pose
                     workstation_pose = PoseStamped()
+                    workstation_pose.header.frame_id = "map"
                     workstation_pose.pose.position.x = self.workstation_goal_poses[workstation_name][0]
                     workstation_pose.pose.position.y = self.workstation_goal_poses[workstation_name][1]
                     workstation_pose.pose.position.z = 0.0

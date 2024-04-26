@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'fleet_controller = fleet_controller.fleet_controller:main',
         ],
     },
 )
