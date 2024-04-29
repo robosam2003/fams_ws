@@ -13,14 +13,16 @@
         <ParticipantIndex>auto</ParticipantIndex>
         <MaxAutoParticipantIndex>50</MaxAutoParticipantIndex>
             <Peers>
-                <Peer Address="172.30.58.232"/>
                 <Peer Address="143.167.46.22"/>
                 <Peer Address="143.167.47.43"/>
                 <Peer Address="143.167.47.26"/>
                 <Peer Address="143.167.231.72"/>
-                <Peer Address="192.168.68.109"/>
-                <Peer Address="172.30.58.222"/>
                 <Peer Address="143.167.46.163"/>
+                <Peer Address="172.30.58.232"/> <!-- Sam's Laptop -->
+                <!-- Raspberry Pi's -->
+                <Peer Address="172.30.58.222"/> <!-- NEXUS1 - Pi 4-->
+                <Peer Address="172.30.58.176"/> <!-- Workstation 1 - on the right, Pi 3-->
+                <Peer Address="172.30.58.127"/> <!-- Workstation 2 - on the left, Pi 3-->
             </Peers>
         </Discovery>
         <Internal>
