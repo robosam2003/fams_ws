@@ -30,7 +30,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.6000000238418579
+    - Alpha: 0.6
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
       Description File: ""

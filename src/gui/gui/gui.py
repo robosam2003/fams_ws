@@ -146,7 +146,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         partObj=Part()
         partObj.part_id = int(self.part_id.text())
-        partObj.location = int(self.partLocation.text())
+        partObj.location = str(self.partLocation.text())
         partObj.current_subprocess_id = 0
         partObj.job_id = self.jobObj.job_id
         self.jobObj.part = partObj

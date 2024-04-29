@@ -19,7 +19,7 @@ class WorkstationController(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('amr_names', ['nexus1', 'nexus2']),
+                ('amr_names', ['nexus1']),
             ]
         )
 
@@ -75,6 +75,7 @@ class WorkstationController(Node):
     def vision_locations_handler(self, msg):
         # Update local vision locations attribute
         self.vision_locations = msg
+        # Possibly just use the locations of the amrs in the system state instead of the vision locations??
         amr_locations = location_array_2D=np.reshape(self.vision_locations.part_location,(int(len(self.vision_locations.part_location)/3),3))
 
         # Check if the AMRs are close enough to any of the docking poses

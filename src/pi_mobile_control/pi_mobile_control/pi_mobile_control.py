@@ -7,6 +7,7 @@ from geometry_msgs.msg import TransformStamped
 import serial
 import struct
 from fams_interfaces.msg import PiControl
+import time
 
 class pi_control(Node):
 
@@ -24,7 +25,28 @@ class pi_control(Node):
         self.cmd_vel_subscription = self.create_subscription(Twist, 'nexus1/cmd_vel', self.cmd_vel_callback, 10)
 
         #Initiate Serial communication to arduino
-        self.ser = serial.Serial('/dev/ttyACM0', 115200)
+        self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
+        try:
+            self.ser.open()
+        except:
+            pass
+        
+        ser_connected = False
+        # Continue pinging the arduino until we know the communication is established:
+        while not ser_connected:
+            awake_msg = "YOU ALIVE?"
+            self.ser.write(awake_msg.encode('utf-8'))
+            print(awake_msg)
+            time.sleep(0.1)
+            recieved = self.ser.readline().decode('utf-8').strip()
+            print(recieved)
+            if recieved == "IM ALIVE!":
+                ser_connected = True
+                break
+            time.sleep(1)
+
+        
+
 
         # Create record of start time of system
         self.initial_time = self.get_clock().now().nanoseconds / 1e9
@@ -56,30 +78,40 @@ class pi_control(Node):
         left_wheel_velocity = (linear_velocity - angular_velocity * wheel_separation / 2.0) / wheel_radius
         right_wheel_velocity = -(linear_velocity + angular_velocity * wheel_separation / 2.0) / wheel_radius
         
-        left_wheel_velocity = round(left_wheel_velocity, 2)
-        right_wheel_velocity = round(right_wheel_velocity, 2)
+        gain = 6
+        minthreshold = 4
+        if ((left_wheel_velocity < 0) and (right_wheel_velocity < 0)) or ((left_wheel_velocity > 0) and (right_wheel_velocity > 0)):
+            print("Using rotation gain")
+            gain = 18 # Rotation gain is higher
 
-        msg = PiControl()
-        msg.left_vel = left_wheel_velocity
-        msg.right_vel = right_wheel_velocity
-        self.left_vel_observation.publish(msg)
-
-        l_array = struct.pack('d',left_wheel_velocity)
-        r_array = struct.pack('d',right_wheel_velocity)
-
-        self.ser.write(l_array)
-        self.ser.write(r_array)
+        # if left_wheel_velocity*gain < 4:
+        #     left_wheel_velocity = 4/gain
+        # if right_wheel_velocity*gain
+        left_wheel_velocity = round(left_wheel_velocity*gain, 2)
+        right_wheel_velocity = round(right_wheel_velocity*gain, 2)
+        
+        # self.left_vel_observation.publish(msg)
+        self.get_logger().info(f"Left: {left_wheel_velocity} Right: {-right_wheel_velocity}")
+        # l_array = struct.pack('d',left_wheel_velocity)
+        # r_array = struct.pack('d',right_wheel_velocity)
+        control_string = f"{left_wheel_velocity},{-right_wheel_velocity}#\r\n"
+        encoded_string = control_string.encode()
+        print(encoded_string)
+        self.ser.write(encoded_string)
+        print("WROTE CONTROL STRING")
+        # recieved = self.ser.readline().decode('utf-8').strip()
+        # print(recieved)
 
         # Compute the left and right wheel positions
-        left_wheel_position = self.wheel_states.position[0] + left_wheel_velocity * elapsed_time
-        right_wheel_position = self.wheel_states.position[1] + right_wheel_velocity * elapsed_time
+        # left_wheel_position = self.wheel_states.position[0] + left_wheel_velocity * elapsed_time
+        # right_wheel_position = self.wheel_states.position[1] + right_wheel_velocity * elapsed_time
 
         # Update the joint states
-        self.wheel_states.position = [left_wheel_position, right_wheel_position, left_wheel_position, right_wheel_position]
-        self.wheel_states.velocity = [left_wheel_velocity, right_wheel_velocity, left_wheel_velocity, right_wheel_velocity]
+        # self.wheel_states.position = [left_wheel_position, right_wheel_position, left_wheel_position, right_wheel_position]
+        # self.wheel_states.velocity = [left_wheel_velocity, right_wheel_velocity, left_wheel_velocity, right_wheel_velocity]
 
         # Publish the joint states - this will make the wheels spin
-        self.wheel_states_publisher.publish(self.wheel_states)
+        # self.wheel_states_publisher.publish(self.wheel_states)
 
 
 # Define the main function
@@ -93,6 +125,7 @@ def main(args=None):
     # Spin the node
     rclpy.spin(pi_mobile_control)
 
+    pi_mobile_control.ser.close()
     # Destroy the node
     pi_mobile_control.destroy_node()
 

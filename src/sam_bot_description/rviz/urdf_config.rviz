@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1
+        - /Mover6_1 Model1
       Splitter Ratio: 0.5
     Tree Height: 787
 Visualization Manager:
@@ -151,12 +151,128 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 0.8999999761581421
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: mover61/robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        geoJoint1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        geoJoint2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        geoJoint3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        geoJoint4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        geoJoint5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        geoJoint6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripperBody:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripperFinger1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripperFinger2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: Mover6_1 Model
+      TF Prefix: mover61
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Class: rviz_default_plugins/Pose
+      Alpha: 1
+      Axes Length: 0.10000000149011612
+      Axes Radius: 0.009999999776482582
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Mover61 Goal Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: mover61/mover6_goal_pose
+      Value: true
     - Class: rviz_default_plugins/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: true
         map:
+          Value: true
+        mover61/base_link:
+          Value: true
+        mover61/geoJoint1:
+          Value: true
+        mover61/geoJoint2:
+          Value: true
+        mover61/geoJoint3:
+          Value: true
+        mover61/geoJoint4:
+          Value: true
+        mover61/geoJoint5:
+          Value: true
+        mover61/geoJoint6:
+          Value: true
+        mover61/gripperBody:
+          Value: true
+        mover61/gripperFinger1:
+          Value: true
+        mover61/gripperFinger2:
           Value: true
         nexus1/base_footprint:
           Value: true
@@ -195,6 +311,18 @@ Visualization Manager:
       Show Names: false
       Tree:
         map:
+          mover61/base_link:
+            mover61/geoJoint1:
+              mover61/geoJoint2:
+                mover61/geoJoint3:
+                  mover61/geoJoint4:
+                    mover61/geoJoint5:
+                      mover61/geoJoint6:
+                        mover61/gripperBody:
+                          mover61/gripperFinger1:
+                            {}
+                          mover61/gripperFinger2:
+                            {}
           nexus1/odom:
             nexus1/base_link:
               nexus1/base_footprint:
@@ -536,7 +664,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.070065975189209
+      Distance: 4.416155815124512
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -551,10 +679,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.544796347618103
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.69357442855835
+      Yaw: 4.703586578369141
     Saved: ~
 Window Geometry:
   Displays:
