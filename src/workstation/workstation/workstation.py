@@ -7,10 +7,12 @@ from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Workstation,
 #from workstation.workstation import Location
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose
+from sensor_msgs.msg import JointState
 import numpy as np
 import math
 import time
 import serial
+import ikpy.chain
 
 #from machine_vision import eStop
 #from mover6 import mover6
@@ -60,6 +62,13 @@ class Workstation(Node):
                                                                 'WorkstationCommand', # Namespaced
                                                                 self.workstation_cmd_callback,
                                                                 10 )        
+        
+        self.joint_state_subscription = self.create_subscription(
+            JointState,
+            'joint_states', # Namespaced
+            self.joint_state_callback, 
+            10
+        )
 
         # Publishers
         self.mover6Publisher=self.create_publisher(Pose,
@@ -83,16 +92,22 @@ class Workstation(Node):
         self.y = 0.0
         self.vision_locations = Vision()
         self.system_state = SystemState()
+        self.joint_states = JointState()
         self.workstation_id = 0
         self.available_operations = []
         self.status = 'FREE'  # Add a 'status' attribute with default value 'FREE'
 
-        self.place_location = [0.36, -0.05, 0.15]
-        self.rfid_scan_location = [0.1, -0.35, 0.25]
-        self.idle_position = [0.3, 0.3, 0.3]
-        self.previous_pickup_location = [0.3, 0.3, 0.3]
 
-        self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
+        self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
+
+        self.place_location = [0.36, -0.05, 0.15]
+        self.rfid_scan_location = [-0.05, 0.39, 0.15]
+        self.idle_position = [0.30, 0.30, 0.30]
+        self.previous_pickup_location = [0.3, 0.3, 0.3]
+        self.zero_point = [0.34594893, 0.01, 0.44677551]
+
+
+        # self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
         # self.read_raspberry_pi_()
         self.rfid_tag=0
         
@@ -102,6 +117,10 @@ class Workstation(Node):
 
     def system_state_callback(self,msg):
         self.system_state=msg
+
+    def joint_state_callback(self, msg):
+        # self.get_logger().info('Received Joint States')
+        self.joint_states = msg
     
     def open_gripper(self):
         # Open the gripper
@@ -126,39 +145,18 @@ class Workstation(Node):
         self.get_logger().info('Excecuting Part Input')
         part_location = location_array_2D[0]
         part_location = [float(i) for i in part_location]
+        self.get_logger().info(f'Part Location: {part_location}')
         self.previous_pickup_location = part_location
         
         delay_between_operations = 3
-        # Above part
-        self.open_gripper()
-        self.move_robot(part_location[0],part_location[1],0.3) # Above part on AMR
         time.sleep(delay_between_operations)
-        self.move_robot(part_location[0],part_location[1],0.15) # 
+        # self.move_robot(0.3, 0.3, 0.2)
         time.sleep(delay_between_operations)
-        self.close_gripper()
+        self.move_robot(part_location[0],part_location[1], 0.2) 
         time.sleep(delay_between_operations)
-        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], self.rfid_scan_location[2])
+        self.move_robot(self.zero_point[0], self.zero_point[1], self.zero_point[2])
         time.sleep(delay_between_operations)
-        self.read_rfid()
-        time.sleep(delay_between_operations)
-        # self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]+0.2)
-        # time.sleep(delay_between_operations)
-        # self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]) 
-        # time.sleep(delay_between_operations)
-        # self.open_gripper()
-        # time.sleep(delay_between_operations)
-        
-        # parts=msg.parts
-        # for i in parts:
-        #     if parts[i].part_id==self.msg.rfid_code:
-        #         #which part’s loc to assign workstation to
-        #         parts[i].location=self.workstationName
-        #         print("part location changed to: ", parts[i].location)
 
-        #update part's current subprocess
-
-        # workstation1=Workstation
-        # workstation1.state='busy'
 
 
     def handle_part_output(self,msg):
@@ -204,28 +202,51 @@ class Workstation(Node):
 
         workstation1=Workstation
         workstation1.state='free'
+    
+    def calculate_unit_vector(self, current_point, target_point):
+        vector = np.array(target_point) - np.array(current_point)
+        magnitude = np.linalg.norm(vector)
+        unit_vector = vector / magnitude
+        return unit_vector, magnitude
 
-        
     def move_robot(self,x,y,z):
-        # generic fx 3d coord ip, move robot there
-        mover6_pose_msg = Pose()
-        mover6_pose_msg.position.x = x
-        mover6_pose_msg.position.y = y
-        mover6_pose_msg.position.z = z
-        # q = quaternion_from_euler(theta,phi,psi)
-        # mover6_pose_msg.orientation.x = q[0]
-        # mover6_pose_msg.orientation.y = q[1]
-        # mover6_pose_msg.orientation.z = q[2]
-        # mover6_pose_msg.orientation.w = q[3]
+        overall_target_point = [x, y, z]
 
-        self.mover6Publisher.publish(mover6_pose_msg)
-        self.get_logger().info("Published pose to mover6")
+        link_angles = [0,
+                   self.joint_states.position[0],
+                   self.joint_states.position[1],
+                   self.joint_states.position[2],
+                   self.joint_states.position[3],
+                   self.joint_states.position[4],
+                   self.joint_states.position[5],
+                   0, 0]
         
+        self.get_logger().info(f"Link angles: {link_angles}")
+        
+        current_point = self.my_chain.forward_kinematics(link_angles)
+        current_point = current_point[:3, 3]
+        self.get_logger().info(f"Current point: {current_point}")
+        
+        num_points = 20
+        for i in range(0, num_points):
+            # Calculate unit vector between the current and target points
+            unit_vector, magnitude = self.calculate_unit_vector(current_point, overall_target_point)
+            target_point = current_point + unit_vector * (magnitude/num_points) * (i+1)
+            self.get_logger().info("Target point: " + str(target_point))
+            mover6_pose_msg = Pose()
+            mover6_pose_msg.position.x = target_point[0]
+            mover6_pose_msg.position.y = target_point[1]
+            mover6_pose_msg.position.z = target_point[2]
+
+
+            self.mover6Publisher.publish(mover6_pose_msg)
+            self.get_logger().info("Published pose to mover6: " + str(mover6_pose_msg.position.x) + ", " + str(mover6_pose_msg.position.y) + ", " + str(mover6_pose_msg.position.z))
+            time.sleep(0.05)
         
     def vision_callback(self, msg):
-        self.get_logger().info('Received Vision Locations')
+        # self.get_logger().info('Received Vision Locations')
         if len(msg.part_location) == 0:
-            self.get_logger().info('No parts detected')
+            # self.get_logger().info('No parts detected')
             return
         # else
         self.vision_locations = msg

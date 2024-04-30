@@ -13,6 +13,7 @@ from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Point, PoseStamped, Pose
 import matplotlib.pyplot
 from mpl_toolkits.mplot3d import Axes3D
+import math
 
 
 """
@@ -202,6 +203,27 @@ class mover6(Node):
         Z = np.arctan2(t3, t4)
         return X, Y, Z
 
+
+    def mover6_pose_control_callback(self, msg):
+        target_point = [msg.position.x, msg.position.y, msg.position.z]
+        orientation_quat = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
+        # Convert the orientation to euler angles
+        orientation_euler = [0, 0, -1] #self.quaternion_to_euler(orientation_quat)
+        orientation_axis = "Z"
+
+        # Do the inverse kinematics
+        ik = self.my_chain.inverse_kinematics(target_position=target_point)
+                                            #   target_orientation=orientation_euler,
+                                            #   orientation_mode=orientation_axis) # , orientation_euler)  # Uncommment to include orientation
+        angles = [ik[i+1] for i in range(6)] # Skip the first angle, it's for the joint from the base_link to the first joint
+        angles[0] = angles[0]
+        angles[1] = -angles[1]
+        angles[2] = angles[2]
+        angles[3] = angles[3]
+        angles[4] = angles[4]
+        angles[5] = angles[5]
+        
+    
     def mover6_pose_control_callback(self, msg):
         target_point = [msg.position.x, msg.position.y, msg.position.z]
         orientation_quat = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]

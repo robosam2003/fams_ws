@@ -75,7 +75,7 @@ def launch_setup(context: LaunchContext):
     )
 
     mover6_node = launch_ros.actions.Node( 
-        package='mover6',
+        package='mover6_sim',
         executable='mover6',
         namespace=robot_name,
         name='mover6',

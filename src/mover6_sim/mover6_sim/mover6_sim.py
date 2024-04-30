@@ -35,33 +35,54 @@ class Mover6(Node):
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
         self.target_position = [0.2, 0.0, 0.3]
 
+        self.pose_control_subscription = self.create_subscription(
+            Pose,
+            'mover6_goal_pose',
+            self.mover6_pose_control_callback,
+            10
+        )
 
-        self.joint_state_publisher = self.create_publisher(JointState, 'mover6_joint_states', 10)
+
+        # Setup robot joint state publisher
+        self.joint_state_publisher = self.create_publisher(
+            JointState,
+            'mover6_joint_states',
+            10
+        )
+
 
         self.point_publisher = self.create_publisher(PoseStamped, 'mover6_target_position', 10)
 
+        self.joint_states = JointState()
+        self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5']
+        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
         # timer 
-        timer_period = 1
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        timer_period = 0.1
+        self.timer = self.create_timer(timer_period, self.joint_state_publisher_callback)
+    
+    def joint_state_publisher_callback(self):
+        self.joint_state_publisher.publish(self.joint_states)
 
+    def mover6_pose_control_callback(self, msg):
+        self.get_logger().info("Received new target position")
+        self.target_position = [msg.position.x, msg.position.y, msg.position.z]
 
-    def timer_callback(self):
-        joint_state = JointState()
-        joint_state.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5']
         ik = self.my_chain.inverse_kinematics(self.target_position)
         # self.get_logger().info(self.my_chain.__repr__())
 
         
         # reverse it
         # ik = ik[::-1]
-        joint_state.position = [ik[i+1] for i in range(6)]
-        angles = np.rad2deg(joint_state.position)
+        self.joint_states.position = [ik[i+1] for i in range(6)]
+        angles = np.rad2deg(self.joint_states.position)
+        
         self.get_logger().info("Angles:" + str(angles))
         # self.get_logger().info('Publishing: "%s"' % joint_state)
-        self.joint_state_publisher.publish(joint_state)
+        self.joint_state_publisher.publish(self.joint_states)
 
         # real_frame = self.my_chain.forward_kinematics(np.zeros(9))
-        real_frame = self.my_chain.forward_kinematics(ik)
+        # real_frame = self.my_chain.forward_kinematics(ik)
         # self.get_logger().info("Computed position vector : %s, original position vector : %s" % (real_frame[:3, 3], self.target_position))
 
         point = PoseStamped()
