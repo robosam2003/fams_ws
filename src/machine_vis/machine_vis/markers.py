@@ -23,30 +23,25 @@ class ArucoReader(Node):
     """
     # Initiate the Node class's constructor and give it a name
     super().__init__('aruco_cdreader')
-    self.get_logger().info('Aruco Reader Node Started')
+    self.get_logger().info('Machine Vision Node Started')
 
-    vidIndex=0 # Before running, it should be verfied that, maincam=0, workBcam=2, workAcam=4
+    self.vidIndex=2 # Before running, it should be verfied that, maincam=0, workBcam=2, workAcam=4
 
-    match vidIndex:
+    match self.vidIndex:
       case 0:
         self.moblocation0_pub = self.create_publisher(Point,'nexus1/aruco_tf',10)
         self.moblocation1_pub = self.create_publisher(Point,'nexus2/aruco_tf',10)
       case 2:
-        self.partlocation_pub=self.create_publisher(Vision,'VisionLocationsB',10)
+        self.partlocation_pub=self.create_publisher(Vision,'workstation2/VisionLocations',10)
       case 4:
-        self.partlocation_pub=self.create_publisher(Vision,'VisionLocationsA',10)
+        self.partlocation_pub=self.create_publisher(Vision,'workstation1/VisionLocations',10)
 
-    # self.video_publisher=self.create_publisher(Image,'video_stream',10)
-
-    
-    
-    
-    self.camera_setup(vidIndex)
+    self.camera_setup(self.vidIndex)
 
     aruco_type = "DICT_4X4_100" #Is looking for 4x4 only
     self.armOrigin=[]
     
-    self.main_loop(aruco_type,vidIndex)
+    self.main_loop(aruco_type)
 
   def camera_setup(self,CamIndex):
     match CamIndex:
@@ -79,20 +74,25 @@ class ArucoReader(Node):
         
       case 2:
         self.get_logger().info('Setting Up Workstation B Camera...')
-        
         self.cap = cv2.VideoCapture(2,cv2.CAP_V4L2)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        
-        self.Cam_Mtrx = np.array(((1.21665111e+03, 0, 6.54768787e+02),(0, 1.21478888e+03, 5.00652432e+02),(0,0,1)))
-        self.Distort = np.array((0.04315798,  0.50036972, -0.01800276, -0.00592732, -1.26928846))
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.cap.set(cv2.CAP_PROP_FPS,10)
+        self.Cam_Mtrx = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
+        self.Distort = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,1.36994424e+01))
+        # self.Cam_Mtrx = np.array(((1.21665111e+03, 0, 6.54768787e+02),(0, 1.21478888e+03, 5.00652432e+02),(0,0,1)))
+        # self.Distort = np.array((0.04315798,  0.50036972, -0.01800276, -0.00592732, -1.26928846))
         self.markerSize=0.0325
         self.detectObstacles=0
+        
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=auto_exposure=1')
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_automatic=0')
-        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=exposure_time_absolute=150')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=focus_automatic_continuous=0')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=focus_absolute=0')
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=exposure_time_absolute=110')
         os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_temperature=3700')
-        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=gain=50')
-
+        os.system('v4l2-ctl -d /dev/video2 --set-ctrl=gain=30')
         fps=self.cap.get(cv2.CAP_PROP_FPS)
         print(fps)
         width=self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -122,7 +122,22 @@ class ArucoReader(Node):
         print(width)
     return self.cap
       
-
+  def convertboxpoints(self,box):
+    scale=1/535
+    x1 = round((box[0][0]-960)*scale,2)
+    y1 = round((box[0][1]-540)*scale,2)
+    x2 = round((box[1][0]-960)*scale,2)
+    y2 = round((box[1][1]-540)*scale,2)
+    x3 = round((box[2][0]-960)*scale,2)
+    y3 = round((box[2][1]-540)*scale,2)
+    x4 = round((box[3][0]-960)*scale,2)
+    y4 = round((box[3][1]-540)*scale,2)
+    p1=(x1,y1)
+    p2=(x2,y2)
+    p3=(x3,y3)
+    p4=(x4,y4)
+    return p1,p2,p3,p4
+  
   def isRotationMatrix(self,R): # Checks if a matrix is a valid rotation matrix.
     Rt = np.transpose(R)
     shouldBeIdentity = np.dot(Rt, R)
@@ -181,15 +196,15 @@ class ArucoReader(Node):
                                (math.sin(yaw), math.cos(yaw), 0, 0),
                                (0, 0, 1, 0),
                                (0, 0, 0, 1)))
-          Trans_to_Arm=np.array(((1, 0, 0, 0.185),
-                               (0, 1, 0, 0),
+          Trans_to_Arm=np.array(((1, 0, 0, 0),
+                               (0, 1, 0, -0.17),
                                (0, 0, 1, 0),
                                (0, 0, 0, 1))) #0.185
           new_origin=np.dot(Rot_to_Arm,Trans_to_Arm)
           originTrans=new_origin[0:3,3]
     
           self.Origin=originmarkerpoint+originTrans # Updates origin when arm origin marker seen
-        if ids[i,0]==90 and switch==0:
+        if ids[i,0]==93 and switch==0:
           rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], markerSize, camera_matrix, distortion_vector)
           origin_x=tvec[0][0][0]
           origin_y=tvec[0][0][1]
@@ -216,7 +231,7 @@ class ArucoReader(Node):
       for i in range(0, len(ids)):
         rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], markerSize, camera_matrix, distortion_vector)         
         cv2.aruco.drawDetectedMarkers(frame, corners,ids) 
-        cv2.aruco.drawAxis(frame, camera_matrix, distortion_vector, rvec, tvec, 0.03)  
+        cv2.aruco.drawAxis(frame, camera_matrix, distortion_vector, rvec, tvec, 0.05)  
         
         locations=tvec-self.Origin
         x=(round(locations[0,0,0],5))
@@ -249,19 +264,27 @@ class ArucoReader(Node):
           
         # For Part Detection (Workstation Cams)
         if switch==0:
-          if ids[i,0] in (82,89):
+          if ids[i,0] in range(82,89):
             part_id_msg.append(int(ids[i,0]))
-            part_loc_msg.extend([x,y,yaw])
-            print('Part Location: {}'.format([x,y,yaw]))
+            if self.vidIndex==2:
+              part_loc_msg.extend([-y,x,yaw])               # Adjusting for frame of arm
+              print('Part Location: {}'.format([-y,x,yaw])) 
+            elif self.vidIndex==4:
+              part_loc_msg.extend([x,-y,yaw])
+              print('Part Location: {}'.format([x,-y,yaw]))
           partlocation_msg.part_id=part_id_msg
           partlocation_msg.part_location=part_loc_msg
-          
-      self.partlocation_pub.publish(partlocation_msg)
-      self.moblocation0_pub.publish(mobilelocation0_msg)
-      self.moblocation1_pub.publish(mobilelocation1_msg)
-      # self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
-      self.get_logger().info('{}:{}'.format("Publishing Robot 0",mobilelocation0_msg))  
-      self.get_logger().info('{}:{}'.format("Publishing Robot 1",mobilelocation1_msg))  
+
+      if switch==1:  
+        self.moblocation0_pub.publish(mobilelocation0_msg)
+        self.moblocation1_pub.publish(mobilelocation1_msg)
+        # self.get_logger().info('{}:{}'.format("Publishing Robot 0",mobilelocation0_msg))  
+        # self.get_logger().info('{}:{}'.format("Publishing Robot 1",mobilelocation1_msg))  
+      if switch==0:
+        self.partlocation_pub.publish(partlocation_msg)
+        self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
+      
+      
       
 
           # if ids[i,0] in (8,9):
@@ -288,6 +311,9 @@ class ArucoReader(Node):
       locations=0
     return frame, locations, anti_ob_flag
 
+  
+
+
   def obstacle_detector(self,frame,anti_ob_flag):
     FilteredContours=[]
     FilteredBoxes=[]
@@ -299,25 +325,33 @@ class ArucoReader(Node):
     # # undistort
     # dst = cv2.undistort(frame, intrinsic_camera, distortion, None, newcameramtx)
     grey=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    retval,thresh=cv2.threshold(grey,180,255,cv2.THRESH_BINARY)
-    # cv2.namedWindow("thresh", cv2.WINDOW_NORMAL)
-    # cv2.resizeWindow('thresh', 1700, 1080)   
-    # cv2.imshow('thresh',thresh)
+    retval,thresh=cv2.threshold(grey,130,255,cv2.THRESH_BINARY)
+    cv2.namedWindow("thresh", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('thresh', 1700, 1080)   
+    cv2.imshow('thresh',thresh)
     contours, hierarchy = cv2.findContours(image=thresh, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
 
     for cnt in contours:
       area=cv2.contourArea(cnt)
-      if area > 660:
+      if area > 800 and area < 12000:
         M=cv2.moments(cnt)
         scale=1/535
-        cx = ((M['m10']/M['m00'])-960)*scale
-        cy = ((M['m01']/M['m00'])-540)*scale
-        # print(cx,cy)
-        if int((M['m10']/M['m00']))>20:
+        cxi=(M['m10']/M['m00'])
+        cyi=(M['m01']/M['m00'])
+        cv2.circle(frame,(int(cxi),int(cyi)),5,(255,0,0),-1)
+        cx = (cxi-960)*scale
+        cy = (cyi-540)*scale
+        if cx < 0:
+          print(cx,cy)
+        if int((M['m10']/M['m00']))>20 and int((M['m10']/M['m00']))< 960:
           rect = cv2.minAreaRect(cnt)
           box = cv2.boxPoints(rect)
           box = np.int0(box)
-          #print(box)
+          p1,p2,p3,p4=self.convertboxpoints(box)
+          cv2.putText(frame, str(p1),box[0],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
+          cv2.putText(frame, str(p2),box[1],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
+          cv2.putText(frame, str(p3),box[2],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
+          cv2.putText(frame, str(p4),box[3],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
           
           match len(anti_ob_flag):
             case 1:
@@ -327,7 +361,7 @@ class ArucoReader(Node):
               if check==-1:
                 FilteredContours.append(cnt)
                 FilteredBoxes.append(box)
-                cv2.drawContours(frame,[box],0,(0,0,255),2)
+                cv2.drawContours(frame,[box],0,(0,0,255),1)
             case 2:
               Mark_x1=anti_ob_flag[0][0][0][0]
               Mark_y1=anti_ob_flag[0][0][0][1]
@@ -338,47 +372,49 @@ class ArucoReader(Node):
               if check1==-1 and check2==-1:
                 FilteredContours.append(cnt)
                 FilteredBoxes.append(box)
-                cv2.drawContours(frame,[box],0,(0,0,255),2)
+                cv2.drawContours(frame,[box],0,(0,0,255),1)
             case 0:
               FilteredContours.append(cnt)
               FilteredBoxes.append(box)
-              cv2.drawContours(frame,[box],0,(0,0,255),2)
+              cv2.drawContours(frame,[box],0,(0,0,255),1)
             case _:
               print("Anti-Obstacle Flag length error")
     cv2.drawContours(frame, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
     return FilteredBoxes
     
 
-  def main_loop(self,aruco_type,camera_type):
+  def main_loop(self,aruco_type):
     
     while self.cap.isOpened():
-      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=exposure_time_absolute=125'.format(camera_type))
-      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=white_balance_temperature=3700'.format(camera_type))
-      os.system('v4l2-ctl -d /dev/video{} --set-ctrl=gain=50'.format(camera_type))
+      match self.vidIndex:
+        case 0:
+          os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=130')
+          os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=3700')
+          os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
+          os.system('v4l2-ctl -d /dev/video0 --set-ctrl=focus_absolute=0')
+        case 2:
+          os.system('v4l2-ctl -d /dev/video2 --set-ctrl=exposure_time_absolute=120')
+          os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_temperature=3700')
+          os.system('v4l2-ctl -d /dev/video2 --set-ctrl=gain=30')
+          os.system('v4l2-ctl -d /dev/video2 --set-ctrl=focus_absolute=0')
+        case 4:
+          os.system('v4l2-ctl -d /dev/video4 --set-ctrl=exposure_time_absolute=120')
+          os.system('v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_temperature=3700')
+          os.system('v4l2-ctl -d /dev/video4 --set-ctrl=gain=30')
+          os.system('v4l2-ctl -d /dev/video4 --set-ctrl=focus_absolute=0')
       
       
       ret, img = self.cap.read()
-      
-      
-      
-      
-      output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],self.Cam_Mtrx, self.Distort,self.markerSize,self.detectObstacles)
-      # # if self.detectObstacles!=0:
-      # #   FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
-      cv2.namedWindow('Estimated Pose',cv2.WINDOW_NORMAL)
-      cv2.resizeWindow('Estimated Pose',1728,972)
-      cv2.imshow('Estimated Pose', output)
+      # cv2.imshow('img',img)
       
       if ret == True:
-        # Print debugging information to the terminal
-        # self.get_logger().info("Publishing Video Frame")
-             
-        # Publish the image.
-        # The 'cv2_to_imgmsg' method converts an OpenCV
-        # image to a ROS image message
-        self.br = CvBridge()
-        # vid_msg=self.br.cv2_to_imgmsg(output)
-        # self.video_publisher.publish(vid_msg)
+        
+        output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],self.Cam_Mtrx, self.Distort,self.markerSize,self.detectObstacles)
+        if self.detectObstacles!=0:
+          FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+        cv2.namedWindow('Estimated Pose',cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('Estimated Pose',1728,972)
+        cv2.imshow('Estimated Pose', output)
 
       key = cv2.waitKey(1) & 0xFF # pressing q will quit popup window and close capture
       if key == ord('q'):
