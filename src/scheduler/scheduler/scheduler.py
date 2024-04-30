@@ -172,8 +172,12 @@ class Scheduler(Node):
         workstation2.workstation_id = 2
         workstation2.state = 'FREE'
         workstation2.available_operations = ['MILLING']
+        workstation3 = Workstation()
+        workstation3.workstation_id = 3
+        workstation3.state = 'FREE'
+        workstation3.available_operations = ['LOADING','UNLOADING']
 
-        self.system_state.workstations = [workstation1, workstation2]
+        self.system_state.workstations = [workstation1, workstation2, workstation3]
 
         # "Update Job Log with Timings" ??? 
         

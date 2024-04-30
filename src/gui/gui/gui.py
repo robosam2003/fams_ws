@@ -34,6 +34,11 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         
         #self.jobListWidget.setCurrentRow(1)
         #print(self.jobListWidget.currentRow)
+        #self.PartIDList = [1908622204159,2228622204159,3338622204159;"Block1","Block2","Block3"]
+        self.PartIDList = [[1908622204159,"Block1"],[2228622204159,"Block2"],[3338622204159,"Block3"]]
+        for i in range(len(self.PartIDList)):
+            self.subprocessListWidget_3.addItem(str(self.PartIDList[i][0]))
+            self.subprocessListWidget_4.addItem(str(self.PartIDList[i][1]))
 
         self.jobObj=Job() # creates an object of class Job
         self.jobObj.subprocesses=[] # creates a blank array to store a list of subprocesses
@@ -51,6 +56,11 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.jobListWidget.currentItemChanged.connect(self.current_item_changed) # if the selected item has changed
         self.jobListWidget.currentTextChanged.connect(self.current_text_changed) # if the selected text has changed
 
+        self.subprocessListWidget_1.currentRowChanged.connect(self.subprocess1_row_changed) # if the selected item has changed 
+        self.subprocessListWidget_2.currentRowChanged.connect(self.subprocess2_row_changed) # if the selected item has changed 
+        self.subprocessListWidget_3.currentRowChanged.connect(self.part1_row_changed) # if the selected item has changed (PART LIST 1)
+        self.subprocessListWidget_4.currentRowChanged.connect(self.part2_row_changed) # if the selected item has changed (PART LIST 2)
+
         self.JobDeleteButton.clicked.connect(self.JobDeleteButtonHandler)
        
     def jobListWidgetHandler(self, text):
@@ -59,6 +69,22 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #print("Current item : ",item.text())
         #print("Current text changed : ",text)
         print("jobListWidgetHandler")
+
+    def subprocess1_row_changed(self, row):
+        print("Current row : ",row)
+        self.subprocessListWidget_2.setCurrentRow(row)
+
+    def subprocess2_row_changed(self, row):
+        print("Current row : ",row)
+        self.subprocessListWidget_1.setCurrentRow(row)
+
+    def part1_row_changed(self, row):
+        print("Current row : ",row)
+        self.subprocessListWidget_4.setCurrentRow(row)
+
+    def part2_row_changed(self, row):
+        print("Current row : ",row)
+        self.subprocessListWidget_3.setCurrentRow(row)
 
     def current_item_changed(self, item):
         print("Current item : ",item.text())

@@ -157,7 +157,7 @@ class Workstation(Node):
         self.move_robot(self.zero_point[0], self.zero_point[1], self.zero_point[2])
         time.sleep(delay_between_operations)
 
-
+        self.state_publisher.publish(self.SystemState)
 
     def handle_part_output(self,msg):
         self.read_rfid()
