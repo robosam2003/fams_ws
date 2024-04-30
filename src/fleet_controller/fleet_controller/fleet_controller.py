@@ -35,8 +35,8 @@ class FleetController(Node):
         self.get_logger().info('Fleet controller node has been started')
 
         self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES
-            'workstation1': [1.0, 0.5, 0.0],
-            'workstation2': [1.0, 1.0, 3.14159]
+            'workstation1': [0.6, 1.8, 0.0],
+            'workstation2': [3.0, 1.8, 0]
         }
 
         self.schedule_subscription = self.create_subscription(

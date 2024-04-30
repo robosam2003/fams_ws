@@ -70,13 +70,13 @@ def generate_launch_description():
         output='screen',
     )
 
-    mover6_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(mover6_launch_file),
-        launch_arguments={
-            'robot_name': 'mover61',
-            'initial_base_link_pos': "3.31 2.20 -1.57079"
-        }.items()
-    )
+    # mover6_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(mover6_launch_file),
+    #     launch_arguments={
+    #         'robot_name': 'mover61',
+    #         'initial_base_link_pos': "3.31 2.20 -1.57079"
+    #     }.items()
+    # )
 
 
       
@@ -100,7 +100,7 @@ def generate_launch_description():
         gui_launch,
         scheduler_launch,
         fleet_controller_launch,
-        mover6_launch, # This will run on the raspberry pi
-        # workstation_controller_launch,
+        # mover6_launch, # This will run on the raspberry pi
+        workstation_controller_launch,
         rviz_node,
     ])

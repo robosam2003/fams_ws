@@ -21,6 +21,7 @@ from rclpy.node import Node
 import ikpy.chain
 import numpy as np
 import ikpy.utils.plot as plot_utils
+from fams_interfaces.msg import Mover6Control
 
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Point, PoseStamped, Pose
@@ -34,6 +35,14 @@ class Mover6(Node):
         self.get_logger().info('Mover6 node has been initialized.')
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
         self.target_position = [0.2, 0.0, 0.3]
+        self.gripper_state = False
+    
+        self.joint_control_subscription = self.create_subscription(
+            Mover6Control,
+            'mover6_control',
+            self.mover6_joints_control_callback,
+            10
+        )
 
         self.pose_control_subscription = self.create_subscription(
             Pose,
@@ -54,8 +63,8 @@ class Mover6(Node):
         self.point_publisher = self.create_publisher(PoseStamped, 'mover6_target_position', 10)
 
         self.joint_states = JointState()
-        self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5']
-        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5', 'Gripper1', 'Gripper2']
+        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         # timer 
         timer_period = 0.1
@@ -66,16 +75,24 @@ class Mover6(Node):
 
     def mover6_pose_control_callback(self, msg):
         self.get_logger().info("Received new target position")
-        self.target_position = [msg.position.x, msg.position.y, msg.position.z]
+        self.target_position = [msg.position.x, -msg.position.y, msg.position.z] # sim node has inverted y for some reason
 
         ik = self.my_chain.inverse_kinematics(self.target_position)
-        # self.get_logger().info(self.my_chain.__repr__())
+        self.get_logger().info(self.my_chain.__repr__())
 
         
         # reverse it
         # ik = ik[::-1]
-        self.joint_states.position = [ik[i+1] for i in range(6)]
-        angles = np.rad2deg(self.joint_states.position)
+        self.joint_states.position = [ik[i+1] for i in range(8)]
+        angles = np.rad2deg(self.joint_states.position[0:6])
+
+        # parse the gripper state
+        if self.gripper_state:
+            self.joint_states.position[6] = 0.0
+            self.joint_states.position[7] = 0.0
+        else:
+            self.joint_states.position[6] = 0.5
+            self.joint_states.position[7] = 0.5
         
         self.get_logger().info("Angles:" + str(angles))
         # self.get_logger().info('Publishing: "%s"' % joint_state)
@@ -94,6 +111,20 @@ class Mover6(Node):
 
         self.point_publisher.publish(point)
 
+    def mover6_joints_control_callback(self, msg):
+        if msg.command == "GRIPPER OPEN":
+            self.gripper_state = False
+            self.joint_states.position[6] = 0.5
+            self.joint_states.position[7] = 0.5
+        elif msg.command == "GRIPPER CLOSED":
+            self.gripper_state = True
+            self.joint_states.position[6] = 0.0
+            self.joint_states.position[7] = 0.0
+
+        if len(msg.joint_angles) == 6:
+            angles = np.rad2deg(msg.joint_angles)
+            self.joint_states.position = msg.joint_angles # joint state angles are in radians
+            self.joint_state_publisher.publish(self.joint_states)
 
 def main(args=None):
     rclpy.init(args=args)

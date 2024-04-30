@@ -41,6 +41,12 @@ def quaternion_from_euler(ai, aj, ak):
 
     return q
 
+"""
+To launch a workstation, with a mover6, use:
+Workstation 2:
+    ros2 launch mover6_description mover6_launch.py initial_base_link_pos:="3.31 2.20 -1.57079" robot_name:="mover61"
+"""
+
 
 class Workstation(Node):
     def __init__(self):
@@ -101,10 +107,11 @@ class Workstation(Node):
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
 
         self.place_location = [0.36, -0.05, 0.15]
-        self.rfid_scan_location = [-0.05, 0.39, 0.15]
-        self.idle_position = [0.30, 0.30, 0.30]
+        self.rfid_scan_location = [0.0, 0.41, 0.15]
+        self.idle_position = [0.30, -0.30, 0.30]
         self.previous_pickup_location = [0.3, 0.3, 0.3]
         self.zero_point = [0.34594893, 0.01, 0.44677551]
+        self.current_point = None
 
 
         # self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
@@ -143,65 +150,75 @@ class Workstation(Node):
         location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
         
         self.get_logger().info('Excecuting Part Input')
-        part_location = location_array_2D[0]
-        part_location = [float(i) for i in part_location]
-        self.get_logger().info(f'Part Location: {part_location}')
+        # part_location = location_array_2D[0]
+        # part_location = [float(i) for i in part_location]
+        part_location = [0.3, 0.3, 1.57]
+        # self.get_logger().info(f'Part Location: {part_location}')
         self.previous_pickup_location = part_location
         
-        delay_between_operations = 3
+        delay_between_operations = 1
+        self.close_gripper()
         time.sleep(delay_between_operations)
-        # self.move_robot(0.3, 0.3, 0.2)
+        self.open_gripper()
         time.sleep(delay_between_operations)
-        self.move_robot(part_location[0],part_location[1], 0.2) 
+        self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(self.zero_point[0], self.zero_point[1], self.zero_point[2])
+        self.move_robot(part_location[0], part_location[1], 0.15) # Move down to over part
         time.sleep(delay_between_operations)
-
+        self.close_gripper()
+        time.sleep(delay_between_operations)
+        self.move_robot(part_location[0], part_location[1], 0.3)
+        time.sleep(delay_between_operations)
+        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], 0.15)
 
 
     def handle_part_output(self,msg):
-        self.read_rfid()
+        # self.read_rfid()
         #update x y attributes when receive a visionLocations msg
 
-        locations = self.vision_locations.part_location
-        location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
-        locations = self.vision_locations.part_location
-        print(locations)
-        location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
+        # locations = self.vision_locations.part_location
+        # location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
+        # locations = self.vision_locations.part_location
+        # print(locations)
+        # location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
         
-        # from bot to floor
-        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.2)
-        time.sleep(1)
-        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.3)
-        time.sleep(1)
-        self.move_robot(self,0.25,0.25,0.3)
-        time.sleep(1)
-        self.move_robot(self,0.25,0.25,0.1)
-
-        
-        parts=msg.parts
-        for i in parts:
-            if parts[i].part_id==self.msg.rfid_code:
-                #which part’s loc to assign workstation to
-                parts[i].location=self.workstationName
-                print("part location changed to: ", parts[i].location)
-        
-        
-#function move to box 
-#find out which id is where
-        part_id=self.vision_locations.part_id
-        print(
-        part_id,
-        location_array_2D[0])
-        self.get_logger().info(part_id,
-        location_array_2D[0])
+        delay_between_operations = 1
+        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.3)
+        time.sleep(delay_between_operations)
+        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.15)
+        time.sleep(delay_between_operations)
+        self.open_gripper()
+        time.sleep(delay_between_operations)
+        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.3)
+        time.sleep(delay_between_operations)
+        self.move_robot(self.zero_point[0], self.zero_point[1], self.zero_point[2])
         
 
-        #SAM: update part's current subprocess
+
+        
+#         parts=msg.parts
+#         for i in parts:
+#             if parts[i].part_id==self.msg.rfid_code:
+#                 #which part’s loc to assign workstation to
+#                 parts[i].location=self.workstationName
+#                 print("part location changed to: ", parts[i].location)
+        
+        
+# #function move to box 
+# #find out which id is where
+#         part_id=self.vision_locations.part_id
+#         print(
+#         part_id,
+#         location_array_2D[0])
+#         self.get_logger().info(part_id,
+#         location_array_2D[0])
+        
+
+#         #SAM: update part's current subprocess
 
 
-        workstation1=Workstation
-        workstation1.state='free'
+#         workstation1=Workstation
+#         workstation1.state='free'
     
     def calculate_unit_vector(self, current_point, target_point):
         vector = np.array(target_point) - np.array(current_point)
@@ -222,26 +239,27 @@ class Workstation(Node):
                    0, 0]
         
         self.get_logger().info(f"Link angles: {link_angles}")
+        if self.current_point is None:
+            self.current_point = self.my_chain.forward_kinematics(link_angles)
+            self.current_point = self.current_point[:3, 3]
+            self.get_logger().info(f"Current point: {self.current_point}")
         
-        current_point = self.my_chain.forward_kinematics(link_angles)
-        current_point = current_point[:3, 3]
-        self.get_logger().info(f"Current point: {current_point}")
         
         num_points = 20
         for i in range(0, num_points):
             # Calculate unit vector between the current and target points
-            unit_vector, magnitude = self.calculate_unit_vector(current_point, overall_target_point)
-            target_point = current_point + unit_vector * (magnitude/num_points) * (i+1)
+            unit_vector, magnitude = self.calculate_unit_vector(self.current_point, overall_target_point)
+            target_point = self.current_point + unit_vector * (magnitude/num_points) * (i+1)
             self.get_logger().info("Target point: " + str(target_point))
             mover6_pose_msg = Pose()
             mover6_pose_msg.position.x = target_point[0]
             mover6_pose_msg.position.y = target_point[1]
             mover6_pose_msg.position.z = target_point[2]
 
-
             self.mover6Publisher.publish(mover6_pose_msg)
             self.get_logger().info("Published pose to mover6: " + str(mover6_pose_msg.position.x) + ", " + str(mover6_pose_msg.position.y) + ", " + str(mover6_pose_msg.position.z))
             time.sleep(0.05)
+            self.current_point = target_point # Update the current point to the target point (it's moved)
         
     def vision_callback(self, msg):
         # self.get_logger().info('Received Vision Locations')

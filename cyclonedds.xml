@@ -19,6 +19,7 @@
                 <Peer Address="143.167.231.72"/>
                 <Peer Address="143.167.46.163"/>
                 <Peer Address="172.30.58.232"/> <!-- Sam's Laptop -->
+                <Peer Address="192.168.68.109"/> <!-- Sam's Laptop at home-->
                 <!-- Raspberry Pi's -->
                 <Peer Address="172.30.58.222"/> <!-- NEXUS1 - Pi 4-->
                 <Peer Address="172.30.58.176"/> <!-- Workstation 1 - on the right, Pi 3-->

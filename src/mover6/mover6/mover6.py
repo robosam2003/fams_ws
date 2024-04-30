@@ -180,9 +180,9 @@ class mover6(Node):
             time.sleep(2/1000) 
         # Publish the joint positions
         DEG_TO_RAD = np.pi/180
-        self.joint_states.position = [float(j.current_position_deg*DEG_TO_RAD) for j in self.joints] # Local joint states are in degrees, message is in radians for rviz
+        self.joint_states.position[0:6] = [float(j.current_position_deg*DEG_TO_RAD) for j in self.joints] # Local joint states are in degrees, message is in radians for rviz
         negate_list = [-1, -1, 1, -1, 1, 1]
-        self.joint_states.position = [negate_list[i]*self.joint_states.position[i] for i in range(0, self.num_joints)]
+        self.joint_states.position[0:6] = [negate_list[i]*self.joint_states.position[i] for i in range(0, self.num_joints)]
         self.joint_states_publisher.publish(self.joint_states)
 
     def quaternion_to_euler(self, quat):
@@ -254,6 +254,7 @@ class mover6(Node):
         if msg.command == "GRIPPER OPEN":
             self.gripper_state = False
             print("Gripper state: ", self.gripper_state)
+
         elif msg.command == "GRIPPER CLOSED":
             self.gripper_state = True
             print("Gripper state: ", self.gripper_state)

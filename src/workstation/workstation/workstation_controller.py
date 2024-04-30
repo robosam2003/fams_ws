@@ -26,12 +26,17 @@ class WorkstationController(Node):
         # Get the names of the AMRs from the parameter server
         self.amr_names = self.get_parameter('amr_names').value
 
+        self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES - Directly copied from fleet_controller
+            'workstation1': [0.6, 1.8, 0.0],
+            'workstation2': [3.0, 1.8, 0]
+        }
+
         # Docking poses for the workstations
         w1_docking_pose = Point()
-        w1_docking_pose.position.x, w1_docking_pose.position.y, w1_docking_pose.position.z = 1, 1, 0 # x, y, yaw
+        w1_docking_pose.position.x, w1_docking_pose.position.y, w1_docking_pose.position.z = self.workstation_goal_poses['workstation1']
 
         w2_docking_pose = Point()
-        w2_docking_pose.position.x, w2_docking_pose.position.y, w2_docking_pose.position.z = 1, 2, math.pi # x, y, yaw
+        w2_docking_pose.position.x, w2_docking_pose.position.y, w2_docking_pose.position.z = self.workstation_goal_poses['workstation2']
         self.workstation_docking_poses = [
             w1_docking_pose,
             w2_docking_pose

@@ -101,7 +101,7 @@ def launch_setup(context: LaunchContext):
         robot_state_publisher_node,
         joint_state_publisher_node,
         tf_broadcaster_node,
-        # sam_bot_node,
+        sam_bot_node,
         nav2_custom_launch
     ]
 
