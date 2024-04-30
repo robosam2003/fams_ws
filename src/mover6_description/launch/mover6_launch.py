@@ -82,6 +82,14 @@ def launch_setup(context: LaunchContext):
         output='screen',
     )
 
+    workstation_node = launch_ros.actions.Node(
+        package='workstation',
+        executable='workstation',
+        namespace=robot_name,
+        name='workstation',
+        output='screen',
+    )
+
 
     # rviz_node = launch_ros.actions.Node(
     #     package='rviz2',
@@ -100,6 +108,7 @@ def launch_setup(context: LaunchContext):
         mover6_node,
         # rviz_node,
     ]
+    
 
 def generate_launch_description():
 
@@ -120,7 +129,7 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             'initial_base_link_pos',
-            default_value='0.0 0.0, 0.0',
+            default_value='0.0 0.0 0.0',
             description='Initial position of the base link in the world frame'
         ),
         OpaqueFunction(function=launch_setup),

@@ -76,7 +76,7 @@ class WorkstationController(Node):
         # Update local vision locations attribute
         self.vision_locations = msg
         # Possibly just use the locations of the amrs in the system state instead of the vision locations??
-        amr_locations = location_array_2D=np.reshape(self.vision_locations.part_location,(int(len(self.vision_locations.part_location)/3),3))
+        amr_locations = np.reshape(self.vision_locations.part_location,(int(len(self.vision_locations.part_location)/3),3))
 
         # Check if the AMRs are close enough to any of the docking poses
         for i, amr_location in enumerate(amr_locations): # For every amr location

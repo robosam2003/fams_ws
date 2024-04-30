@@ -48,16 +48,16 @@ class Workstation(Node):
 
         # Subscriptions
         self.SystemStateSubscription=self.create_subscription(SystemState,
-                                                                'system_state',
+                                                                '/system_state', # absolute path to the topic
                                                                 self.system_state_callback,
                                                                 10 )
         self.vision_locations_subscription = self.create_subscription(Vision,
-                                                      'workstation2/VisionLocations',
-                                                        self.vision_callback,
-                                                        10)
+                                                                '/workstation2/VisionLocations', # Absolute path to the topic - we are in a namespace! 
+                                                                    self.vision_callback,
+                                                                    10)
         
         self.workstationCommandSubscription=self.create_subscription(WorkstationCommand,
-                                                                'WorkstationCommand',
+                                                                'WorkstationCommand', # Namespaced
                                                                 self.workstation_cmd_callback,
                                                                 10 )        
 
