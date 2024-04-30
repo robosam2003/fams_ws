@@ -23,6 +23,10 @@ class MoverJoint():
     
     def update_position(self, rec_msg):
         self.current_position = rec_msg.position
+        # The last two joints say 65,535 when they are at 0 degrees or just below
+        if self.joint_id == 5 or self.joint_id == 6:
+            if self.current_position > 32767:
+                self.current_position = self.current_position - 65536
         self.current_position_deg = float(self.current_position) / self.tics_per_degree
         return self.current_position_deg
     

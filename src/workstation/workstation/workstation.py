@@ -48,16 +48,16 @@ class Workstation(Node):
 
         # Subscriptions
         self.SystemStateSubscription=self.create_subscription(SystemState,
-                                                                'system_state',
+                                                                '/system_state', # absolute path to the topic
                                                                 self.system_state_callback,
                                                                 10 )
         self.vision_locations_subscription = self.create_subscription(Vision,
-                                                      'workstation2/VisionLocations',
-                                                        self.vision_callback,
-                                                        10)
+                                                                '/workstation2/VisionLocations', # Absolute path to the topic - we are in a namespace! 
+                                                                    self.vision_callback,
+                                                                    10)
         
         self.workstationCommandSubscription=self.create_subscription(WorkstationCommand,
-                                                                'WorkstationCommand',
+                                                                'WorkstationCommand', # Namespaced
                                                                 self.workstation_cmd_callback,
                                                                 10 )        
 
@@ -88,7 +88,11 @@ class Workstation(Node):
         self.status = 'FREE'  # Add a 'status' attribute with default value 'FREE'
 
         self.place_location = [0.36, -0.05, 0.15]
-        # self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
+        self.rfid_scan_location = [0.1, -0.35, 0.25]
+        self.idle_position = [0.3, 0.3, 0.3]
+        self.previous_pickup_location = [0.3, 0.3, 0.3]
+
+        self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
         # self.read_raspberry_pi_()
         self.rfid_tag=0
         
@@ -122,21 +126,27 @@ class Workstation(Node):
         self.get_logger().info('Excecuting Part Input')
         part_location = location_array_2D[0]
         part_location = [float(i) for i in part_location]
+        self.previous_pickup_location = part_location
         
-        delay_between_operations = 5
+        delay_between_operations = 3
         # Above part
-        # self.move_robot(part_location[0],part_location[1],0.4) # Above part on AMR
-        # time.sleep(delay_between_operations)
-        # self.move_robot(part_location[0],part_location[1],0.2) # 
-        # time.sleep(delay_between_operations)
+        self.open_gripper()
+        self.move_robot(part_location[0],part_location[1],0.3) # Above part on AMR
+        time.sleep(delay_between_operations)
+        self.move_robot(part_location[0],part_location[1],0.15) # 
+        time.sleep(delay_between_operations)
         self.close_gripper()
         time.sleep(delay_between_operations)
-        self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]+0.2)
+        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], self.rfid_scan_location[2])
         time.sleep(delay_between_operations)
-        self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]) 
+        self.read_rfid()
         time.sleep(delay_between_operations)
-        self.open_gripper()
-        time.sleep(delay_between_operations)
+        # self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]+0.2)
+        # time.sleep(delay_between_operations)
+        # self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]) 
+        # time.sleep(delay_between_operations)
+        # self.open_gripper()
+        # time.sleep(delay_between_operations)
         
         # parts=msg.parts
         # for i in parts:

@@ -66,7 +66,7 @@ def generate_launch_description():
     workstation_controller_launch = launch_ros.actions.Node(
         package='workstation',
         executable='workstation_controller',
-        name='workstation_controller',
+        name='workstation_controller',   
         output='screen',
     )
 
