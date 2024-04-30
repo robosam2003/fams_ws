@@ -3,7 +3,7 @@ import rclpy
 
 from rclpy.node import Node
 
-from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Workstation, Location, WorkstationCommand, Vision, RFID
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Workstation, Location, WorkstationCommand, Vision, RFID, Mover6Control
 #from workstation.workstation import Location
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose
@@ -43,111 +43,116 @@ def quaternion_from_euler(ai, aj, ak):
 class Workstation(Node):
     def __init__(self):
         super().__init__('workstation')
-        self.systemState
         self.workstationName='Workstation1'
-
-
-
-
-
         self.get_logger().info('Workstation node has been started')
 
-        self.workstation_id = 0
-        self.available_operations = []
-        self.status = 'FREE'  # Add a 'status' attribute with default value 'FREE'
-        
-        self.subscription = self.create_subscription(Vision,
-                                                      'VisionLocations',
+        # Subscriptions
+        self.SystemStateSubscription=self.create_subscription(SystemState,
+                                                                'system_state',
+                                                                self.system_state_callback,
+                                                                10 )
+        self.vision_locations_subscription = self.create_subscription(Vision,
+                                                      'workstation2/VisionLocations',
                                                         self.vision_callback,
-                                                          10)
-        self.x = 0.0
-        self.y = 0.0
-        self.vision_locations = Vision()
-        self.workstationCommandSubscription=self.create_subscription(WorkstationCommand,
-                                                                     'WorkstationCommand',
-                                                                     self.workstation_cmd_callback,
-                                                                     10 )
-        self.RFID_publisher = self.create_publisher(RFID, "RFID_Topic", 10)
-        self.ser = serial.Serial('/dev/ttyACM0', 115200)
-        self.read_raspberry_pi_()
-        self.rfid_tag=0
+                                                        10)
         
-        #know how to determine if state= free/busy
+        self.workstationCommandSubscription=self.create_subscription(WorkstationCommand,
+                                                                'WorkstationCommand',
+                                                                self.workstation_cmd_callback,
+                                                                10 )        
+
+        # Publishers
+        self.mover6Publisher=self.create_publisher(Pose,
+                                                   'mover6_goal_pose',
+                                                   10)
+
+        self.mover6_gripper_publisher = self.create_publisher (
+            Mover6Control,
+            'mover6_control',
+            10
+        )
+        # self.RFID_publisher = self.create_publisher(RFID, "RFID_Topic", 10)
+        # know how to determine if state= free/busy
         self.workstation_publisher = self.create_publisher(
             SystemState,
             'system_state',
             10
         )
-        self.SystemStateSubscription=self.create_subscription(SystemState,
-                                                                     'system_state',
-                                                                     self.SystemState_callback,
-                                                                     10 )
-        self.mover6Publisher=self.create_publisher(Pose,
-                                                   'mover6_goal_pose',
-                                                   10)
-        self.rfid_timer=self.create_timer(0.1,self.read_raspberry_pi_)
-        # SystemState1=SystemState
-        # # Workstations State
-        
 
-        # # Part State
-        #     workstation1.parts
+        self.x = 0.0
+        self.y = 0.0
+        self.vision_locations = Vision()
+        self.system_state = SystemState()
+        self.workstation_id = 0
+        self.available_operations = []
+        self.status = 'FREE'  # Add a 'status' attribute with default value 'FREE'
 
-        # # Mobile Fleet State
-        #     workstation1.mobile_robots
-    def SystemState_callback(self,msg):
+        self.place_location = [0.36, -0.05, 0.15]
+        # self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
+        # self.read_raspberry_pi_()
+        self.rfid_tag=0
         
-        self.SystemState=msg
-    # parts=msg.parts
+    
+        # self.rfid_timer=self.create_timer(1,
+        #                                   self.read_rfid)
+
+    def system_state_callback(self,msg):
+        self.system_state=msg
+    
+    def open_gripper(self):
+        # Open the gripper
+        msg = Mover6Control()
+        msg.command = "GRIPPER OPEN"
+        self.mover6_gripper_publisher.publish(msg)
+        self.get_logger().info("Gripper opened")
+
+    def close_gripper(self):
+        # Close the gripper
+        msg = Mover6Control()
+        msg.command = "GRIPPER CLOSED"
+        self.mover6_gripper_publisher.publish(msg)
+        self.get_logger().info("Gripper closed")
+
+
+    def handle_part_input(self):    
+        self.get_logger().info("Handling Part Input")
+        locations = self.vision_locations.part_location
+        location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
         
+        self.get_logger().info('Excecuting Part Input')
+        part_location = location_array_2D[0]
+        part_location = [float(i) for i in part_location]
         
-        # parts==self.msg.rfid_code
+        delay_between_operations = 5
+        # Above part
+        # self.move_robot(part_location[0],part_location[1],0.4) # Above part on AMR
+        # time.sleep(delay_between_operations)
+        # self.move_robot(part_location[0],part_location[1],0.2) # 
+        # time.sleep(delay_between_operations)
+        self.close_gripper()
+        time.sleep(delay_between_operations)
+        self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]+0.2)
+        time.sleep(delay_between_operations)
+        self.move_robot(self.place_location[0], self.place_location[1], self.place_location[2]) 
+        time.sleep(delay_between_operations)
+        self.open_gripper()
+        time.sleep(delay_between_operations)
+        
+        # parts=msg.parts
         # for i in parts:
         #     if parts[i].part_id==self.msg.rfid_code:
         #         #which part’s loc to assign workstation to
         #         parts[i].location=self.workstationName
         #         print("part location changed to: ", parts[i].location)
-                
-                #msg.command
-    def handle_part_input(self):
-        #publish Workstation msg
-        self.read_raspberry_pi_()
-    
-        locations = self.vision_locations.part_location
-        print(locations)
-        location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
-        
-
-        self.move_robot(self,0.25,0.25,0.3,1.57,0,0)
-        time.sleep(1)
-        self.move_robot(self,0.25,0.25,0.1,1.57,0,0)
-        time.sleep(1)
-        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.2,1.57,0,0)
-        time.sleep(1)
-        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.3,1.57,0,0)
-        time.sleep(1)
-        
-        parts=msg.parts
-        for i in parts:
-            if parts[i].part_id==self.msg.rfid_code:
-                #which part’s loc to assign workstation to
-                parts[i].location=self.workstationName
-                print("part location changed to: ", parts[i].location)
-      
 
         #update part's current subprocess
 
-
-        workstation1=Workstation
-        workstation1.state='busy'
-
+        # workstation1=Workstation
+        # workstation1.state='busy'
 
 
     def handle_part_output(self,msg):
-        self.read_raspberry_pi_()
-    
-
-
+        self.read_rfid()
         #update x y attributes when receive a visionLocations msg
 
         locations = self.vision_locations.part_location
@@ -155,16 +160,15 @@ class Workstation(Node):
         locations = self.vision_locations.part_location
         print(locations)
         location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
-        print("part location changed to: ")
         
-        #from bot to floor
-        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.2,1.57,0,0)
+        # from bot to floor
+        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.2)
         time.sleep(1)
-        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.3,1.57,0,0)
+        self.move_robot(self,location_array_2D[0],location_array_2D[1],0.3)
         time.sleep(1)
-        self.move_robot(self,0.25,0.25,0.3,1.57,0,0)
+        self.move_robot(self,0.25,0.25,0.3)
         time.sleep(1)
-        self.move_robot(self,0.25,0.25,0.1,1.57,0,0)
+        self.move_robot(self,0.25,0.25,0.1)
 
         
         parts=msg.parts
@@ -192,117 +196,56 @@ class Workstation(Node):
         workstation1.state='free'
 
         
-    def move_robot(self,x,y,z, theta,phi,psi):
-        #generic fx 3d coord ip, move robot there
+    def move_robot(self,x,y,z):
+        # generic fx 3d coord ip, move robot there
         mover6_pose_msg = Pose()
         mover6_pose_msg.position.x = x
         mover6_pose_msg.position.y = y
         mover6_pose_msg.position.z = z
-        q = quaternion_from_euler(theta,phi,psi)
-        mover6_pose_msg.orientation.x = q[0]
-        mover6_pose_msg.orientation.y = q[1]
-        mover6_pose_msg.orientation.z = q[2]
-        mover6_pose_msg.orientation.w = q[3]
+        # q = quaternion_from_euler(theta,phi,psi)
+        # mover6_pose_msg.orientation.x = q[0]
+        # mover6_pose_msg.orientation.y = q[1]
+        # mover6_pose_msg.orientation.z = q[2]
+        # mover6_pose_msg.orientation.w = q[3]
 
         self.mover6Publisher.publish(mover6_pose_msg)
         self.get_logger().info("Published pose to mover6")
         
         
     def vision_callback(self, msg):
+        self.get_logger().info('Received Vision Locations')
+        if len(msg.part_location) == 0:
+            self.get_logger().info('No parts detected')
+            return
+        # else
         self.vision_locations = msg
-        print("tftgbhjn")
-        self.handle_part_output(msg)
+        # self.handle_part_output(msg)
 
-
-    def workstation_cmd_callback(self, command:WorkstationCommand,msg):
-        self.get_logger().info('Received Command: ' )
-        if command == "PART INPUT":
+    def workstation_cmd_callback(self, msg):
+        command = msg.command
+        self.get_logger().info(f'Received Command: {command}' )
+        if command == "INPUT":
             self.handle_part_input()
-        elif command == "PART OUTPUT":
+        elif command == "OUTPUT":
             self.handle_part_output(msg)
-
-
-
-    def countdown_timer(seconds):
-        start_time = time.time()
-        while True:
-            elapsed_time = time.time() - start_time
-            remaining_time = max(seconds - elapsed_time, 0)
-            if remaining_time <= 0:
-                break
-            print(int(remaining_time))
-        print("Time's up!")
     
-    def read_raspberry_pi_(self):
-        
-        
-            msg = RFID()
-            a = self.ser.readline().strip()  # Remove leading/trailing whitespace
-            msg.rfid_code = a.decode('utf-8')  #bytes to string
-            self.RFID_publisher.publish(msg)
+    def read_rfid(self):
+        msg = RFID()
+        a = self.ser.readline().strip()  # Remove leading/trailing whitespace
+        msg.rfid_code = a.decode('utf-8')  # bytes to string
+        if len(a) > 0:
             self.get_logger().info(msg.rfid_code)
-            print(len(msg.rfid_code))
-            print((msg.rfid_code))
             #var = var[len("Tag ID:"):].strip()
-
-
-            if msg.rfid_code!=None:
+            if msg.rfid_code != None:
                 self.rfid_tag=msg.rfid_code
                 print(self.rfid_tag)
                 print("update current rfid tag")
 
-            # if len(msg.rfid_code)!=37:
-                
-            # if a!=None:
-            #     print("no tag received")
-
-# def read_raspberry_pi_(self):
-#         switch=0
-#         while True and switch==0:
-#             msg = RFID()
-#             a = self.ser.readline().strip()  # Remove leading/trailing whitespace
-#             msg.rfid_code = a.decode('utf-8')  #bytes to string
-#             self.RFID_publisher.publish(msg)
-#             self.get_logger().info(msg.rfid_code)
-#             print(len(msg.rfid_code))
-#             if len(msg.rfid_code)!=37:
-#                 switch=1
-
-    # def read_raspberry_pi_(self):
-      
-    #     # Set the duration of the timer in seconds
-    #     duration = 5  # Change this to set the duration of the timer
-
-    #     self.countdown_timer( duration)    
-
-    #     switch=0
-       
-       
-    #     while True and switch==0:
-    #         self.msg = RFID()
-    #         a = self.ser.readline().strip()  # Remove leading/trailing whitespace
-    #         self.msg.rfid_code = a.decode('utf-8')  #bytes to string
-    #         self.RFID_publisher.publish(self.msg)
-    #         self.get_logger().info(self.msg.rfid_code)
-    #         print(self.msg.rfid_code)
-    #         print(self.msg.rfid_code)
-    #         print(self.msg.rfid_code)
-    #         print(self.msg.rfid_code)
-    #         if self.msg.rfid_code!='Read Tag.':
-    #             switch=1
-        
-    
-    # duration = 3  # Change this to set the duration of the timer
-
-    # countdown_timer(duration)
-
-   
-
 def main(args=None):
     rclpy.init(args=args)
-    workstation_controller = Workstation()
-    rclpy.spin(workstation_controller)
-    workstation_controller.destroy_node()
+    workstation = Workstation()
+    rclpy.spin(workstation)
+    workstation.destroy_node()
     rclpy.shutdown()
 
     

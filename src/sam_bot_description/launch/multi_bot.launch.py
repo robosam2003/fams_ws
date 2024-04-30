@@ -100,7 +100,7 @@ def generate_launch_description():
         gui_launch,
         scheduler_launch,
         fleet_controller_launch,
-        # mover6_launch, # This will run on the raspberry pi
+        mover6_launch, # This will run on the raspberry pi
         # workstation_controller_launch,
         rviz_node,
     ])

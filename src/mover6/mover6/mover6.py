@@ -17,8 +17,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 """
 Before running this program, run: 
-    sudo modprobe peak_usb
-    sudo modprobe peak_pci
+    sudo modprobe peak_usb &&
+    sudo modprobe peak_pci &&
     sudo ip link set can0 up type can bitrate 500000
 
 """
@@ -200,10 +200,13 @@ class mover6(Node):
         target_point = [msg.position.x, msg.position.y, msg.position.z]
         orientation_quat = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
         # Convert the orientation to euler angles
-        orientation_euler = self.quaternion_to_euler(orientation_quat)
+        orientation_euler = [0, 0, -1] #self.quaternion_to_euler(orientation_quat)
+        orientation_axis = "Z"
 
         # Do the inverse kinematics
-        ik = self.my_chain.inverse_kinematics(target_point) # , orientation_euler)  # Uncommment to include orientation
+        ik = self.my_chain.inverse_kinematics(target_position=target_point)
+                                            #   target_orientation=orientation_euler,
+                                            #   orientation_mode=orientation_axis) # , orientation_euler)  # Uncommment to include orientation
         angles = [ik[i+1] for i in range(6)] # Skip the first angle, it's for the joint from the base_link to the first joint
         angles[0] = angles[0]
         angles[1] = -angles[1]
