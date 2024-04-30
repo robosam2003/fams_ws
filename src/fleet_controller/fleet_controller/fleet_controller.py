@@ -95,7 +95,7 @@ class FleetController(Node):
         amr1.name = "nexus1"
         amr1.state = "FREE"
         amr1.physical_location = [0.0, 0.0, 0.0]
-        self.system_state.mobile_robots.append(amr1)
+        self.system_state.mobile_robots.append(amr1) # Only one AMR for now
         self.system_state_publisher.publish(self.system_state)
 
     def system_state_handler(self, msg):
@@ -103,7 +103,7 @@ class FleetController(Node):
         # self.assign_fleet()
         
     def schedule_handler(self, msg):
-        self.schedule = msg
+        self.schedule = msg     
         # self.assign_fleet()
 
     def nexus1_aruco_tf_handler(self, msg):

@@ -163,13 +163,13 @@ class Workstation(Node):
         time.sleep(delay_between_operations)
         self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(part_location[0], part_location[1], 0.15) # Move down to over part
+        self.move_robot(part_location[0], part_location[1], 0.11) # Move down to over part
         time.sleep(delay_between_operations)
         self.close_gripper()
         time.sleep(delay_between_operations)
         self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], 0.15)
+        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], 0.3)
 
 
     def handle_part_output(self,msg):
@@ -185,7 +185,7 @@ class Workstation(Node):
         delay_between_operations = 1
         self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.15)
+        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.11)
         time.sleep(delay_between_operations)
         self.open_gripper()
         time.sleep(delay_between_operations)
