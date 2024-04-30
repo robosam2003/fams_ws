@@ -111,6 +111,7 @@ class mover6(Node):
         self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 
+
         
 
     def setup(self):   
@@ -155,6 +156,8 @@ class mover6(Node):
         for joint in self.joints[0:max_joint]:
             joint.enable()
             time.sleep(2/1000)    
+        
+        self.get_logger().info("======== Mover6 setup complete ========== Entering Main loop ===========")
 
     def main_loop(self):  # The main loop maintains a 20Hz control cycle, necessary for the motor control boards (they will give a CAN error if not)
         # ===========================================
@@ -175,7 +178,10 @@ class mover6(Node):
             # print("Joint", joint, "is at position: ", j.current_position_deg, " degrees")
             time.sleep(2/1000) 
         # Publish the joint positions
-        self.joint_states.position = [float(j.current_position_deg) for j in self.joints] # convert to radians
+        DEG_TO_RAD = np.pi/180
+        self.joint_states.position = [float(j.current_position_deg*DEG_TO_RAD) for j in self.joints] # Local joint states are in degrees, message is in radians for rviz
+        negate_list = [-1, -1, 1, -1, 1, 1]
+        self.joint_states.position = [negate_list[i]*self.joint_states.position[i] for i in range(0, self.num_joints)]
         self.joint_states_publisher.publish(self.joint_states)
 
     def quaternion_to_euler(self, quat):

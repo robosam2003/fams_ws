@@ -14,7 +14,7 @@ from rclpy.executors import MultiThreadedExecutor
 
 from fams_interfaces.msg import Mover6Control
 from sensor_msgs.msg import JointState
-
+import numpy as np
 
 # Interface class for the GUI
 class Interface(QMainWindow, Controller_ui.Ui_MainWindow):
@@ -113,14 +113,14 @@ class InterfaceNode(Node):
         # Add subscription and publishers
         self.joint_positions_subscription = self.create_subscription(
             JointState,
-            'mover6_joint_states',
+            '/mover6/mover6_joint_states',
             self.joint_positions_callback,
             10
         )
 
         self.joint_control_publisher = self.create_publisher(
             Mover6Control,
-            'mover6_control',
+            '/mover6/mover6_control',
             10
         )
         self.joint_states = JointState()
@@ -139,7 +139,7 @@ class InterfaceNode(Node):
     def axisButtonHandler(self, joint_no, direction):
         # Jog the joint in the given direction
         msg = Mover6Control()
-        joint_angles = self.joint_states.position
+        joint_angles = self.joint_states.position # Degrees
         angle = float(joint_angles[joint_no-1])
         if direction == True: # True is up
             angle = joint_angles[joint_no-1]
@@ -148,10 +148,10 @@ class InterfaceNode(Node):
             angle = joint_angles[joint_no-1]
             angle -= 1
 
-        
+        # The control message should be in degrees, the feedback message is in radians
         msg.joint_angles = [float(a) for a in joint_angles]
-        msg.joint_angles[joint_no-1] = angle
-        self.joint_states.position = [float(a) for a in msg.joint_angles]
+        msg.joint_angles[joint_no-1] = angle # This is in degrees
+        self.joint_states.position = [float(a) for a in msg.joint_angles] # Local joint states is in degrees
         self.joint_control_publisher.publish(msg)
 
     def gripperButtonHandler(self):
@@ -165,10 +165,14 @@ class InterfaceNode(Node):
         self.joint_control_publisher.publish(msg)
 
     def joint_positions_callback(self, msg):
-        self.joint_states = msg
-        angles = msg.position
-        
+        # self.joint_states = msg
+        RAD_TO_DEG = 180/np.pi
+        angles = [float(a*RAD_TO_DEG) for a in msg.position]
+        negate_list = [-1, -1, 1, -1, 1, 1]
+        angles = [a*n for a, n in zip(angles, negate_list)] # Conversion for RVIZ
+        self.joint_states.position = angles # Local joint states is in degrees
 
+        
         # self.joint_angles = angles
         self.interface.axis1PositionLabel.setText(str(angles[0]))
         self.interface.axis2PositionLabel.setText(str(angles[1]))

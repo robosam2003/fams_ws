@@ -101,7 +101,7 @@ def launch_setup(context: LaunchContext):
 
     return [
         modprobe_can_command,
-        can_setup_command,
+        # can_setup_command,
         robot_state_publisher_node,
         joint_state_publisher_node,
         tf_broadcast_node,
