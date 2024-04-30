@@ -106,6 +106,7 @@ def launch_setup(context: LaunchContext):
         joint_state_publisher_node,
         tf_broadcast_node,
         mover6_node,
+        workstation_node,
         # rviz_node,
     ]
     
