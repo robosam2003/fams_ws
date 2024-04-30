@@ -69,6 +69,32 @@
      <string>Part ID</string>
     </property>
    </widget>
+   <widget class="QLabel" name="PartIDList">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>127</y>
+      <width>47</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Part ID</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="PartListNames">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>127</y>
+      <width>47</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Part ID</string>
+    </property>
+   </widget>
    <widget class="QLineEdit" name="part_id">
     <property name="geometry">
      <rect>
@@ -343,6 +369,19 @@
      <string>Delete selected job</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="PartSelectButton">
+    <property name="geometry">
+     <rect>
+      <x>165</x>
+      <y>639</y>
+      <width>140</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select Part</string>
+    </property>
+   </widget>
    <widget class="QListWidget" name="listWidget_1">
     <property name="geometry">
      <rect>
@@ -358,6 +397,26 @@
      <rect>
       <x>420</x>
       <y>560</y>
+      <width>250</width>
+      <height>72</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="listWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>250</width>
+      <height>72</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="listWidget_4">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
       <width>250</width>
       <height>72</height>
      </rect>
@@ -414,6 +473,8 @@
    <zorder>JobID</zorder>
    <zorder>job_id</zorder>
    <zorder>PartID</zorder>
+   <zorder>PartIDList</zorder>
+   <zorder>PartListNames</zorder>
    <zorder>part_id</zorder>
    <zorder>PartLocation</zorder>
    <zorder>partLocation</zorder>
@@ -436,8 +497,11 @@
    <zorder>ActiveJobList</zorder>
    <zorder>JobListWidget</zorder>
    <zorder>JobDeleteButton</zorder>
+   <zorder>PartSelectButton</zorder>
    <zorder>listWidget_1</zorder>
    <zorder>listWidget_2</zorder>
+   <zorder>listWidget_3</zorder>
+   <zorder>listWidget_4</zorder>
    <zorder>widget</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
