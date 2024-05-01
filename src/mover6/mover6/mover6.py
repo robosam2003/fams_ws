@@ -164,12 +164,11 @@ class mover6(Node):
         # ===========================================
         # ================ Main Loop ================
         # ===========================================
-        self.get_logger().info("Main loop")
         max_joint = self.max_joint # Just for testing, don't want to move all the joints at once while developing.
         for joint in range(1, max_joint+1):
             j = self.joints[joint-1]
             reference = self.desired_joint_angles[joint-1]
-            # self.get_logger().info("Desired joint angle: ", reference, " degrees")
+            # print("Desired joint angle: ", reference, " degrees")
             # reference = 120000
             j.set_position(reference, self.gripper_state)
             rec_msg = self.can_bus.recv(vervose=False)
@@ -177,7 +176,7 @@ class mover6(Node):
             joint_pos = rec_msg.position
             self.joints[joint-1].update_position(rec_msg)
             
-            # self.get_logger().info("Joint", joint, "is at position: ", j.current_position_deg, " degrees")
+            # print("Joint", joint, "is at position: ", j.current_position_deg, " degrees")
             time.sleep(2/1000) 
         # Publish the joint positions
         DEG_TO_RAD = np.pi/180
@@ -254,23 +253,23 @@ class mover6(Node):
         
 
         angles = [np.rad2deg(a) for a in angles]
-        self.get_logger().info("IK angles: ", angles)
+        print("IK angles: ", angles)
         # Set the desired joint angles to calculated joint angles from the IK
         self.desired_joint_angles = angles        
 
     def mover6_joints_control_callback(self, msg):
-        # self.get_logger().info("Received: ", msg)
+        # print("Received: ", msg)
         if msg.command == "GRIPPER OPEN":
             self.gripper_state = False
             self.joint_states.position[6] = 0.5
             self.joint_states.position[7] = 0.5
-            self.get_logger().info("Gripper state: ", self.gripper_state)
+            print("Gripper state: ", self.gripper_state)
 
         elif msg.command == "GRIPPER CLOSED":
             self.gripper_state = True
             self.joint_states.position[6] = 0.0
             self.joint_states.position[7] = 0.0
-            self.get_logger().info("Gripper state: ", self.gripper_state)
+            print("Gripper state: ", self.gripper_state)
         if msg.command == "ZERO":
             joint_no = msg.joint_no
             self.joints[joint_no-1].set_zero_position()
@@ -287,8 +286,8 @@ class mover6(Node):
                     self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][1]
                 elif self.desired_joint_angles[i] < self.MIN_MAX_POS_DEG[i][0]:
                     self.desired_joint_angles[i] = self.MIN_MAX_POS_DEG[i][0]
-            # self.get_logger().info("Received: ", self.desired_joint_angles)
-        # self.get_logger().info(("RECIEVED \n")*100)
+            # print("Received: ", self.desired_joint_angles)
+        # print(("RECIEVED \n")*100)
         
 
 
