@@ -26,6 +26,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.setupUi(self)
         self.rosnode = rosnode
         self.partObj=Part()
+        self.partIdCheck = 0
+        self.addToListCheck = 0
         #self.stopButton.clicked.connect(self.rosnode.start) # if stopButton is clicked
         
         # jobListWidget testing vvv
@@ -104,6 +106,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
     
     def stopButtonHandler(self):
         print("stop")
+        self.stopButton.setStyleSheet("background-color: rgb(143, 0, 0)")
+        self.widget.setStyleSheet("background-color: rgb(200, 155, 155)")
         #self.emergency = 1
         #self.rosnode.emergency_publisher.publish(self.emergency)
        # self.get_logger().info('stop')
@@ -143,6 +147,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print('currentRow: ',str(self.subprocessListWidget_3.currentRow()))
         print('currentItem***: ',str(self.partWidgetItem.text()))
         self.partObj.part_id = str(self.partWidgetItem.text())
+        self.partIdCheck = 1
+        self.AddJobButtonCheck()
 
     def addToListHandler(self):
         #print(str(self.subID.text()))
@@ -164,7 +170,9 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.jobObj.subprocesses.append(sub1) # <-- appends to subprocess list here
         print((self.jobObj.subprocesses[0]))
         
-        self.addJobButton.setStyleSheet("background-color: rgb(0, 255, 0)")
+        self.addToListCheck=1
+        self.AddJobButtonCheck()
+
         self.subprocessListWidget_1.clear() # clears subprocess_id listWidget
         self.subprocessListWidget_2.clear() # clears subprocess operation listWidget
         for i in range(len(self.jobObj.subprocesses)):
@@ -219,11 +227,19 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
     def ClearSubprocessesButtonHandler(self):
         self.clearSubprocessesList()
+        self.addToListCheck = 0
+        self.AddJobButtonCheck()
 
     def clearSubprocessesList(self):
         self.jobObj.subprocesses=[]
         self.subprocessListWidget_1.clear() # clears subprocess_id listWidget
         self.subprocessListWidget_2.clear() # clears subprocess operation listWidget
+
+    def AddJobButtonCheck(self):
+        if self.partIdCheck == 1 and self.addToListCheck == 1:
+            self.addJobButton.setStyleSheet("background-color: rgb(143, 143, 191)") # <-- addJobButton turns green here
+        else:
+            self.addJobButton.setStyleSheet("background-color: rgb(60, 60, 80)") # <-- addJobButton turns back to original colour here
 
 class InterfaceNode(Node):
     def __init__(self):
