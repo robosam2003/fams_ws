@@ -107,7 +107,7 @@ class Workstation(Node):
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
 
         self.place_location = [0.36, -0.05, 0.15]
-        self.rfid_scan_location = [0.0, 0.41, 0.15]
+        self.rfid_scan_location = [0.0, 0.41, 0.14]
         self.idle_position = [0.30, -0.30, 0.30]
         self.previous_pickup_location = [0.3, 0.3, 0.3]
         self.zero_point = [0.34594893, 0.01, 0.44677551]
@@ -164,13 +164,13 @@ class Workstation(Node):
         time.sleep(delay_between_operations)
         self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(part_location[0], part_location[1], 0.16) # Move down to over part
+        self.move_robot(part_location[0], part_location[1], 0.15) # Move down to over part
         time.sleep(delay_between_operations)
         self.close_gripper()
         time.sleep(delay_between_operations)
         self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], 0.3)
+        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], self.rfid_scan_location[2])
 
 
     def handle_part_output(self,msg):
@@ -184,9 +184,11 @@ class Workstation(Node):
         # location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
         
         delay_between_operations = 1
+        self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], self.rfid_scan_location[2]+0.2)
+        time.sleep(delay_between_operations)
         self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.16)
+        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.15)
         time.sleep(delay_between_operations)
         self.open_gripper()
         time.sleep(delay_between_operations)
@@ -246,7 +248,7 @@ class Workstation(Node):
             self.get_logger().info(f"Current point: {self.current_point}")
         
         
-        num_points = 20
+        num_points = 30
         for i in range(0, num_points):
             # Calculate unit vector between the current and target points
             unit_vector, magnitude = self.calculate_unit_vector(self.current_point, overall_target_point)
@@ -259,7 +261,7 @@ class Workstation(Node):
 
             self.mover6Publisher.publish(mover6_pose_msg)
             self.get_logger().info("Published pose to mover6: " + str(mover6_pose_msg.position.x) + ", " + str(mover6_pose_msg.position.y) + ", " + str(mover6_pose_msg.position.z))
-            time.sleep(0.05)
+            time.sleep(0.08)
             self.current_point = target_point # Update the current point to the target point (it's moved)
         
     def vision_callback(self, msg):

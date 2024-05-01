@@ -26,9 +26,11 @@ class WorkstationController(Node):
         # Get the names of the AMRs from the parameter server
         self.amr_names = self.get_parameter('amr_names').value
 
-        self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES - Directly copied from fleet_controller
+        # Directly copied from fleet controller
+        self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES
             'workstation1': [0.6, 1.8, 0.0],
-            'workstation2': [3.0, 1.8, 0]
+            # 'workstation2': [1.0093, -0.6753, -0.72],
+            'workstation2': [2.7793, 1.6903, 0.72],
         }
 
         # Docking poses for the workstations

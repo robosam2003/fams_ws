@@ -109,7 +109,7 @@ class mover6(Node):
         # Initialise the joint states
         self.joint_states = JointState()
         self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5', 'Gripper1', 'Gripper2']
-        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0, 0.0]
+        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 
 
@@ -229,7 +229,7 @@ class mover6(Node):
         angles[2] = angles[2]
         angles[3] = angles[3]
         angles[4] = angles[4]
-        angles[5] = 120
+        angles[5] = 0
         
     
     def mover6_pose_control_callback(self, msg):

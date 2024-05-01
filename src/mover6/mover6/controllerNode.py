@@ -143,10 +143,10 @@ class InterfaceNode(Node):
         angle = float(joint_angles[joint_no-1])
         if direction == True: # True is up
             angle = joint_angles[joint_no-1]
-            angle += 5
+            angle += 1
         else:
             angle = joint_angles[joint_no-1]
-            angle -= 5
+            angle -= 1
 
         # The control message should be in degrees, the feedback message is in radians
         msg.joint_angles = [float(a) for a in joint_angles]

@@ -38,7 +38,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(sam_bot_launch_file),
         launch_arguments={
             'robot_name': 'nexus1',
-            'initial_base_link_pos': "1.77 1.015 0"
+            'initial_base_link_pos': "1.77 1.015 0" # Map odom frame
         }.items()
     )
 

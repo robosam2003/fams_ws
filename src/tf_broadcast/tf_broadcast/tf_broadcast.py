@@ -68,9 +68,10 @@ class FamsTFBroadcaster(Node):
         
         self.get_logger().info('Map->Odom broadcaster has been started')
         self.current_aruco = Point()
-        self.current_aruco.x = 0.0
-        self.current_aruco.y = 0.0
-        self.current_aruco.z = 0.0
+        map_odom = [1.77, 1.015, 0]
+        self.current_aruco.x = self.initial_base_link_pos[0] - map_odom[0] # These are the map->odom transformation values
+        self.current_aruco.y = self.initial_base_link_pos[1] - map_odom[1]
+        self.current_aruco.z = self.initial_base_link_pos[2] - map_odom[2]
         
 
     def aruco_callback(self, msg):
