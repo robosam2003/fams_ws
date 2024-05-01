@@ -164,6 +164,7 @@ class mover6(Node):
         # ===========================================
         # ================ Main Loop ================
         # ===========================================
+        self.get_logger().info("Main loop")
         max_joint = self.max_joint # Just for testing, don't want to move all the joints at once while developing.
         for joint in range(1, max_joint+1):
             j = self.joints[joint-1]
