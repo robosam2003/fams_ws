@@ -1,4 +1,4 @@
-uint32 part_id
+string part_id
 
 string location
 
