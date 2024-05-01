@@ -40,7 +40,7 @@ class MoverJoint():
         id = self.joint_id*16
         # Convert the position to tics
         tics = int(pos_deg)
-        self.get_logger().info("Tics: ", tics)
+        print("Tics: ", tics)
         # Split the tics into 2 - it is an unsigned short (16 bit)
         packed_tics = struct.pack('>H', tics) # the '>' means big-endian, the 'H' means unsigned short
         pos0, pos1 = struct.unpack('>BB', packed_tics)
@@ -50,7 +50,7 @@ class MoverJoint():
         digital_output = 0x00
         data = [self.SET_POS_COMMAND, velocity, pos0, pos1, timestamp, digital_output]
         self.can_bus.send(id, data)
-        self.get_logger().info("Set Joint (OLD)", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1))
+        print("Set Joint (OLD)", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1))
     
     def set_position(self, pos_deg, gripper=False):  # This is the new, CANv2 32 bit implementation
         # Saturation of joint angle.    
@@ -77,7 +77,7 @@ class MoverJoint():
         velocity = 0x80
         data = [self.SET_POS_COMMAND_32, velocity, pos0, pos1, pos2, pos3, timestamp, digital_output]
         self.can_bus.send(id, data)
-        # self.get_logger().info("Set Joint", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
+        # print("Set Joint", self.joint_id, "to position: ", pos_deg, "degrees,  TICS: ", tics, ",  Hex:  ", hex(pos0), hex(pos1), hex(pos2), hex(pos3))
 
     def set_velocity(self, joint_no, vel): # TODO: This is the old implementation (16 bit)
         id = joint_no*16  # (it's in hex)
@@ -91,7 +91,7 @@ class MoverJoint():
         timestamp = 0x52
         data = [self.SET_VEL_COMMAND, vel, timestamp]
         self.send(id, data)
-        self.get_logger().info("Set Joint", joint_no, "to velocity: ", vel)
+        print("Set Joint", joint_no, "to velocity: ", vel)
 
     def set_pos_pid(self, k_p, k_i, k_d):
         id = self.joint_id*16 # (it's in hex)
@@ -112,17 +112,17 @@ class MoverJoint():
         data = [0x02, 0x40, k_p_high, k_p_low]
         self.can_bus.send(id, data)
         time.sleep(2/1000)
-        self.get_logger().info("Set the proportional gain")
+        print("Set the proportional gain")
         # Set the integral gain
         data = [0x02, 0x41, k_i_high, k_i_low]
         self.can_bus.send(id, data)
         time.sleep(2/1000)
-        self.get_logger().info("Set the integral gain")
+        print("Set the integral gain")
         # Set the derivative gain
         data = [0x02, 0x42, k_d_high, k_d_low]
         self.can_bus.send(id, data)
         time.sleep(2/1000)
-        self.get_logger().info("Set the derivative gain")
+        print("Set the derivative gain")
 
     def set_vel_pid(self, k_p, k_i, k_d):
         id = self.joint_id*16
@@ -143,17 +143,17 @@ class MoverJoint():
         data = [0x02, 0x44, k_p_high, k_p_low]
         self.can_bus.send(id, data)
         time.sleep(2/1000)
-        self.get_logger().info("Set the proportional gain")
+        print("Set the proportional gain")
         # set the integral gain
         data = [0x02, 0x45, k_i_high, k_i_low]
         self.can_bus.send(id, data)
         time.sleep(2/1000)
-        self.get_logger().info("Set the integral gain")
+        print("Set the integral gain")
         # set the derivative gain
         data = [0x02, 0x46, k_d_high, k_d_low]
         self.can_bus.send(id, data)
         time.sleep(2/1000)
-        self.get_logger().info("Set the derivative gain")
+        print("Set the derivative gain")
 
     def set_tic_scale(self, tics_per_count):
         id = self.joint_id*16
@@ -162,7 +162,7 @@ class MoverJoint():
 
         data = [0x02, 0x69, tics_per_count, 0x9E]
         self.can_bus.send(id, data)
-        self.get_logger().info("Set the tics per count to: ", tics_per_count)
+        print("Set the tics per count to: ", tics_per_count)
     
     def set_max_lag(self, max_lag):
         id = self.joint_id*16 # (it's in hex)
@@ -178,18 +178,18 @@ class MoverJoint():
         self.can_bus.send(id, data)
         time.sleep(2/1000)
         self.can_bus.send(id, data) # Have to send it twice to confirm
-        self.get_logger().info("Set the zero position")
+        print("Set the zero position")
 
     def set_max_current(self, max_current):
         id = self.joint_id*16
         max_current = max_current & 0xff # Max current is one byte
         data = [0x02, 0x32, max_current, 0x00]
         self.can_bus.send(id, data)
-        self.get_logger().info("Set the max current to: ", max_current)
+        print("Set the max current to: ", max_current)
 
 
     def reset(self):
-        self.get_logger().info("Resetting axis", self.joint_id, "...")
+        print("Resetting axis", self.joint_id, "...")
         id = self.joint_id*16
         data = [0x01, 0x06]
         self.can_bus.send(id, data)
@@ -199,6 +199,6 @@ class MoverJoint():
         id = self.joint_id*16
         data = [0x01, 0x09]
         self.can_bus.send(id, data)
-        self.get_logger().info("Enabled axis", self.joint_id)
+        print("Enabled axis", self.joint_id)
 
     
