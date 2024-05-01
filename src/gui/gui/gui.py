@@ -38,7 +38,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #self.jobListWidget.setCurrentRow(1)
         #print(self.jobListWidget.currentRow)
         #self.PartIDList = [1908622204159,2228622204159,3338622204159;"Block1","Block2","Block3"]
-        self.PartIDList = [[1908622204159,"Block1"],[2228622204159,"Block2"],[3338622204159,"Block3"]]
+        self.PartIDList = [[19085255111214,"Yellow Block"],[19086421029,"Blue BLock"],[1908621216136,"Green Block"],[1908519983210,"Red Block"],[1908622204159,"Orange Block"]]
         for i in range(len(self.PartIDList)):
             self.subprocessListWidget_3.addItem(str(self.PartIDList[i][0]))
             self.subprocessListWidget_4.addItem(str(self.PartIDList[i][1]))
@@ -47,6 +47,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.jobObj.subprocesses=[] # creates a blank array to store a list of subprocesses
 
         self.emergency = EmergencyControl()
+
+        self.clearSubprocessesList()
 
         self.destroyed.connect(self.rosnode.destroy_node)
 
@@ -68,6 +70,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.JobDeleteButton.clicked.connect(self.JobDeleteButtonHandler)
         self.ClearSubprocessesButton.clicked.connect(self.ClearSubprocessesButtonHandler)
         self.PartSelectButton.clicked.connect(self.PartSelectButtonHandler)
+        
        
     def jobListWidgetHandler(self, text):
         #self.jobListWidget.takeItem(self.jobListWidget.currentRow())
@@ -126,8 +129,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #self.jobObj.job_id = 11111
         self.jobObj.priority=0
         partObj=Part()
-        partObj.part_id = 0
-        partObj.location = 0
+        partObj.part_id = '0'
+        partObj.location = '0'
         partObj.current_subprocess_id = 0
         partObj.job_id = self.jobObj.job_id
         self.jobObj.part = partObj
@@ -173,6 +176,13 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.addToListCheck=1
         self.AddJobButtonCheck()
 
+        self.subprocessListWidgetUpdater()
+        #else:
+            #self.addToList.setStyleSheet("background-color: rgb(50, 71, 143)")
+            #self.addToList.setText("All fields must be filled correctly.")
+        
+        
+    def subprocessListWidgetUpdater(self):
         self.subprocessListWidget_1.clear() # clears subprocess_id listWidget
         self.subprocessListWidget_2.clear() # clears subprocess operation listWidget
         for i in range(len(self.jobObj.subprocesses)):
@@ -180,13 +190,6 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
             self.subprocessListWidget_2.addItem(str(self.jobObj.subprocesses[i].operation_type))
             print(str(i))
             print('subList[i].sub_id = ', str(self.jobObj.subprocesses[i].sub_process_id))
-        #else:
-            #self.addToList.setStyleSheet("background-color: rgb(50, 71, 143)")
-            #self.addToList.setText("All fields must be filled correctly.")
-        
-        
-        
-        #  self.get_logger().info('stop')
 #
     def addJobButtonHandler(self):
         self.jobObj.job_id=int(self.job_id.text())
@@ -212,13 +215,17 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         #self.jobListWidget.addItem(self.jobObj)
 
-        # interfaceNodeObj = InterfaceNode()
-        # interfaceNodeObj.job_publisher = interfaceNodeObj.create_publisher(
-        #     Job,
-        #     'job',
-        #     10
-        # )
-        # interfaceNodeObj.job_publisher.publish(self.jobObj)
+
+
+        sub1=SubProcess()   #create subprocess object
+        sub1.sub_process_id=0
+        sub1.operation_type='UNLOADING'
+        sub1.start_time=0
+        sub1.end_time=0
+        self.jobObj.subprocesses.append(sub1) # <-- appends to subprocess list here
+        print("UNLOADING subprocess added")
+        self.subprocessListWidgetUpdater()
+
         self.rosnode.job_publisher.publish(self.jobObj)
         print('Job message has been published with job_id: ', self.jobObj.job_id)
         # self.interface.label.setText('Job message has been published')
@@ -226,7 +233,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #self.jobObj.subprocesses=[] #clears subprocesses list
 
     def ClearSubprocessesButtonHandler(self):
-        self.clearSubprocessesList()
+        self.clearSubprocessesList() # <-- Subprocess list cleared here
         self.addToListCheck = 0
         self.AddJobButtonCheck()
 
@@ -234,6 +241,14 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.jobObj.subprocesses=[]
         self.subprocessListWidget_1.clear() # clears subprocess_id listWidget
         self.subprocessListWidget_2.clear() # clears subprocess operation listWidget
+        sub1=SubProcess()   #create subprocess object
+        sub1.sub_process_id=1
+        sub1.operation_type='LOADING'
+        sub1.start_time=0
+        sub1.end_time=0
+        self.jobObj.subprocesses.append(sub1) # <-- appends to subprocess list here
+        print("LOADING subprocess added")
+        self.subprocessListWidgetUpdater()
 
     def AddJobButtonCheck(self):
         if self.partIdCheck == 1 and self.addToListCheck == 1:
