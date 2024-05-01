@@ -37,6 +37,7 @@ class ArucoReader(Node):
       case 0:
         self.moblocation0_pub = self.create_publisher(Point,'nexus1/aruco_tf',10)
         self.moblocation1_pub = self.create_publisher(Point,'nexus2/aruco_tf',10)
+        self.moblocation_pub = self.create_publisher(Vision,'amr_vision_locations',10)
       case 2:
         self.partlocation_pub=self.create_publisher(Vision,'workstation2/VisionLocations',10)
       case 4:
@@ -172,9 +173,11 @@ class ArucoReader(Node):
     anti_ob_flag=[]
     locations=[]
     loc_msg=[]
+    id_msg=[]
     publish=0
     mobilelocation0_msg=Point()
     mobilelocation1_msg=Point()
+    vmsg=Vision()
     part_id_msg=[]
     part_loc_msg=[]
     partlocation_msg=Vision()
@@ -186,7 +189,7 @@ class ArucoReader(Node):
     
     if len(corners) > 0:
       for i in range(0,len(ids)):
-        if ids[i,0]==81 and switch==0:
+        if ids[i,0]==82 and switch==0:
           rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], markerSize, camera_matrix, distortion_vector)
           origin_x=tvec[0][0][0]
           origin_y=tvec[0][0][1]
@@ -209,7 +212,7 @@ class ArucoReader(Node):
           originTrans=new_origin[0:3,3]
     
           self.Origin=originmarkerpoint+originTrans # Updates origin when arm origin marker seen
-        if ids[i,0]==93 and switch==0:
+        if ids[i,0]==83 and switch==0:
           rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], markerSize, camera_matrix, distortion_vector)
           origin_x=tvec[0][0][0]
           origin_y=tvec[0][0][1]
@@ -249,14 +252,17 @@ class ArucoReader(Node):
         match self.vidIndex:
           case 0: # For Mobile Robot Detection (Main Cam)
             if ids[i,0]==0:
+              id_msg.append(int(ids[i,0]))
               errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
               newx=round(x-errorfix,5)
+              loc_msg.extend([newx,y,yaw])
               anti_ob_flag.append(corners[i])
               
               mobilelocation0_msg.x=newx
               mobilelocation0_msg.y=y
               mobilelocation0_msg.z=yaw
             if ids[i,0]==1:
+              id_msg.append(int(ids[i,0]))
               errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
               newx=round(x-errorfix,5)
               loc_msg.extend([newx,y,yaw])
@@ -265,9 +271,11 @@ class ArucoReader(Node):
               mobilelocation1_msg.x=newx
               mobilelocation1_msg.y=y
               mobilelocation1_msg.z=yaw
+            vmsg.part_id=id_msg
+            vmsg.part_location=loc_msg
           case 2 | 4:
         # For Part Detection (Workstation Cams)
-            if ids[i,0] in range(82,89):
+            if ids[i,0] in range(84,89):
               part_id_msg.append(int(ids[i,0]))
 
               self.xpart.append(x)     # Filling arrays
@@ -289,9 +297,10 @@ class ArucoReader(Node):
                   #print('Part Location: {}'.format([-x,-y,yaw])) 
                 elif self.vidIndex==4:
                   part_loc_msg.extend([aveX,-aveY,aveYaw])
-                  print('Part Location: {}'.format([aveX,-aveY,aveYaw]))
+                  print('Part Location: {}'.format([aveX,aveY,aveYaw]))
                 partlocation_msg.part_id=part_id_msg
                 partlocation_msg.part_location=part_loc_msg
+              
 
         # For Part Detection (Workstation Cams)
         # if switch==0:
@@ -311,8 +320,10 @@ class ArucoReader(Node):
       if switch==1:  
         self.moblocation0_pub.publish(mobilelocation0_msg)
         self.moblocation1_pub.publish(mobilelocation1_msg)
+        self.moblocation_pub.publish(vmsg)
         self.get_logger().info('{}:{}'.format("Publishing Robot 0",mobilelocation0_msg))  
-        # self.get_logger().info('{}:{}'.format("Publishing Robot 1",mobilelocation1_msg))  
+        self.get_logger().info('{}:{}'.format("Publishing Robot 1",mobilelocation1_msg))  
+        self.get_logger().info('{}:{}'.format("Publishing",vmsg))  
       if switch==0:
         if publish==1:
           self.partlocation_pub.publish(partlocation_msg)
