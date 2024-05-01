@@ -14,6 +14,8 @@ from fams_interfaces.msg import Vision
 from rosidl_runtime_py import *
 from geometry_msgs.msg import Point
 import math
+from statistics import mean
+
 
 class ArucoReader(Node):
   
@@ -25,8 +27,12 @@ class ArucoReader(Node):
     super().__init__('aruco_cdreader')
     self.get_logger().info('Machine Vision Node Started')
 
-    self.vidIndex=2 # Before running, it should be verfied that, maincam=0, workBcam=2, workAcam=4
+    self.vidIndex=2
+     # Before running, it should be verfied that, maincam=0, workBcam=2, workAcam=4
 
+    self.xpart=[]
+    self.ypart=[]
+    self.yawpart=[]
     match self.vidIndex:
       case 0:
         self.moblocation0_pub = self.create_publisher(Point,'nexus1/aruco_tf',10)
@@ -166,17 +172,16 @@ class ArucoReader(Node):
     anti_ob_flag=[]
     locations=[]
     loc_msg=[]
+    publish=0
     mobilelocation0_msg=Point()
     mobilelocation1_msg=Point()
     part_id_msg=[]
     part_loc_msg=[]
     partlocation_msg=Vision()
 
-    
     grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # Greyscale the Frame
     cv2.aruco_dict = cv2.aruco.Dictionary_get(aruco_dict_type)
     parameters = cv2.aruco.DetectorParameters_create()
-
     corners, ids, rejected_img_points = cv2.aruco.detectMarkers(grey, cv2.aruco_dict,parameters=parameters,cameraMatrix=camera_matrix,distCoeff=distortion_vector)
     
     if len(corners) > 0:
@@ -197,7 +202,7 @@ class ArucoReader(Node):
                                (0, 0, 1, 0),
                                (0, 0, 0, 1)))
           Trans_to_Arm=np.array(((1, 0, 0, 0),
-                               (0, 1, 0, -0.17),
+                               (0, 1, 0, -0.15),
                                (0, 0, 1, 0),
                                (0, 0, 0, 1))) #0.185
           new_origin=np.dot(Rot_to_Arm,Trans_to_Arm)
@@ -225,7 +230,6 @@ class ArucoReader(Node):
                                (0, 0, 0, 1))) #0.185
           new_origin=np.dot(Rot_to_Arm,Trans_to_Arm)
           originTrans=new_origin[0:3,3]
-    
           self.Origin=originmarkerpoint+originTrans # Updates origin when arm origin marker seen
           
       for i in range(0, len(ids)):
@@ -242,47 +246,78 @@ class ArucoReader(Node):
         angles=self.rotationMatrixToEulerAngles(rmat)
         yaw=round((angles[2]),4)
 
-        # For Mobile Robot Detection (Main Cam)
-        if switch==1:
-          if ids[i,0]==0:
-            errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
-            newx=round(x-errorfix,5)
-            anti_ob_flag.append(corners[i])
-            
-            mobilelocation0_msg.x=newx
-            mobilelocation0_msg.y=y
-            mobilelocation0_msg.z=yaw
-          if ids[i,0]==1:
-            errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
-            newx=round(x-errorfix,5)
-            loc_msg.extend([newx,y,yaw])
-            anti_ob_flag.append(corners[i])
-            
-            mobilelocation1_msg.x=newx
-            mobilelocation1_msg.y=y
-            mobilelocation1_msg.z=yaw
-          
+        match self.vidIndex:
+          case 0: # For Mobile Robot Detection (Main Cam)
+            if ids[i,0]==0:
+              errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
+              newx=round(x-errorfix,5)
+              anti_ob_flag.append(corners[i])
+              
+              mobilelocation0_msg.x=newx
+              mobilelocation0_msg.y=y
+              mobilelocation0_msg.z=yaw
+            if ids[i,0]==1:
+              errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
+              newx=round(x-errorfix,5)
+              loc_msg.extend([newx,y,yaw])
+              anti_ob_flag.append(corners[i])
+              
+              mobilelocation1_msg.x=newx
+              mobilelocation1_msg.y=y
+              mobilelocation1_msg.z=yaw
+          case 2 | 4:
         # For Part Detection (Workstation Cams)
-        if switch==0:
-          if ids[i,0] in range(82,89):
-            part_id_msg.append(int(ids[i,0]))
-            if self.vidIndex==2:
-              part_loc_msg.extend([-y,x,yaw])               # Adjusting for frame of arm
-              print('Part Location: {}'.format([-y,x,yaw])) 
-            elif self.vidIndex==4:
-              part_loc_msg.extend([x,-y,yaw])
-              print('Part Location: {}'.format([x,-y,yaw]))
-          partlocation_msg.part_id=part_id_msg
-          partlocation_msg.part_location=part_loc_msg
+            if ids[i,0] in range(82,89):
+              part_id_msg.append(int(ids[i,0]))
+
+              self.xpart.append(x)     # Filling arrays
+              self.ypart.append(y)
+              self.yawpart.append(yaw)
+
+              if len(self.xpart)==5:   # when array is length 5 take average
+                aveX=round(mean(self.xpart),4)
+                aveY=round(mean(self.ypart),4)
+                aveYaw=round(mean(self.yawpart),4)
+
+                self.xpart=[]          # empty arrays for filling
+                self.ypart=[]
+                self.yawpart=[]
+                publish=1
+                if self.vidIndex==2:
+                  part_loc_msg.extend([-aveY,aveX,aveYaw])               # Adjusting for frame of arm
+                  print('Part Location: {}'.format([-aveY,aveX,aveYaw])) 
+                  #print('Part Location: {}'.format([-x,-y,yaw])) 
+                elif self.vidIndex==4:
+                  part_loc_msg.extend([aveX,-aveY,aveYaw])
+                  print('Part Location: {}'.format([aveX,-aveY,aveYaw]))
+                partlocation_msg.part_id=part_id_msg
+                partlocation_msg.part_location=part_loc_msg
+
+        # For Part Detection (Workstation Cams)
+        # if switch==0:
+        #   if ids[i,0] in range(82,89):
+        #     part_id_msg.append(int(ids[i,0]))
+
+        #     if self.vidIndex==2:
+        #       part_loc_msg.extend([-y,x,yaw])               # Adjusting for frame of arm
+        #       print('Part Location: {}'.format([-y,x,yaw])) 
+        #       #print('Part Location: {}'.format([-x,-y,yaw])) 
+        #     elif self.vidIndex==4:
+        #       part_loc_msg.extend([x,-y,yaw])
+        #       print('Part Location: {}'.format([x,-y,yaw]))
+        #   partlocation_msg.part_id=part_id_msg
+        #   partlocation_msg.part_location=part_loc_msg
 
       if switch==1:  
         self.moblocation0_pub.publish(mobilelocation0_msg)
         self.moblocation1_pub.publish(mobilelocation1_msg)
-        # self.get_logger().info('{}:{}'.format("Publishing Robot 0",mobilelocation0_msg))  
+        self.get_logger().info('{}:{}'.format("Publishing Robot 0",mobilelocation0_msg))  
         # self.get_logger().info('{}:{}'.format("Publishing Robot 1",mobilelocation1_msg))  
       if switch==0:
-        self.partlocation_pub.publish(partlocation_msg)
-        self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
+        if publish==1:
+          self.partlocation_pub.publish(partlocation_msg)
+          self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
+        
       
       
       
@@ -396,7 +431,7 @@ class ArucoReader(Node):
           os.system('v4l2-ctl -d /dev/video2 --set-ctrl=exposure_time_absolute=120')
           os.system('v4l2-ctl -d /dev/video2 --set-ctrl=white_balance_temperature=3700')
           os.system('v4l2-ctl -d /dev/video2 --set-ctrl=gain=30')
-          os.system('v4l2-ctl -d /dev/video2 --set-ctrl=focus_absolute=0')
+          os.system('v4l2-ctl -d /dev/video2 --set-ctrl=focus_absolute=10')
         case 4:
           os.system('v4l2-ctl -d /dev/video4 --set-ctrl=exposure_time_absolute=120')
           os.system('v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_temperature=3700')
@@ -410,8 +445,8 @@ class ArucoReader(Node):
       if ret == True:
         
         output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],self.Cam_Mtrx, self.Distort,self.markerSize,self.detectObstacles)
-        if self.detectObstacles!=0:
-          FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+        # if self.detectObstacles!=0:
+        #   FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
         cv2.namedWindow('Estimated Pose',cv2.WINDOW_NORMAL)
         cv2.resizeWindow('Estimated Pose',1728,972)
         cv2.imshow('Estimated Pose', output)
