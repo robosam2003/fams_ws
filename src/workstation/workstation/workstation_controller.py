@@ -32,6 +32,7 @@ class WorkstationController(Node):
             'workstation1': [0.8, 1.6903, np.pi-0.72],
             # 'workstation2': [1.0093, -0.6753, -0.72],
             'workstation2': [2.7793, 1.6903, 0.72],
+            'workstation3': [0, 1.6903, 0]
         }
 
         # Docking poses for the workstations
@@ -114,7 +115,7 @@ class WorkstationController(Node):
         for i, amr_location in enumerate(amr_locations): # For every amr location
             for j, docking_pose in enumerate(self.workstation_docking_poses): # For every possible docking pose
                 distance = math.sqrt((amr_location[0] - docking_pose.x)**2 + (amr_location[1] - docking_pose.y)**2)
-                self.get_logger().info(f"distance: {distance}, YAW: {amr_location[2]}")
+                # self.get_logger().info(f"distance: {distance}, YAW: {amr_location[2]}")
                 # If the AMR is close enough to the docking pose
                 if distance <= 0.15 and amr_location[2] - docking_pose.z <= 0.18: # There could be a better way of checking that the robot is at the docking location. 
                     # The AMR is close enough and aligned with the docking pose of the workstation
@@ -129,33 +130,32 @@ class WorkstationController(Node):
                     #  - The robot could be dropping off a part at the workstation. 
                     #  - The robot could be picking up a part from the workstation.
                     
-                    # Check if the part on that robot is supposed to be processed at that workstation
+                    
                     amr_id = self.vision_locations.part_id[i] # "Part ID" here is actually the AMR ids
                     for part in parts_schedule:
                         if part.location.startswith("workstation"): # If the part is at a workstation, the robot is coming to pick it up
                             index = parts_schedule.index(part)
-                            workstation = workstations_schedule[index]
+                            state_workstation = self.system_state.workstations[j] # The workstation that the part is at
 
-                            for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
-                                if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
-                                    if state_workstation.status == 'BUSY':
-                                        # If the workstation is free, the robot is coming to pick up a part
-                                        self.send_workstation_command(workstation.id, "OUTPUT")
-                                        break
-                                    # elif state_workstation.status == 'FREE':
-                                        
-                                    #     self.send_workstation_command(workstation.id, "INPUT")
-                                    #     break
-                                    else:
-                                        self.get_logger().info("WORKSTATION IS FREE??? OR BROKEN")
-                                        # The workstation is busy or broken
-                                        pass
+                            # for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
+                                # if state_workstation.workstation_id == workstation.workstation_id: # Match the actual workstation id with the workstation id in the schedule
+                            if state_workstation.state == 'BUSY':
+                                # If the workstation is free, the robot is coming to pick up a part
+                                self.send_workstation_command(state_workstation.workstation_id, "OUTPUT")
+                                break
+                            # elif state_workstation.status == 'FREE':
+                                
+                            #     self.send_workstation_command(workstation.id, "INPUT")
+                            #     break
+                            else:
+                                self.get_logger().info("WORKSTATION IS FREE??? OR BROKEN")
+                                # The workstation is busy or broken
+                                pass
 
                         if part.location == "amr"+str(amr_id): # If the part is on the robot at the docking location
                             index = parts_schedule.index(part)
                             workstation = workstations_schedule[index]
                             if workstation.id == j+1: # If the workstation id in the schedule matches the workstation id of the docking pose that matches (to avoid running this as soon as a part is placed)
-                                
                                 for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
                                     if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
                                         if state_workstation.status == 'FREE':
@@ -176,19 +176,19 @@ class WorkstationController(Node):
     def send_workstation_command(self, workstation_id, command):  
         if workstation_id == 1:
             workstation_command = WorkstationCommand()
-            workstation_command.id = command
+            workstation_command.command = command
             self.workstation1_workstation_command_publisher.publish(workstation_command)
             self.get_logger().info(f"Published workstation {workstation_id} command: {command}")
 
         elif workstation_id == 2:
             workstation_command = WorkstationCommand()
-            workstation_command.id = command
+            workstation_command.command = command
             self.workstation2_workstation_command_publisher.publish(workstation_command)
             self.get_logger().info(f"Published workstation {workstation_id} command: {command}")
 
         elif workstation_id == 3:
             workstation_command = WorkstationCommand()
-            workstation_command.id = command
+            workstation_command.command = command
             self.workstation3_workstation_command_publisher.publish(workstation_command)
             self.get_logger().info(f"Published workstation {workstation_id} command: {command}")
         else:

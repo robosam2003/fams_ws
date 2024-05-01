@@ -170,7 +170,7 @@ class Scheduler(Node):
         workstation1.available_operations = ['DRILLING']
         workstation2 = Workstation()
         workstation2.workstation_id = 2
-        workstation2.state = 'FREE'
+        workstation2.state = 'BUSY'
         workstation2.available_operations = ['MILLING']
         workstation3 = Workstation()
         workstation3.workstation_id = 3

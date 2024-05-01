@@ -395,6 +395,32 @@
      <string>Select Part</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="LoadedButton">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>140</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select Part</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="UnloadedButton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>140</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select Part</string>
+    </property>
+   </widget>
    <widget class="QListWidget" name="listWidget_1">
     <property name="geometry">
      <rect>
@@ -512,6 +538,8 @@
    <zorder>JobDeleteButton</zorder>
    <zorder>ClearSubprocessesButton</zorder>
    <zorder>PartSelectButton</zorder>
+   <zorder>LoadedButton</zorder>
+   <zorder>UnloadedButton</zorder>
    <zorder>listWidget_1</zorder>
    <zorder>listWidget_2</zorder>
    <zorder>listWidget_3</zorder>
