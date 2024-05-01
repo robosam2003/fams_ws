@@ -71,7 +71,7 @@ class Scheduler(Node):
         job.priority = int(csv_list[1])
 
         part = Part()
-        part.part_id = int(csv_list[2])
+        part.part_id = str(csv_list[2])
         part.location = str(csv_list[3])
         part.current_subprocess_id = int(csv_list[4])
         part.job_id = int(csv_list[5])
@@ -189,6 +189,7 @@ class Scheduler(Node):
         
         # Update the parts with their next current subprocesses, if any.
         job_job_id_mapping = {job.job_id: job for job in self.active_job_list} # This is a dictionary that maps job_id to job
+        print("JOB MAPPING: ", job_job_id_mapping)
         for part in priority_list:
             parts_job = job_job_id_mapping[part.job_id]
             for sub in parts_job.subprocesses:
@@ -236,6 +237,7 @@ class Scheduler(Node):
         for part in priority_list:
             part_job = job_job_id_mapping[part.job_id]
             subprocess_subprocess_id_mapping = {sub.sub_process_id: sub for sub in part_job.subprocesses}
+            print("MAPPING", subprocess_subprocess_id_mapping)
             next_subprocess = subprocess_subprocess_id_mapping[part.next_subprocess_id]
             # self.get_logger().info('Next subprocess: ' + str(next_subprocess))
             for workstation in free_workstations:

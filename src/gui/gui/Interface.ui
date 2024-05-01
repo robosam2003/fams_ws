@@ -369,6 +369,19 @@
      <string>Delete selected job</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="ClearSubprocessesButton">
+    <property name="geometry">
+     <rect>
+      <x>165</x>
+      <y>639</y>
+      <width>140</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Delete selected job</string>
+    </property>
+   </widget>
    <widget class="QPushButton" name="PartSelectButton">
     <property name="geometry">
      <rect>
@@ -497,6 +510,7 @@
    <zorder>ActiveJobList</zorder>
    <zorder>JobListWidget</zorder>
    <zorder>JobDeleteButton</zorder>
+   <zorder>ClearSubprocessesButton</zorder>
    <zorder>PartSelectButton</zorder>
    <zorder>listWidget_1</zorder>
    <zorder>listWidget_2</zorder>

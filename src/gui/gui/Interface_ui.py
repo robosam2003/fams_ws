@@ -49,6 +49,7 @@ class Ui_MainWindow(object):
         yJobEnd = yJobStart + yDefaultSpacing
         yJobPriority = yJobEnd + yDefaultSpacing
         yAddJob = yJobPriority + yDefaultSpacing
+        wJobFrame = 665
         hJobFrame = yAddJob + yDefaultSpacing - yJobFrame
         yLowerListWidgetLabels = yJobFrame + hJobFrame + 20
         yLowerListWidgets = yLowerListWidgetLabels + 20
@@ -56,10 +57,11 @@ class Ui_MainWindow(object):
         yDeleteJob = yLowerListWidgets + hLowerListWidgets + 10
         wJobWidget=235
         wSubWidget=200
+        wPartWidget = 245
         xSubWidget1=10+wJobWidget+xLabel
         xSubWidget2=xSubWidget1+wSubWidget+10
         xPartIdList = xLineEdit
-        xPartListNames = xPartIdList + wSubWidget + 100
+        xPartListNames = 10 + wJobFrame - wPartWidget - 10
 
         mainWindowSize=[752, yDeleteJob + 2*yDefaultSpacing]
         MainWindow.resize(mainWindowSize[0],mainWindowSize[1])
@@ -167,9 +169,12 @@ class Ui_MainWindow(object):
         self.JobDeleteButton = QPushButton(self.centralwidget)
         self.JobDeleteButton.setObjectName(u"JobDeleteButton")
         self.JobDeleteButton.setGeometry(QRect(10, yDeleteJob, wJobWidget, 25))
+        self.ClearSubprocessesButton = QPushButton(self.centralwidget)
+        self.ClearSubprocessesButton.setObjectName(u"ClearSubprocessesButton")
+        self.ClearSubprocessesButton.setGeometry(QRect(xSubWidget1, yDeleteJob, wSubWidget + 10 + wSubWidget, 25))
         self.PartSelectButton = QPushButton(self.centralwidget)
         self.PartSelectButton.setObjectName(u"PartSelectButton")
-        self.PartSelectButton.setGeometry(QRect(xLineEdit, yPartSelect, wSubWidget, 25))
+        self.PartSelectButton.setGeometry(QRect(xLineEdit, yPartSelect, 10 + wJobFrame - 10 - xLineEdit, 25))
         self.SubprocessList = QLabel(self.centralwidget)
         self.SubprocessList.setObjectName(u"SubprocessList")
         self.SubprocessList.setGeometry(QRect(xSubWidget1, yLowerListWidgetLabels, 110, 17))
@@ -181,12 +186,12 @@ class Ui_MainWindow(object):
         self.subprocessListWidget_2.setObjectName(u"listWidget_2")
         self.subprocessListWidget_2.setGeometry(QRect(xSubWidget2, yLowerListWidgets, wSubWidget, hLowerListWidgets))
 
-        self.subprocessListWidget_3 = QListWidget(self.centralwidget)
+        self.subprocessListWidget_3 = QListWidget(self.centralwidget) #PartListWidget1
         self.subprocessListWidget_3.setObjectName(u"listWidget_3")
-        self.subprocessListWidget_3.setGeometry(QRect(xLineEdit, yPartLists, wSubWidget, hPartIdListWidget))
-        self.subprocessListWidget_4 = QListWidget(self.centralwidget)
+        self.subprocessListWidget_3.setGeometry(QRect(xLineEdit, yPartLists, wPartWidget, hPartIdListWidget))
+        self.subprocessListWidget_4 = QListWidget(self.centralwidget) #PartListWidget2
         self.subprocessListWidget_4.setObjectName(u"listWidget_4")
-        self.subprocessListWidget_4.setGeometry(QRect(xLineEdit + wSubWidget + 100, yPartLists, wSubWidget, hPartIdListWidget))
+        self.subprocessListWidget_4.setGeometry(QRect(xPartListNames, yPartLists, wPartWidget, hPartIdListWidget))
 
         
         self.frame = QFrame(self.centralwidget)     # Subprocess Frame
@@ -204,7 +209,7 @@ class Ui_MainWindow(object):
         self.widget.setStyleSheet("background-color: rgb(155, 155, 155)") # background colour of widget that covers whole background
         self.frame1 = QFrame(self.centralwidget)    # Job Frame
         self.frame1.setObjectName(u"frame")
-        self.frame1.setGeometry(QRect(10, yJobFrame, 665, hJobFrame))
+        self.frame1.setGeometry(QRect(10, yJobFrame, wJobFrame, hJobFrame))
         self.frame1.setFrameShape(QFrame.Panel)
         self.frame1.setFrameShadow(QFrame.Raised)
         self.frame1.setLineWidth(3)
@@ -221,7 +226,7 @@ class Ui_MainWindow(object):
         self.JobID.raise_()
         self.job_id.raise_()
         self.PartID.raise_()
-        self.part_id.raise_()
+        #self.part_id.raise_()
         self.PartIDList.raise_()
         self.PartListNames.raise_()
         self.PartLocation.raise_()
@@ -246,6 +251,7 @@ class Ui_MainWindow(object):
         self.SubprocessList.raise_()
         self.jobListWidget.raise_()
         self.JobDeleteButton.raise_()
+        self.ClearSubprocessesButton.raise_()
         self.PartSelectButton.raise_()
         self.subprocessListWidget_1.raise_()
         self.subprocessListWidget_2.raise_()
@@ -285,6 +291,7 @@ class Ui_MainWindow(object):
         self.ActiveJobList.setText(QCoreApplication.translate("MainWindow", u"Active Job List", None))
         self.SubprocessList.setText(QCoreApplication.translate("MainWindow", u"Subprocess List", None))
         self.JobDeleteButton.setText(QCoreApplication.translate("MainWindow", u"Delete selected job", None))
+        self.ClearSubprocessesButton.setText(QCoreApplication.translate("MainWindow", u"Clear subprocess list", None))
         self.PartSelectButton.setText(QCoreApplication.translate("MainWindow", u"Select Part", None))
     # retranslateUi
 

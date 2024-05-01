@@ -5,6 +5,7 @@ import sys
 import gui.Interface_ui as ui
 import time
 import random
+import numpy as np
 from fams_interfaces.msg import Job, JobList, SubProcess, Part, SystemState, EmergencyControl
 
 from threading import Thread
@@ -24,7 +25,9 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         super(Interface, self).__init__(parent)
         self.setupUi(self)
         self.rosnode = rosnode
-        
+        self.partObj=Part()
+        self.partIdCheck = 0
+        self.addToListCheck = 0
         #self.stopButton.clicked.connect(self.rosnode.start) # if stopButton is clicked
         
         # jobListWidget testing vvv
@@ -53,8 +56,9 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
         self.jobListWidget.clicked.connect(self.jobListWidgetHandler) # if jobListWidget is clicked
         #self.jobListWidget.selectedItems()
-        self.jobListWidget.currentItemChanged.connect(self.current_item_changed) # if the selected item has changed
+        self.jobListWidget.currentItemChanged.connect(self.jobListWidget_current_item_changed) # if the selected item has changed
         self.jobListWidget.currentTextChanged.connect(self.current_text_changed) # if the selected text has changed
+        self.subprocessListWidget_3.currentItemChanged.connect(self.subprocessListWidget_3_current_item_changed) # if the selected item has changed
 
         self.subprocessListWidget_1.currentRowChanged.connect(self.subprocess1_row_changed) # if the selected item has changed 
         self.subprocessListWidget_2.currentRowChanged.connect(self.subprocess2_row_changed) # if the selected item has changed 
@@ -62,6 +66,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.subprocessListWidget_4.currentRowChanged.connect(self.part2_row_changed) # if the selected item has changed (PART LIST 2)
 
         self.JobDeleteButton.clicked.connect(self.JobDeleteButtonHandler)
+        self.ClearSubprocessesButton.clicked.connect(self.ClearSubprocessesButtonHandler)
+        self.PartSelectButton.clicked.connect(self.PartSelectButtonHandler)
        
     def jobListWidgetHandler(self, text):
         #self.jobListWidget.takeItem(self.jobListWidget.currentRow())
@@ -86,9 +92,13 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print("Current row : ",row)
         self.subprocessListWidget_3.setCurrentRow(row)
 
-    def current_item_changed(self, item):
+    def jobListWidget_current_item_changed(self, item):
         print("Current item : ",item.text())
-        self.widgetItem = item
+        self.jobWidgetItem = item
+
+    def subprocessListWidget_3_current_item_changed(self, item):
+        print("Current item : ",item.text())
+        self.partWidgetItem = item
 
     def current_text_changed(self,text):
         print("Current text changed : ",text)
@@ -96,6 +106,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
     
     def stopButtonHandler(self):
         print("stop")
+        self.stopButton.setStyleSheet("background-color: rgb(143, 0, 0)")
+        self.widget.setStyleSheet("background-color: rgb(200, 155, 155)")
         #self.emergency = 1
         #self.rosnode.emergency_publisher.publish(self.emergency)
        # self.get_logger().info('stop')
@@ -109,8 +121,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #self.rosnode.get_logger().info(str(self.jobListWidget.currentRow()))
         print('currentRow: ',str(self.jobListWidget.currentRow()))
 
-        print('currentItem***: ',str(self.widgetItem.text()))
-        self.jobObj.job_id = int(self.widgetItem.text())
+        print('currentItem***: ',str(self.jobWidgetItem.text()))
+        self.jobObj.job_id = int(self.jobWidgetItem.text())
         #self.jobObj.job_id = 11111
         self.jobObj.priority=0
         partObj=Part()
@@ -131,6 +143,13 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         #self.jobObj.add_remove = 'REMOVE'
         self.rosnode.job_publisher.publish(self.jobObj)
 
+    def PartSelectButtonHandler(self):
+        print('currentRow: ',str(self.subprocessListWidget_3.currentRow()))
+        print('currentItem***: ',str(self.partWidgetItem.text()))
+        self.partObj.part_id = str(self.partWidgetItem.text())
+        self.partIdCheck = 1
+        self.AddJobButtonCheck()
+
     def addToListHandler(self):
         #print(str(self.subID.text()))
         #print(str(self.opType.text()))
@@ -148,10 +167,12 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print((sub1.operation_type))
         print((sub1.start_time))
         print((sub1.end_time))
-        self.jobObj.subprocesses.append(sub1)
+        self.jobObj.subprocesses.append(sub1) # <-- appends to subprocess list here
         print((self.jobObj.subprocesses[0]))
         
-        self.addJobButton.setStyleSheet("background-color: rgb(0, 255, 0)")
+        self.addToListCheck=1
+        self.AddJobButtonCheck()
+
         self.subprocessListWidget_1.clear() # clears subprocess_id listWidget
         self.subprocessListWidget_2.clear() # clears subprocess operation listWidget
         for i in range(len(self.jobObj.subprocesses)):
@@ -170,12 +191,13 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
     def addJobButtonHandler(self):
         self.jobObj.job_id=int(self.job_id.text())
 
-        partObj=Part()
-        partObj.part_id = int(self.part_id.text())
-        partObj.location = str(self.partLocation.text())
-        partObj.current_subprocess_id = 0
-        partObj.job_id = self.jobObj.job_id
-        self.jobObj.part = partObj
+        
+        #partObj.part_id = int(self.part_id.text()) # part id no longer comes from lineEdit
+        self.partObj.part_id = str(self.partWidgetItem.text())
+        self.partObj.location = str(self.partLocation.text())
+        self.partObj.current_subprocess_id = 0
+        self.partObj.job_id = self.jobObj.job_id
+        self.jobObj.part = self.partObj
 
         self.jobObj.start_time=int(self.startTime.text())
         self.jobObj.end_time=int(self.endTime.text())
@@ -201,7 +223,23 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print('Job message has been published with job_id: ', self.jobObj.job_id)
         # self.interface.label.setText('Job message has been published')
 
-        self.jobObj.subprocesses=[] #clears subprocesses list
+        #self.jobObj.subprocesses=[] #clears subprocesses list
+
+    def ClearSubprocessesButtonHandler(self):
+        self.clearSubprocessesList()
+        self.addToListCheck = 0
+        self.AddJobButtonCheck()
+
+    def clearSubprocessesList(self):
+        self.jobObj.subprocesses=[]
+        self.subprocessListWidget_1.clear() # clears subprocess_id listWidget
+        self.subprocessListWidget_2.clear() # clears subprocess operation listWidget
+
+    def AddJobButtonCheck(self):
+        if self.partIdCheck == 1 and self.addToListCheck == 1:
+            self.addJobButton.setStyleSheet("background-color: rgb(143, 143, 191)") # <-- addJobButton turns green here
+        else:
+            self.addJobButton.setStyleSheet("background-color: rgb(60, 60, 80)") # <-- addJobButton turns back to original colour here
 
 class InterfaceNode(Node):
     def __init__(self):
