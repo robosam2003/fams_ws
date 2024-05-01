@@ -44,7 +44,7 @@ def quaternion_from_euler(ai, aj, ak):
 """
 To launch a workstation, with a mover6, use:
 Workstation 2:
-    ros2 launch mover6_description mover6_launch.py initial_base_link_pos:="3.31 2.20 -1.57079" robot_name:="mover61"
+    ros2 launch mover6_description mover6_launch.py robot_name:=mover62 initial_base_link_pos:="3.31 2.05 -1.57079"
 """
 
 
@@ -107,7 +107,7 @@ class Workstation(Node):
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
 
         self.place_location = [0.36, -0.05, 0.15]
-        self.rfid_scan_location = [0.0, 0.41, 0.14]
+        self.rfid_scan_location = [-0.05, 0.41, 0.15]
         self.idle_position = [0.30, -0.30, 0.30]
         self.previous_pickup_location = [0.3, 0.3, 0.3]
         self.zero_point = [0.34594893, 0.01, 0.44677551]
@@ -261,7 +261,7 @@ class Workstation(Node):
 
             self.mover6Publisher.publish(mover6_pose_msg)
             self.get_logger().info("Published pose to mover6: " + str(mover6_pose_msg.position.x) + ", " + str(mover6_pose_msg.position.y) + ", " + str(mover6_pose_msg.position.z))
-            time.sleep(0.08)
+            time.sleep(0.06)
             self.current_point = target_point # Update the current point to the target point (it's moved)
         
     def vision_callback(self, msg):

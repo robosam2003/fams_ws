@@ -123,27 +123,52 @@ class WorkstationController(Node):
                     parts_schedule = self.schedule.parts
                     subprocesses_schedule = self.schedule.subprocesses
                     workstations_schedule = self.schedule.workstations
-                    self.send_workstation_command(2, "INPUT")
+                    # self.send_workstation_command(2, "INPUT")
+
+                    # Two scenarios:
+                    #  - The robot could be dropping off a part at the workstation. 
+                    #  - The robot could be picking up a part from the workstation.
                     
                     # Check if the part on that robot is supposed to be processed at that workstation
                     amr_id = self.vision_locations.part_id[i] # "Part ID" here is actually the AMR ids
                     for part in parts_schedule:
-                        if part.location == "amr"+amr_id: # Select the part that is on the AMR
-                            index = parts_schedule.index(part) # Find the index (in the schedule) of the part that is on the AMR
-                            workstation = workstations_schedule[index] # Match that index with the workstation in the schedule
-                            
-                            # Check if the workstation is available
+                        if part.location.startswith("workstation"): # If the part is at a workstation, the robot is coming to pick it up
+                            index = parts_schedule.index(part)
+                            workstation = workstations_schedule[index]
+
                             for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
                                 if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
-                                    if state_workstation.status == 'FREE':
-                                        # Send a command to the AMR to move to the workstation
-                                        self.send_workstation_command(workstation.id, "INPUT")
-                                    elif state_workstation.status == 'BUSY':
+                                    if state_workstation.status == 'BUSY':
+                                        # If the workstation is free, the robot is coming to pick up a part
                                         self.send_workstation_command(workstation.id, "OUTPUT")
+                                        break
+                                    # elif state_workstation.status == 'FREE':
+                                        
+                                    #     self.send_workstation_command(workstation.id, "INPUT")
+                                    #     break
                                     else:
+                                        self.get_logger().info("WORKSTATION IS FREE??? OR BROKEN")
                                         # The workstation is busy or broken
                                         pass
-                        # elif part.location == "workstation"+
+
+                        if part.location == "amr"+str(amr_id): # If the part is on the robot at the docking location
+                            index = parts_schedule.index(part)
+                            workstation = workstations_schedule[index]
+                            if workstation.id == j+1: # If the workstation id in the schedule matches the workstation id of the docking pose that matches (to avoid running this as soon as a part is placed)
+                                
+                                for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
+                                    if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
+                                        if state_workstation.status == 'FREE':
+                                            # If the workstation is free, and the part is on the robot, the robot is coming to drop off a part
+                                            self.send_workstation_command(workstation.id, "INPUT")
+                                            break
+                                        # elif state_workstation.status == 'BUSY':
+                                        #     self.send_workstation_command(workstation.id, "INPUT")
+                                        #     break
+                                        else:
+                                            # The workstation is busy or broken
+                                            self.get_logger().info("WORKSTATION IS BUSY OR BROKEN")
+                                            pass
                     # If here, there is no part on the AMR that is at a docking location.
                     pass
         # If here, there are no AMRs close enough to any of the docking poses

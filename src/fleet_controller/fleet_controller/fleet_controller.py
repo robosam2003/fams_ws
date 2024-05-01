@@ -139,44 +139,47 @@ class FleetController(Node):
             for i in range(n):
                 part = parts_schedule[i]
                 subprocess = subprocesses_schedule[i]
-                workstation = workstations_schedule[i]
+                next_workstation = workstations_schedule[i]
 
                 # Find the location of the part
                 part_location = part.location
-                if part_location.startswith("workstation"):
+                if part_location.startswith("workstation"): # If the part is at a workstation, go and pick it up
                     workstation_name = part_location
+                elif part_location.startswith("amr"): # If the part is on an amr (just loaded from a workstation)
+                    # Send the robot to the next workstation
+                    workstation_name = "workstation" + str(next_workstation.workstation_id)
 
-                    # Set the workstation goal pose
-                    workstation_pose = PoseStamped()
-                    workstation_pose.header.frame_id = "map"
-                    workstation_pose.pose.position.x = self.workstation_goal_poses[workstation_name][0]
-                    workstation_pose.pose.position.y = self.workstation_goal_poses[workstation_name][1]
-                    workstation_pose.pose.position.z = 0.0
-                    yaw = self.workstation_goal_poses[workstation_name][2]
-                    q = quaternion_from_euler(0, 0, yaw)
-                    workstation_pose.pose.orientation.x = q[0]
-                    workstation_pose.pose.orientation.y = q[1]
-                    workstation_pose.pose.orientation.z = q[2]
-                    workstation_pose.pose.orientation.w = q[3]
-                                        
-                    # Find a free AMR
-                    amr_sending = free_amrs.pop()
+                # Set the workstation goal pose
+                workstation_pose = PoseStamped()
+                workstation_pose.header.frame_id = "map"
+                workstation_pose.pose.position.x = self.workstation_goal_poses[workstation_name][0]
+                workstation_pose.pose.position.y = self.workstation_goal_poses[workstation_name][1]
+                workstation_pose.pose.position.z = 0.0
+                yaw = self.workstation_goal_poses[workstation_name][2]
+                q = quaternion_from_euler(0, 0, yaw)
+                workstation_pose.pose.orientation.x = q[0]
+                workstation_pose.pose.orientation.y = q[1]
+                workstation_pose.pose.orientation.z = q[2]
+                workstation_pose.pose.orientation.w = q[3]
+                                    
+                # Find a free AMR
+                amr_sending = free_amrs[0]
 
-                    # Send the AMR to the workstation
-                    self.nexus1_goal_pose_publisher.publish(workstation_pose)
-                    self.get_logger().info(f"Sent AMR to workstation {workstation_name}")
+                # Send the AMR to the workstation
+                self.nexus1_goal_pose_publisher.publish(workstation_pose)
+                self.get_logger().info(f"Sent AMR to workstation {workstation_name}")
 
-                    # Set the AMR to busy
-                    # Find the amr in the system state
-                    for amr_state in self.system_state.mobile_robots:
-                        if amr_state.name == amr_sending.name:
-                            amr_state.state = "BUSY"
-                            break
-                    # Publish the new system state
-                    self.system_state_publisher.publish(self.system_state)
-                    break
-            if part_location.startswith("amr"):
-                # Send the robot to the next subprocess
+                # Set the AMR to busy
+                # Find the amr in the system state
+                for amr_state in self.system_state.mobile_robots:
+                    if amr_state.name == amr_sending.name:
+                        amr_state.state = "BUSY"
+                        break
+                # Publish the new system state
+                self.system_state_publisher.publish(self.system_state)
+                break
+
+
                 
 
         
