@@ -111,7 +111,10 @@ class FleetController(Node):
         # Here, we update the location of the AMR in the system state
         for amr_state in self.system_state.mobile_robots:
             if amr_state.name == "nexus1":
-                amr_state.physical_location = [msg.x, -msg.y, -msg.z] # x, y, yaw
+                map_odom_tf = [1.77, 1.015, 0]
+                amr_state.physical_location = [msg.x + map_odom_tf[0],
+                                                -msg.y + map_odom_tf[1],
+                                                -msg.z + map_odom_tf[2]] # x, y, yaw
                 # y and yaw are negated because of camera frame being wierd.
                 break
         
@@ -120,7 +123,7 @@ class FleetController(Node):
 
 
     def assign_fleet(self):
-        self.get_logger().info("Assigning fleet")
+        # self.get_logger().info("Assigning fleet")
         parts_schedule = self.schedule.parts
         subprocesses_schedule = self.schedule.subprocesses
         workstations_schedule = self.schedule.workstations
@@ -132,7 +135,7 @@ class FleetController(Node):
                 free_amrs.append(amr_sending)
 
         if len(free_amrs) != 0: # If there are free AMRs
-            self.get_logger().info("There are free AMRs! - Assigning them now")
+            # self.get_logger().info("There are free AMRs! - Assigning them now")
             for i in range(n):
                 part = parts_schedule[i]
                 subprocess = subprocesses_schedule[i]
@@ -172,6 +175,10 @@ class FleetController(Node):
                     # Publish the new system state
                     self.system_state_publisher.publish(self.system_state)
                     break
+            if part_location.startswith("amr"):
+                # Send the robot to the next subprocess
+                
+
         
         
 
