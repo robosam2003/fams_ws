@@ -150,10 +150,11 @@ class Workstation(Node):
         location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
         
         self.get_logger().info('Excecuting Part Input')
-        # part_location = location_array_2D[0]
-        # part_location = [float(i) for i in part_location]
-        part_location = [0.3, 0.3, 1.57]
-        # self.get_logger().info(f'Part Location: {part_location}')
+        part_location = location_array_2D[0]
+        part_location = [float(i) for i in part_location]
+        part_location[0] = part_location[0] - 0.07
+        # part_location = [0.3, 0.3, 1.57] # FAKE LOCATION
+        self.get_logger().info(f'Part Location: {part_location}')
         self.previous_pickup_location = part_location
         
         delay_between_operations = 1
@@ -163,7 +164,7 @@ class Workstation(Node):
         time.sleep(delay_between_operations)
         self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(part_location[0], part_location[1], 0.11) # Move down to over part
+        self.move_robot(part_location[0], part_location[1], 0.16) # Move down to over part
         time.sleep(delay_between_operations)
         self.close_gripper()
         time.sleep(delay_between_operations)
@@ -185,7 +186,7 @@ class Workstation(Node):
         delay_between_operations = 1
         self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.3)
         time.sleep(delay_between_operations)
-        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.11)
+        self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.16)
         time.sleep(delay_between_operations)
         self.open_gripper()
         time.sleep(delay_between_operations)
@@ -264,7 +265,7 @@ class Workstation(Node):
     def vision_callback(self, msg):
         # self.get_logger().info('Received Vision Locations')
         if len(msg.part_location) == 0:
-            # self.get_logger().info('No parts detected')
+            self.get_logger().warn('No parts detected')
             return
         # else
         self.vision_locations = msg

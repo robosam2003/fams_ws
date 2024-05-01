@@ -108,8 +108,8 @@ class mover6(Node):
         # self.main_loop()
         # Initialise the joint states
         self.joint_states = JointState()
-        self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5']
-        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.joint_states.name = ['Joint0', 'Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5', 'Gripper1', 'Gripper2']
+        self.joint_states.position = [0.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0, 0.0]
 
 
 
@@ -180,9 +180,17 @@ class mover6(Node):
             time.sleep(2/1000) 
         # Publish the joint positions
         DEG_TO_RAD = np.pi/180
-        self.joint_states.position[0:6] = [float(j.current_position_deg*DEG_TO_RAD) for j in self.joints] # Local joint states are in degrees, message is in radians for rviz
+        self.joint_states.position = [] # Clear the joint states
+        self.joint_states.position = [float(j.current_position_deg*DEG_TO_RAD) for j in self.joints] # Local joint states are in degrees, message is in radians for rviz
         negate_list = [-1, -1, 1, -1, 1, 1]
-        self.joint_states.position[0:6] = [negate_list[i]*self.joint_states.position[i] for i in range(0, self.num_joints)]
+        self.joint_states.position = [negate_list[i]*self.joint_states.position[i] for i in range(0, self.num_joints)]
+        # Append the gripper states
+        if self.gripper_state:
+            self.joint_states.position.append(0.0)
+            self.joint_states.position.append(0.0)
+        else:
+            self.joint_states.position.append(0.5)
+            self.joint_states.position.append(0.5)
         self.joint_states_publisher.publish(self.joint_states)
 
     def quaternion_to_euler(self, quat):
@@ -221,7 +229,7 @@ class mover6(Node):
         angles[2] = angles[2]
         angles[3] = angles[3]
         angles[4] = angles[4]
-        angles[5] = angles[5]
+        angles[5] = 120
         
     
     def mover6_pose_control_callback(self, msg):
@@ -253,10 +261,14 @@ class mover6(Node):
         # print("Received: ", msg)
         if msg.command == "GRIPPER OPEN":
             self.gripper_state = False
+            self.joint_states.position[6] = 0.5
+            self.joint_states.position[7] = 0.5
             print("Gripper state: ", self.gripper_state)
 
         elif msg.command == "GRIPPER CLOSED":
             self.gripper_state = True
+            self.joint_states.position[6] = 0.0
+            self.joint_states.position[7] = 0.0
             print("Gripper state: ", self.gripper_state)
         if msg.command == "ZERO":
             joint_no = msg.joint_no

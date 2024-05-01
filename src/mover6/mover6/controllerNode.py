@@ -113,14 +113,14 @@ class InterfaceNode(Node):
         # Add subscription and publishers
         self.joint_positions_subscription = self.create_subscription(
             JointState,
-            '/mover6/mover6_joint_states',
+            '/mover62/mover6_joint_states',
             self.joint_positions_callback,
             10
         )
 
         self.joint_control_publisher = self.create_publisher(
             Mover6Control,
-            '/mover6/mover6_control',
+            '/mover62/mover6_control',
             10
         )
         self.joint_states = JointState()
@@ -143,10 +143,10 @@ class InterfaceNode(Node):
         angle = float(joint_angles[joint_no-1])
         if direction == True: # True is up
             angle = joint_angles[joint_no-1]
-            angle += 1
+            angle += 5
         else:
             angle = joint_angles[joint_no-1]
-            angle -= 1
+            angle -= 5
 
         # The control message should be in degrees, the feedback message is in radians
         msg.joint_angles = [float(a) for a in joint_angles]
