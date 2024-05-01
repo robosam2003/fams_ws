@@ -63,7 +63,7 @@ class Ui_MainWindow(object):
         xPartIdList = xLineEdit
         xPartListNames = 10 + wJobFrame - wPartWidget - 10
 
-        mainWindowSize=[752, yDeleteJob + 2*yDefaultSpacing]
+        mainWindowSize=[850, yDeleteJob + 2*yDefaultSpacing]
         MainWindow.resize(mainWindowSize[0],mainWindowSize[1])
 
         self.centralwidget = QWidget(MainWindow)
@@ -177,10 +177,10 @@ class Ui_MainWindow(object):
         self.PartSelectButton.setGeometry(QRect(xLineEdit, yPartSelect, 10 + wJobFrame - 10 - xLineEdit, 25))
         self.LoadedButton = QPushButton(self.centralwidget)
         self.LoadedButton.setObjectName(u"LoadedButton")
-        self.LoadedButton.setGeometry(QRect(0, 0, 140, 25))
+        self.LoadedButton.setGeometry(QRect(10 + wJobFrame + 10, yPartLists, 140, 25))
         self.UnloadedButton = QPushButton(self.centralwidget)
         self.UnloadedButton.setObjectName(u"UnloadedButton")
-        self.UnloadedButton.setGeometry(QRect(10, 10, 140, 25))
+        self.UnloadedButton.setGeometry(QRect(10 + wJobFrame + 10, yPartLists + yDefaultSpacing, 140, 25))
         self.SubprocessList = QLabel(self.centralwidget)
         self.SubprocessList.setObjectName(u"SubprocessList")
         self.SubprocessList.setGeometry(QRect(xSubWidget1, yLowerListWidgetLabels, 110, 17))
@@ -301,7 +301,7 @@ class Ui_MainWindow(object):
         self.JobDeleteButton.setText(QCoreApplication.translate("MainWindow", u"Delete selected job", None))
         self.ClearSubprocessesButton.setText(QCoreApplication.translate("MainWindow", u"Clear subprocess list", None))
         self.PartSelectButton.setText(QCoreApplication.translate("MainWindow", u"Select Part", None))
-        self.PartSelectButton.setText(QCoreApplication.translate("MainWindow", u"Loaded", None))
-        self.PartSelectButton.setText(QCoreApplication.translate("MainWindow", u"Unloaded", None))
+        self.LoadedButton.setText(QCoreApplication.translate("MainWindow", u"Loaded", None))
+        self.UnloadedButton.setText(QCoreApplication.translate("MainWindow", u"Unloaded", None))
     # retranslateUi
 

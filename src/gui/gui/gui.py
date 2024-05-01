@@ -70,8 +70,17 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.JobDeleteButton.clicked.connect(self.JobDeleteButtonHandler)
         self.ClearSubprocessesButton.clicked.connect(self.ClearSubprocessesButtonHandler)
         self.PartSelectButton.clicked.connect(self.PartSelectButtonHandler)
-        
+        self.LoadedButton.clicked.connect(self.LoadedButtonhandler)
+        self.UnloadedButton.clicked.connect(self.UnloadedButtonHandler)
        
+    def LoadedButtonhandler(self):
+        print("Loaded")
+        # self.partWidgetItem.text()
+        #self.partObj.part_id
+
+    def UnloadedButtonHandler(self):
+        print("Unloaded")
+        
     def jobListWidgetHandler(self, text):
         #self.jobListWidget.takeItem(self.jobListWidget.currentRow())
         #self.label_10.setText(str(self.jobListWidget.selectedItems()))
