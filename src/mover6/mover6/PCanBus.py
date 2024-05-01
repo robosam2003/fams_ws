@@ -17,8 +17,8 @@ class PCanBus():
         rec_msg = RecMsg32(msg)
         if vervose:
             if rec_msg.error != "":
-                print(f"\033[91mError: {rec_msg.error}\033[0m")
-            print(f"Received: {rec_msg}")
+                self.get_logger().info(f"\033[91mError: {rec_msg.error}\033[0m")
+            self.get_logger().info(f"Received: {rec_msg}")
         return rec_msg
     
     
