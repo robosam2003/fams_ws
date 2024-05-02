@@ -181,6 +181,9 @@ class Ui_MainWindow(object):
         self.UnloadedButton = QPushButton(self.centralwidget)
         self.UnloadedButton.setObjectName(u"UnloadedButton")
         self.UnloadedButton.setGeometry(QRect(10 + wJobFrame + 10, yPartLists + yDefaultSpacing, 140, 25))
+        self.LoadPresetButton = QPushButton(self.centralwidget)
+        self.LoadPresetButton.setObjectName(u"LoadPresetButton")
+        self.LoadPresetButton.setGeometry(QRect(10 + wJobFrame + 10, 15, 140, 25))
         self.SubprocessList = QLabel(self.centralwidget)
         self.SubprocessList.setObjectName(u"SubprocessList")
         self.SubprocessList.setGeometry(QRect(xSubWidget1, yLowerListWidgetLabels, 110, 17))
@@ -261,6 +264,7 @@ class Ui_MainWindow(object):
         self.PartSelectButton.raise_()
         self.LoadedButton.raise_()
         self.UnloadedButton.raise_()
+        self.LoadPresetButton.raise_()
         self.subprocessListWidget_1.raise_()
         self.subprocessListWidget_2.raise_()
         self.subprocessListWidget_3.raise_()
@@ -303,5 +307,6 @@ class Ui_MainWindow(object):
         self.PartSelectButton.setText(QCoreApplication.translate("MainWindow", u"Select Part", None))
         self.LoadedButton.setText(QCoreApplication.translate("MainWindow", u"Loaded", None))
         self.UnloadedButton.setText(QCoreApplication.translate("MainWindow", u"Unloaded", None))
+        self.LoadPresetButton.setText(QCoreApplication.translate("MainWindow", u"Load Preset", None))
     # retranslateUi
 

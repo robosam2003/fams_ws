@@ -28,6 +28,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.partObj=Part()
         self.partIdCheck = 0
         self.addToListCheck = 0
+        self.preset_path = "./src/gui/gui/preset.csv"  # Relative so that it works on any machine
         #self.stopButton.clicked.connect(self.rosnode.start) # if stopButton is clicked
         
         # jobListWidget testing vvv
@@ -158,6 +159,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print("stop")
         self.stopButton.setStyleSheet("background-color: rgb(143, 0, 0)")
         self.widget.setStyleSheet("background-color: rgb(200, 155, 155)")
+        self.csv_to_lineEdits()
         #self.emergency = 1
         #self.rosnode.emergency_publisher.publish(self.emergency)
        # self.get_logger().info('stop')
@@ -302,6 +304,58 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
             self.addJobButton.setStyleSheet("background-color: rgb(143, 143, 191)") # <-- addJobButton turns green here
         else:
             self.addJobButton.setStyleSheet("background-color: rgb(60, 60, 80)") # <-- addJobButton turns back to original colour here
+
+    def csv_to_lineEdits(self):
+        # Convert csv string to Job message
+
+        with open(self.preset_path, "r") as f:
+            for line in f:
+                csv_list = line.split(',')
+                job = Job()
+                self.rosnode.get_logger().info(csv_list[0])
+                #self.rosnode.get_logger().info(int(csv_list[0]))
+                job.job_id = int(csv_list[0])
+                self.job_id.setText(csv_list[0])
+                #job.priority = int(csv_list[1])
+
+                part = Part()
+                #part.part_id = str(csv_list[2])
+                part.location = str(csv_list[3])
+                self.partLocation.setText(csv_list[3])
+                #part.current_subprocess_id = int(csv_list[4])
+                #part.job_id = int(csv_list[5])
+                #job.part = part
+
+                part_obj_size = 6 # Number of parameters in the Part object
+                sub_obj_size = 4 # Number of parameters in the SubProcess object
+                sub_start_id = 2 + part_obj_size
+                n_sub = (len(csv_list) - part_obj_size - 5) // sub_obj_size
+                for i in range(n_sub):
+                    sub = SubProcess()
+                    sub.sub_process_id = int(csv_list[sub_start_id + sub_obj_size*i])
+                    sub.operation_type = str(csv_list[sub_start_id + sub_obj_size*i + 1])
+                    sub.start_time = int(csv_list[sub_start_id + sub_obj_size*i + 2])
+                    sub.end_time = int(csv_list[sub_start_id + sub_obj_size*i + 3])
+                    job.subprocesses.append(sub)
+                    print(" i =  ",i)
+                    if i == 1:
+                        self.subID.setText(csv_list[sub_start_id + sub_obj_size*i])
+                        self.opType.setText(csv_list[sub_start_id + sub_obj_size*i + 1])
+                        self.subStartTime.setText(csv_list[sub_start_id + sub_obj_size*i + 2])
+                        self.subEndTime.setText(csv_list[sub_start_id + sub_obj_size*i + 3])
+
+        
+                #print('csv_list[-3] = ', csv_list[-3])
+                #print('csv_list[-2] = ', csv_list[-2])
+                #print('csv_list[-1] = ', csv_list[-1])
+                job.start_time = int(csv_list[-3])
+                self.startTime.setText(csv_list[-3])
+                job.end_time = int(csv_list[-2])
+                self.endTime.setText(csv_list[-2])
+                job.status = str(csv_list[-1])
+        
+
+
 
 class InterfaceNode(Node):
     def __init__(self):
