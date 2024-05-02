@@ -145,7 +145,7 @@ class WorkstationController(Node):
                 distance = math.sqrt((amr_location[0] - docking_pose.x)**2 + (amr_location[1] - docking_pose.y)**2)
                 # self.get_logger().info(f"distance: {distance}, YAW: {amr_location[2]}")
                 # If the AMR is close enough to the docking pose
-                if distance <= 0.09 and amr_location[2] - docking_pose.z <= 0.12: # There could be a better way of checking that the robot is at the docking location. 
+                if distance <= 0.13 and amr_location[2] - docking_pose.z <= 0.18: # There could be a better way of checking that the robot is at the docking location. 
                     # The AMR is close enough and aligned with the docking pose of the workstation
                     self.get_logger().info("WE ARE AT A WORKSTATION YESSSSS")
                     time.sleep(1)
@@ -188,12 +188,15 @@ class WorkstationController(Node):
                                     if state_workstation.workstation_id == workstation.workstation_id: # Match the actual workstation id with the workstation id in the schedule
                                         if state_workstation.state == 'FREE':
                                             # If the workstation is free, and the part is on the robot, the robot is coming to drop off a part
+                                            time.sleep(1)
                                             self.send_workstation_command(workstation.workstation_id, "INPUT")
+                                            time.sleep(10)
                                             self.workstations_state[workstation.workstation_id-1].state = 'BUSY' # Workstation is now busy, processing the part.
                                             # PROCESS THE PART.
-                                            time.sleep(7) # This is the time it takes to process the part
+                                            self.get_logger().info("PROCESSING THE PART")
+                                            time.sleep(15) # This is the time it takes to process the part
                                             self.send_workstation_command(workstation.workstation_id, "OUTPUT")
-                                            time.sleep(3) # This is the time it takes to drop off the part
+                                            time.sleep(10) # This is the time it takes to drop off the part
                                             self.workstations_state[workstation.workstation_id-1].state = 'FREE' # Workstation is now free
                                             break
                                         # elif state_workstation.state == 'BUSY':

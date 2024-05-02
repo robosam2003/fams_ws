@@ -177,7 +177,7 @@ class FleetController(Node):
                 amr_sending = free_amrs[0]
 
                 mag = math.sqrt((amr_sending.physical_location[0] - workstation_pose.pose.position.x)**2 + (amr_sending.physical_location[1] - workstation_pose.pose.position.y)**2)
-                if mag < 0.12 and (yaw - amr_sending.physical_location[2]) < 0.15:
+                if mag < 0.12 and (yaw - amr_sending.physical_location[2]) < 0.18:
                     break # Don't keep sending locations.
 
                 # Send the AMR to the workstation
