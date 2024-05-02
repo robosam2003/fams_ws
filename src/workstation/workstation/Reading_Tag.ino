@@ -32,15 +32,15 @@ void setup()
 {
     Wire.begin(); 
     Serial.begin(115200); 
-    Serial.println("Read Tag."); 
+    // Serial.println("Read Tag."); 
 
-    if(!myRfid.begin()){
-        Serial.println("Could not communicate with Qwiic RFID, check you have the correct address!"); 
-        //while(1){}
-        }
+    // if(!myRfid.begin()){
+    //     Serial.println("Could not communicate with Qwiic RFID, check you have the correct address!"); 
+    //     //while(1){}
+    //     }
     
 
-    Serial.println("Ready to scan some tags!"); 
+    // Serial.println("Ready to scan some tags!"); 
 
     // Want to clear tags sitting on the Qwiic RFID card?
     //myRfid.clearTags();
@@ -57,12 +57,12 @@ void loop() {
   if (tag != "000000") {
     // Print the tag ID
     //Serial.print("Tag ID: ");
-    Serial.print(tag);
+    Serial.println(tag);
     
     //long time = myRfid.getReqTime(); 
-    scanTime = myRfid.getPrecReqTime(); 
-    Serial.print(" Scan Time: ");
-    Serial.println(scanTime);
+    // scanTime = myRfid.getPrecReqTime(); 
+    // Serial.print(" Scan Time: ");
+    // Serial.println(scanTime);
     
   }
 }
