@@ -1,7 +1,7 @@
 import rclpy
 import csv
 from rclpy.node import Node
-from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Schedule, Workstation, JobList, LoadUnload
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Schedule, Workstation, JobList, LoadUnload, RFID
 from rosidl_runtime_py import *
 
 
@@ -58,8 +58,34 @@ class Scheduler(Node):
             self.load_unload_callback,
             10
         )
+
+        self.rfid_subscriber = self.create_subscription(
+            RFID,
+            "rfid_tag",
+            self.rfid_callback,
+            10
+        )
         
         self.update_active_job_list() # Update active job list from job log
+
+    def rfid_callback(self, msg):
+        workstation_id = msg.workstation_id
+        rfid_id = msg.rfid_code
+
+        if workstation_id == 0:
+            # This is a load event onto the AMR
+            for part in self.parts_state:
+                if part.part_id == rfid_id:
+                    part.location = "amr0"
+                    break
+        else:
+            for part in self.parts_state:
+                if part.part_id == rfid_id:
+                    part.location = "workstation" + str(workstation_id)
+                    break
+        self.system_state.parts = self.parts_state
+        self.state_publisher.publish(self.system_state)                
+        
 
     def load_unload_callback(self, msg):
         selected_part_id = msg.part_id

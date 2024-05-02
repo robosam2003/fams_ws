@@ -152,7 +152,6 @@ class WorkstationController(Node):
                     parts_schedule = self.schedule.parts
                     subprocesses_schedule = self.schedule.subprocesses
                     workstations_schedule = self.schedule.workstations
-                    # self.send_workstation_command(2, "INPUT")
 
                     # Two scenarios:
                     #  - The robot could be dropping off a part at the workstation. 
@@ -191,6 +190,11 @@ class WorkstationController(Node):
                                             # If the workstation is free, and the part is on the robot, the robot is coming to drop off a part
                                             self.send_workstation_command(workstation.workstation_id, "INPUT")
                                             self.workstations_state[workstation.workstation_id-1].state = 'BUSY' # Workstation is now busy, processing the part.
+                                            # PROCESS THE PART.
+                                            time.sleep(7) # This is the time it takes to process the part
+                                            self.send_workstation_command(workstation.workstation_id, "OUTPUT")
+                                            time.sleep(3) # This is the time it takes to drop off the part
+                                            self.workstations_state[workstation.workstation_id-1].state = 'FREE' # Workstation is now free
                                             break
                                         # elif state_workstation.state == 'BUSY':
                                         #     self.send_workstation_command(workstation.id, "INPUT")

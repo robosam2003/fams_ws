@@ -127,13 +127,18 @@ class Workstation(Node):
             self.rfid_scan_location = [-0.05, -0.41, 0.15] # Scan the other way please
 
 
-        # self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
-        # self.read_raspberry_pi_()
+        self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
         self.rfid_tag=0
+
+        self.rfid_publisher = self.create_publisher(
+            RFID,
+            'rfid_tag',
+            10
+        )
         
     
-        # self.rfid_timer=self.create_timer(1,
-        #                                   self.read_rfid)
+        self.rfid_timer=self.create_timer(0.5,
+                                          self.read_rfid)
 
     def system_state_callback(self,msg):
         self.system_state=msg
@@ -208,33 +213,12 @@ class Workstation(Node):
         self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.3)
         time.sleep(delay_between_operations)
         self.move_robot(self.zero_point[0], self.zero_point[1], self.zero_point[2])
-        
 
-    
-        
-#         parts=msg.parts
-#         for i in parts:
-#             if parts[i].part_id==self.msg.rfid_code:
-#                 #which part’s loc to assign workstation to
-#                 parts[i].location=self.workstationName
-#                 print("part location changed to: ", parts[i].location)
-        
-        
-# #function move to box 
-# #find out which id is where
-#         part_id=self.vision_locations.part_id
-#         print(
-#         part_id,
-#         location_array_2D[0])
-#         self.get_logger().info(part_id,
-#         location_array_2D[0])
-        
-
-#         #SAM: update part's current subprocess
-
-
-#         workstation1=Workstation
-#         workstation1.state='free'
+        # Update the part location to amr0
+        msg = RFID()
+        msg.workstation_id = 0 # 0 indicates that this is a loading onto amr (output) event
+        msg.rfid_code = self.rfid_tag
+        self.rfid_publisher.publish(msg)
     
     def calculate_unit_vector(self, current_point, target_point):
         vector = np.array(target_point) - np.array(current_point)
@@ -295,16 +279,20 @@ class Workstation(Node):
             self.handle_part_output(msg)
     
     def read_rfid(self):
-        msg = RFID()
+        # msg = RFID()
         a = self.ser.readline().strip()  # Remove leading/trailing whitespace
-        msg.rfid_code = a.decode('utf-8')  # bytes to string
+        rfid_code = a.decode('utf-8')  # bytes to string
         if len(a) > 0:
-            self.get_logger().info(msg.rfid_code)
+            self.get_logger().info(rfid_code)
             #var = var[len("Tag ID:"):].strip()
-            if msg.rfid_code != None:
-                self.rfid_tag=msg.rfid_code
+            if rfid_code != None:
+                self.rfid_tag=rfid_code
                 print(self.rfid_tag)
                 print("update current rfid tag")
+                msg = RFID()
+                msg.workstation_id = self.workstation_id
+                msg.rfid_code = self.rfid_tag
+                self.rfid_publisher.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
