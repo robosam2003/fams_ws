@@ -144,7 +144,7 @@ class WorkstationController(Node):
         for i, amr_location in enumerate(amr_locations): # For every amr location
             for j, docking_pose in enumerate(self.workstation_docking_poses): # For every possible docking pose
                 distance = math.sqrt((amr_location[0] - docking_pose.x)**2 + (amr_location[1] - docking_pose.y)**2)
-                # self.get_logger().info(f"distance: {distance}, YAW: {amr_location[2]}")
+                self.get_logger().info(f"distance: {distance}, YAW: {amr_location[2]}")
                 # If the AMR is close enough to the docking pose
                 if distance <= 0.15 and amr_location[2] - docking_pose.z <= 0.18: # There could be a better way of checking that the robot is at the docking location. 
                     # The AMR is close enough and aligned with the docking pose of the workstation
@@ -164,7 +164,7 @@ class WorkstationController(Node):
                     for part in parts_schedule:
                         if part.location.startswith("workstation"): # If the part is at a workstation, the robot is coming to pick it up
                             index = parts_schedule.index(part)
-                            state_workstation = self.system_state.workstations[j] # The workstation that the part is at
+                            state_workstation = self.workstations_state # The workstation that the part is at
 
                             # for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
                                 # if state_workstation.workstation_id == workstation.workstation_id: # Match the actual workstation id with the workstation id in the schedule
@@ -185,7 +185,7 @@ class WorkstationController(Node):
                             index = parts_schedule.index(part)
                             workstation = workstations_schedule[index]
                             if workstation.id == j+1: # If the workstation id in the schedule matches the workstation id of the docking pose that matches (to avoid running this as soon as a part is placed)
-                                for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
+                                for state_workstation in self.workstations_state: # State workstation contains the actual state of the workstations
                                     if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
                                         if state_workstation.status == 'FREE':
                                             # If the workstation is free, and the part is on the robot, the robot is coming to drop off a part
@@ -225,7 +225,7 @@ class WorkstationController(Node):
     
     def system_state_handler(self, msg):
         self.system_state = msg
-        if len(self.system_state.workstations) == 0: # If the workstations
+        if (len(self.system_state.workstations) == 0):
             self.system_state.workstations = self.workstations_state
             # Publish the system state
             self.system_state_publisher.publish(self.system_state)

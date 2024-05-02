@@ -89,6 +89,7 @@ class FleetController(Node):
         self.system_state = SystemState()
         self.fleet_state = []
         self.schedule = Schedule()
+        self.nexus1_previous_goal_pose = PoseStamped()
 
         self.fleet_init()
 
@@ -120,6 +121,10 @@ class FleetController(Node):
                                                 -msg.y + map_odom_tf[1],
                                                 -msg.z + map_odom_tf[2]] # x, y, yaw
                 # y and yaw are negated because of camera frame being wierd.
+                # If it's near the desired goal pose, set the state to free
+                mag = math.sqrt((amr_state.physical_location[0] - self.nexus1_previous_goal_pose.pose.position.x)**2)
+                if mag < 0.12:
+                    amr_state.state = "FREE"
                 break
         
         # Publish the new system state
@@ -140,7 +145,7 @@ class FleetController(Node):
                 free_amrs.append(amr_sending)
 
         if len(free_amrs) != 0: # If there are free AMRs
-            self.get_logger().info("There are free AMRs! - Assigning them now")
+            # self.get_logger().info("There are free AMRs! - Assigning them now")
             for i in range(n):
                 part = parts_schedule[i]
                 subprocess = subprocesses_schedule[i]
@@ -151,6 +156,7 @@ class FleetController(Node):
                 if part_location.startswith("workstation"): # If the part is at a workstation, go and pick it up
                     workstation_name = part_location
                 elif part_location.startswith("amr"): # If the part is on an amr (just loaded from a workstation)
+                    self.get_logger().info("Part is on an AMR")
                     # Send the robot to the next workstation
                     workstation_name = "workstation" + str(next_workstation.workstation_id)
 
@@ -171,6 +177,7 @@ class FleetController(Node):
                 amr_sending = free_amrs[0]
 
                 # Send the AMR to the workstation
+                self.nexus1_previous_goal_pose = workstation_pose
                 self.nexus1_goal_pose_publisher.publish(workstation_pose)
                 self.get_logger().info(f"Sent AMR to workstation {workstation_name}")
 

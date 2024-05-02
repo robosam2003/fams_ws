@@ -72,6 +72,7 @@ class Scheduler(Node):
                         # The button is clicked, so the part is loaded onto the robot
                         part.previous_subprocess_id = 1 # 1 is the id for loading                    
                         # Scheduler will handle the rest
+                        part.location = "amr0"
                         break
         elif msg.command == "UNLOAD":
             for part in self.parts_state:
@@ -83,6 +84,7 @@ class Scheduler(Node):
                         part.previous_subprocess_id = -1 # -1 is the id for unloading    
                         part.next_subprocess_id = 0 # i.e. the part is finished, it has been unloaded - Scheduler will handle the removal of the part from the system                
                         # Scheduler will handle the rest
+                        part.location = "workstation3"
                         break
                     
         # Publish system state so that the schedule get's updated.
@@ -161,7 +163,7 @@ class Scheduler(Node):
             self.parts_state.append(msg.part) # Add parts to system state parts list
     
         self.system_state.parts = self.parts_state
-        self.state_publisher.publish(self.system_state) # Publish /SystemState message
+        self.system_state_callback(self.system_state)
         self.update_active_job_list()
 
     def save_job_to_log(self, msg):
@@ -197,8 +199,8 @@ class Scheduler(Node):
     
     def system_state_callback(self, msg):
         # Check if the system states are the same:
-        if msg.parts == self.system_state.parts and msg.workstations == self.system_state.workstations:
-            return
+        # if (msg.parts == self.parts_state) and (msg.workstations == self.system_state.workstations):
+        #     return
         self.system_state = msg
         # 
         if len(self.system_state.parts) == 0:  # Other checks needed here as well

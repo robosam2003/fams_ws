@@ -88,6 +88,7 @@ def launch_setup(context: LaunchContext):
         namespace=robot_name,
         name='workstation',
         output='screen',
+        parameters=[{'workstation_name': robot_name_str}]
     )
 
 
