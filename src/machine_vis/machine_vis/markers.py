@@ -48,10 +48,13 @@ class ArucoReader(Node):
         self.moblocation0_pub = self.create_publisher(Point,'nexus1/aruco_tf',10)
         self.moblocation1_pub = self.create_publisher(Point,'nexus2/aruco_tf',10)
         self.moblocation_pub = self.create_publisher(Vision,'amr_vision_locations',10)
+        self.windowname='Main Cam'
       case 2:
         self.partlocation_pub=self.create_publisher(Vision,'workstation2/VisionLocations',10)
+        self.windowname='Workstation 2 Cam'
       case 4:
         self.partlocation_pub=self.create_publisher(Vision,'workstation1/VisionLocations',10)
+        self.windowname='Workstation 1 Cam'
 
     self.camera_setup(self.vidIndex)
 
@@ -90,7 +93,7 @@ class ArucoReader(Node):
         os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
         
       case 2:
-        self.get_logger().info('Setting Up Workstation B Camera...')
+        self.get_logger().info('Setting Up Workstation 2 Camera...')
         self.cap = cv2.VideoCapture(2,cv2.CAP_V4L2)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -115,7 +118,7 @@ class ArucoReader(Node):
         width=self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         print(width)
       case 4:
-        self.get_logger().info('Setting Up Workstation A Camera...')
+        self.get_logger().info('Setting Up Workstation 1 Camera...')
         self.cap = cv2.VideoCapture(4,cv2.CAP_V4L2)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -138,16 +141,37 @@ class ArucoReader(Node):
         width=self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         print(width)
     return self.cap
-      
+  
+  def errorFix_x(self, xval):
+    errorfix=(0.146*xval**4+0.04*xval**3-1.11195*xval**2+2.9528*xval)/100
+    newx=round(xval-errorfix,2)
+    return newx
+
+  def ScreenArucoInfo(self,frame,newx,y,yaw,corners):
+    x_sum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
+    y_sum = corners[0][0][0][1]+ corners[0][0][1][1]+ corners[0][0][2][1]+ corners[0][0][3][1]
+    x_centerPixel = int(x_sum*.25)
+    y_centerPixel = int(y_sum*.25)
+    msg1="x: "+ str(round(newx,3)) + "m"
+    msg2="y: " +str(round(y,3))+"m"
+    msg3="yaw: " +str(round(yaw,3))+"rads"
+    cv2.putText(frame,msg1,(x_centerPixel-85,y_centerPixel+150),cv2.FONT_HERSHEY_SIMPLEX,0.7, (0, 255, 0),2)
+    cv2.putText(frame,msg2,(x_centerPixel-85,y_centerPixel+180),cv2.FONT_HERSHEY_SIMPLEX,0.7, (0, 255, 0),2)
+    cv2.putText(frame,msg3,(x_centerPixel-85,y_centerPixel+210),cv2.FONT_HERSHEY_SIMPLEX,0.7, (0, 255, 0),2)
+
   def convertboxpoints(self,box):
     scale=1/535
-    x1 = round((box[0][0]-960)*scale,2)
+    x1 = (box[0][0]-960)*scale
+    x1=self.errorFix_x(x1)
     y1 = round((box[0][1]-540)*scale,2)
-    x2 = round((box[1][0]-960)*scale,2)
+    x2 = (box[1][0]-960)*scale
+    x2=self.errorFix_x(x2)
     y2 = round((box[1][1]-540)*scale,2)
-    x3 = round((box[2][0]-960)*scale,2)
+    x3 = (box[2][0]-960)*scale
+    x3=self.errorFix_x(x3)
     y3 = round((box[2][1]-540)*scale,2)
-    x4 = round((box[3][0]-960)*scale,2)
+    x4 = (box[3][0]-960)*scale
+    x4=self.errorFix_x(x4)
     y4 = round((box[3][1]-540)*scale,2)
     p1=(x1,y1)
     p2=(x2,y2)
@@ -262,6 +286,7 @@ class ArucoReader(Node):
         match self.vidIndex:
           case 0: # For Mobile Robot Detection (Main Cam)
             if ids[i,0]==0:
+              
               id_msg.append(int(ids[i,0]))
               errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
               newx=round(x-errorfix,5)
@@ -271,7 +296,9 @@ class ArucoReader(Node):
               mobilelocation0_msg.x=newx
               mobilelocation0_msg.y=y
               mobilelocation0_msg.z=yaw
+              self.ScreenArucoInfo(frame,newx,y,yaw,corners)
             if ids[i,0]==1:
+              # self.ScreenArucoInfo(frame,'Mobile Robot 1',corners)
               id_msg.append(int(ids[i,0]))
               errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
               newx=round(x-errorfix,5)
@@ -281,6 +308,7 @@ class ArucoReader(Node):
               mobilelocation1_msg.x=newx
               mobilelocation1_msg.y=y
               mobilelocation1_msg.z=yaw
+              self.ScreenArucoInfo(frame,newx,y,yaw,corners)
             vmsg.part_id=id_msg
             vmsg.part_location=loc_msg
           case 2 | 4:
@@ -312,21 +340,6 @@ class ArucoReader(Node):
                 partlocation_msg.part_location=part_loc_msg
               
 
-        # For Part Detection (Workstation Cams)
-        # if switch==0:
-        #   if ids[i,0] in range(82,89):
-        #     part_id_msg.append(int(ids[i,0]))
-
-        #     if self.vidIndex==2:
-        #       part_loc_msg.extend([-y,x,yaw])               # Adjusting for frame of arm
-        #       print('Part Location: {}'.format([-y,x,yaw])) 
-        #       #print('Part Location: {}'.format([-x,-y,yaw])) 
-        #     elif self.vidIndex==4:
-        #       part_loc_msg.extend([x,-y,yaw])
-        #       print('Part Location: {}'.format([x,-y,yaw]))
-        #   partlocation_msg.part_id=part_id_msg
-        #   partlocation_msg.part_location=part_loc_msg
-
       if switch==1:  
         self.moblocation0_pub.publish(mobilelocation0_msg)
         self.moblocation1_pub.publish(mobilelocation1_msg)
@@ -340,14 +353,6 @@ class ArucoReader(Node):
           self.get_logger().info('{}:{}'.format("Publishing Location for Part IDs",partlocation_msg))
         
       
-      
-      
-
-          # if ids[i,0] in (8,9):
-          #   ob_id_msg.append(int(ids[i,0]))
-          #   ob_loc_msg.extend([x,y,yaw])
-          #   a,SizeW,SizeL = self.obstacle_initial()
-          #   oppositeCorner=x+SizeW[0],y+SizeW[1]
       # location_msg.obstacle_id=ob_id_msg
       # location_msg.obstacle_location=ob_loc_msg
       # errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
@@ -373,41 +378,32 @@ class ArucoReader(Node):
   def obstacle_detector(self,frame,anti_ob_flag):
     FilteredContours=[]
     FilteredBoxes=[]
-    intrinsic_camera = np.array(((5.14225115e+03, 0.00000000e+00, 1.30071631e+03),(0, 5.21253566e+03,7.22183264e+02),(0,0,1)))
-    distortion = np.array((2.51186484e-01, -5.65362473e+00,  1.50035516e-02,  1.11397010e-02,1.36994424e+01))
-
-    # h,  w = frame.shape[:2]
-    # newcameramtx, roi = cv2.getOptimalNewCameraMatrix(intrinsic_camera, distortion, (w,h), 1, (w,h))
-    # # undistort
-    # dst = cv2.undistort(frame, intrinsic_camera, distortion, None, newcameramtx)
     grey=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     retval,thresh=cv2.threshold(grey,130,255,cv2.THRESH_BINARY)
-    cv2.namedWindow("thresh", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('thresh', 1700, 1080)   
-    cv2.imshow('thresh',thresh)
     contours, hierarchy = cv2.findContours(image=thresh, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
 
     for cnt in contours:
       area=cv2.contourArea(cnt)
-      if area > 800 and area < 12000:
+      
+      if area > 2500 and area < 12000:
         M=cv2.moments(cnt)
         scale=1/535
-        cxi=(M['m10']/M['m00'])
-        cyi=(M['m01']/M['m00'])
-        cv2.circle(frame,(int(cxi),int(cyi)),5,(255,0,0),-1)
+        cxi=int(M['m10']/M['m00'])
+        cyi=int(M['m01']/M['m00'])
+        
         cx = (cxi-960)*scale
         cy = (cyi-540)*scale
-        if cx < 0:
-          print(cx,cy)
-        if int((M['m10']/M['m00']))>20 and int((M['m10']/M['m00']))< 960:
+        
+        if cxi>20 and cyi< 530 and cxi<900:
+          cv2.circle(frame,(int(cxi),int(cyi)),5,(255,0,0),-1)
           rect = cv2.minAreaRect(cnt)
           box = cv2.boxPoints(rect)
           box = np.int0(box)
           p1,p2,p3,p4=self.convertboxpoints(box)
-          cv2.putText(frame, str(p1),box[0],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
-          cv2.putText(frame, str(p2),box[1],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
-          cv2.putText(frame, str(p3),box[2],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
-          cv2.putText(frame, str(p4),box[3],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255))
+          cv2.putText(frame, str(p1),box[0],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
+          cv2.putText(frame, str(p2),box[1],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
+          cv2.putText(frame, str(p3),box[2],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
+          cv2.putText(frame, str(p4),box[3],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
           
           match len(anti_ob_flag):
             case 1:
@@ -466,11 +462,12 @@ class ArucoReader(Node):
       if ret == True:
         
         output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],self.Cam_Mtrx, self.Distort,self.markerSize,self.detectObstacles)
-        # if self.detectObstacles!=0:
-        #   FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
-        cv2.namedWindow('Estimated Pose',cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('Estimated Pose',1728,972)
-        cv2.imshow('Estimated Pose', output)
+        if self.detectObstacles!=0:
+          FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+        
+        cv2.namedWindow(self.windowname,cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.windowname,1728,972)
+        cv2.imshow(self.windowname, output)
 
       key = cv2.waitKey(1) & 0xFF # pressing q will quit popup window and close capture
       if key == ord('q'):
