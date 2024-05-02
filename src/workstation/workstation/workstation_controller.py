@@ -37,10 +37,9 @@ class WorkstationController(Node):
         self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES
             'workstation1': [0.8, 1.6903, np.pi-0.72],
             # 'workstation2': [1.0093, -0.6753, -0.72],
-            'workstation2': [2.7793, 1.6903, 0.72],
-            'workstation3': [1.77, 1.6903, 1.57]
+            'workstation2': [2.88, 1.75, 0.72],
+            'workstation3': [1.77, 1.75, 1.57]
         }
-
         # Docking poses for the workstations
         w1_docking_pose = Point()
         w1_docking_pose.x, w1_docking_pose.y, w1_docking_pose.z = self.workstation_goal_poses['workstation1']
@@ -144,9 +143,9 @@ class WorkstationController(Node):
         for i, amr_location in enumerate(amr_locations): # For every amr location
             for j, docking_pose in enumerate(self.workstation_docking_poses): # For every possible docking pose
                 distance = math.sqrt((amr_location[0] - docking_pose.x)**2 + (amr_location[1] - docking_pose.y)**2)
-                self.get_logger().info(f"distance: {distance}, YAW: {amr_location[2]}")
+                # self.get_logger().info(f"distance: {distance}, YAW: {amr_location[2]}")
                 # If the AMR is close enough to the docking pose
-                if distance <= 0.15 and amr_location[2] - docking_pose.z <= 0.18: # There could be a better way of checking that the robot is at the docking location. 
+                if distance <= 0.09 and amr_location[2] - docking_pose.z <= 0.12: # There could be a better way of checking that the robot is at the docking location. 
                     # The AMR is close enough and aligned with the docking pose of the workstation
                     self.get_logger().info("WE ARE AT A WORKSTATION YESSSSS")
                     time.sleep(1)
@@ -171,8 +170,9 @@ class WorkstationController(Node):
                             if state_workstation.state == 'BUSY':
                                 # If the workstation is free, the robot is coming to pick up a part
                                 self.send_workstation_command(state_workstation.workstation_id, "OUTPUT")
+                                self.workstations_state[state_workstation.workstation_id-1].state = 'FREE'
                                 break
-                            # elif state_workstation.status == 'FREE':
+                            # elif state_workstation.state == 'FREE':
                                 
                             #     self.send_workstation_command(workstation.id, "INPUT")
                             #     break
@@ -184,14 +184,15 @@ class WorkstationController(Node):
                         if part.location == "amr"+str(amr_id): # If the part is on the robot at the docking location
                             index = parts_schedule.index(part)
                             workstation = workstations_schedule[index]
-                            if workstation.id == j+1: # If the workstation id in the schedule matches the workstation id of the docking pose that matches (to avoid running this as soon as a part is placed)
+                            if workstation.workstation_id == j+1: # If the workstation id in the schedule matches the workstation id of the docking pose that matches (to avoid running this as soon as a part is placed)
                                 for state_workstation in self.workstations_state: # State workstation contains the actual state of the workstations
-                                    if state_workstation.id == workstation.id: # Match the actual workstation id with the workstation id in the schedule
-                                        if state_workstation.status == 'FREE':
+                                    if state_workstation.workstation_id == workstation.workstation_id: # Match the actual workstation id with the workstation id in the schedule
+                                        if state_workstation.state == 'FREE':
                                             # If the workstation is free, and the part is on the robot, the robot is coming to drop off a part
-                                            self.send_workstation_command(workstation.id, "INPUT")
+                                            self.send_workstation_command(workstation.workstation_id, "INPUT")
+                                            self.workstations_state[workstation.workstation_id-1].state = 'BUSY' # Workstation is now busy, processing the part.
                                             break
-                                        # elif state_workstation.status == 'BUSY':
+                                        # elif state_workstation.state == 'BUSY':
                                         #     self.send_workstation_command(workstation.id, "INPUT")
                                         #     break
                                         else:
@@ -200,7 +201,8 @@ class WorkstationController(Node):
                                             pass
                     # If here, there is no part on the AMR that is at a docking location.
                     pass
-        # If here, there are no AMRs close enough to any of the docking poses
+        self.system_state.workstations = self.workstations_state
+        self.system_state_publisher.publish(self.system_state)
 
     def send_workstation_command(self, workstation_id, command):  
         if workstation_id == 1:

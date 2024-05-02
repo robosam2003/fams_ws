@@ -37,8 +37,8 @@ class FleetController(Node):
         self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES
             'workstation1': [0.8, 1.6903, np.pi-0.72],
             # 'workstation2': [1.0093, -0.6753, -0.72],
-            'workstation2': [2.7793, 1.6903, 0.72],
-            'workstation3': [1.77, 1.6903, 1.57]
+            'workstation2': [2.88, 1.75, 0.72],
+            'workstation3': [1.77, 1.75, 1.57]
         }
 
 
@@ -175,6 +175,10 @@ class FleetController(Node):
                                     
                 # Find a free AMR
                 amr_sending = free_amrs[0]
+
+                mag = math.sqrt((amr_sending.physical_location[0] - workstation_pose.pose.position.x)**2 + (amr_sending.physical_location[1] - workstation_pose.pose.position.y)**2)
+                if mag < 0.12 and (yaw - amr_sending.physical_location[2]) < 0.15:
+                    break # Don't keep sending locations.
 
                 # Send the AMR to the workstation
                 self.nexus1_previous_goal_pose = workstation_pose
