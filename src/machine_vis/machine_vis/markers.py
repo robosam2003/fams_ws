@@ -27,7 +27,17 @@ class ArucoReader(Node):
     super().__init__('aruco_cdreader')
     self.get_logger().info('Machine Vision Node Started')
 
-    self.vidIndex=2
+    self.declare_parameters(
+      namespace='',
+      parameters=[
+        ('vidIndex', 2)
+      ]
+    )
+    # To change vidIndex at runtime, use:
+    #  ros2 run machine_vis marker --ros-args -p vidIndex:=2
+    
+    self.vidIndex=int(self.get_parameter('vidIndex').value)
+    self.get_logger().info(f"VID INDEX: {self.vidIndex}")
      # Before running, it should be verfied that, maincam=0, workBcam=2, workAcam=4
 
     self.xpart=[]
