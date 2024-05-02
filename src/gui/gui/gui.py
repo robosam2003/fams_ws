@@ -73,7 +73,11 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.PartSelectButton.clicked.connect(self.PartSelectButtonHandler)
         self.LoadedButton.clicked.connect(self.LoadedButtonhandler)
         self.UnloadedButton.clicked.connect(self.UnloadedButtonHandler)
+        self.LoadPresetButton.clicked.connect(self.LoadPresetButtonHandler)
        
+    def LoadPresetButtonHandler(self):
+        self.csv_to_lineEdits()
+    
     def LoadedButtonhandler(self):
         selected_part_id = self.partWidgetItem.text()
         if selected_part_id == None:
@@ -159,7 +163,6 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         print("stop")
         self.stopButton.setStyleSheet("background-color: rgb(143, 0, 0)")
         self.widget.setStyleSheet("background-color: rgb(200, 155, 155)")
-        self.csv_to_lineEdits()
         #self.emergency = 1
         #self.rosnode.emergency_publisher.publish(self.emergency)
        # self.get_logger().info('stop')
