@@ -24,6 +24,12 @@ class WorkstationController(Node):
             ]
         )
 
+        # Attributes that get updated
+        self.system_state = SystemState()
+        self.workstations_state = []
+        self.schedule = Schedule()
+        self.vision_locations = Vision()
+
         # Get the names of the AMRs from the parameter server
         self.amr_names = self.get_parameter('amr_names').value
 
@@ -32,7 +38,7 @@ class WorkstationController(Node):
             'workstation1': [0.8, 1.6903, np.pi-0.72],
             # 'workstation2': [1.0093, -0.6753, -0.72],
             'workstation2': [2.7793, 1.6903, 0.72],
-            'workstation3': [0, 1.6903, 0]
+            'workstation3': [1.77, 1.6903, 1.57]
         }
 
         # Docking poses for the workstations
@@ -56,21 +62,27 @@ class WorkstationController(Node):
         # Subsciptions
         self.system_state_subscriber = self.create_subscription(
             SystemState,
-            'system_state',
+            '/system_state',
             self.system_state_handler,
             10
         )
 
         self.schedule_subscriber = self.create_subscription(
             Schedule,
-            'schedule',
+            '/schedule',
             self.schedule_handler,
+            10
+        )
+
+        self.system_state_publisher = self.create_publisher(
+            SystemState,
+            '/system_state',
             10
         )
 
         self.vision_locations_subscriber = self.create_subscription(
             Vision,
-            'amr_vision_locations', # Consider naming to something better - maybe 'amr_vision_locations'
+            '/amr_vision_locations', # Consider naming to something better - maybe 'amr_vision_locations'
             self.vision_locations_handler,
             10 
         )
@@ -92,11 +104,28 @@ class WorkstationController(Node):
             '/workstation3/WorkstationCommand',
             10
         )
-        
-        # Attributes that get updated
-        self.system_state = SystemState()
-        self.schedule = Schedule()
-        self.vision_locations = Vision()
+
+        self.init_workstations()
+
+    def init_workstations(self):
+        # Create some fake workstations for now
+        workstation1 = Workstation()
+        workstation1.workstation_id = 1
+        workstation1.state = 'FREE'
+        workstation1.available_operations = ['DRILLING']
+        workstation2 = Workstation()
+        workstation2.workstation_id = 2
+        workstation2.state = 'FREE'
+        workstation2.available_operations = ['MILLING']
+        workstation3 = Workstation()
+        workstation3.workstation_id = 3
+        workstation3.state = 'FREE'
+        workstation3.available_operations = ['LOADING','UNLOADING']
+
+        self.workstations_state = [workstation1, workstation2, workstation3]
+        self.system_state.workstations = self.workstations_state
+        self.system_state_publisher.publish(self.system_state)
+        self.get_logger().info('Workstations have been initialized')
 
     def vision_locations_handler(self, msg):
         # self.get_logger().info("VISION LOCATIONS HANDLER")
@@ -193,19 +222,18 @@ class WorkstationController(Node):
             self.get_logger().info(f"Published workstation {workstation_id} command: {command}")
         else:
             self.get_logger().info("INVALID WORKSTATION ID")
-
-
-        
-
     
     def system_state_handler(self, msg):
-        # Update local system state attribute
         self.system_state = msg
+        if len(self.system_state.workstations) == 0: # If the workstations
+            self.system_state.workstations = self.workstations_state
+            # Publish the system state
+            self.system_state_publisher.publish(self.system_state)
+
     
     def schedule_handler(self, msg):
         # Update local schedule attribute
         self.schedule = msg
-
         # Parse schedule into instructions
         # Extract parts, subprocesses, workstations - Instructions are matched by index
         parts = self.schedule.parts

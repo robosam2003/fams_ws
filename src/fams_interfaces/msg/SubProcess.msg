@@ -4,7 +4,7 @@
 # The order of sub processes is important
 
 # Sub process ID
-uint32 sub_process_id
+int32 sub_process_id
 
 # Operation type
 string operation_type

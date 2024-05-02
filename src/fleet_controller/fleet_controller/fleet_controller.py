@@ -38,7 +38,9 @@ class FleetController(Node):
             'workstation1': [0.8, 1.6903, np.pi-0.72],
             # 'workstation2': [1.0093, -0.6753, -0.72],
             'workstation2': [2.7793, 1.6903, 0.72],
+            'workstation3': [1.77, 1.6903, 1.57]
         }
+
 
         self.schedule_subscription = self.create_subscription(
             Schedule,
@@ -85,6 +87,7 @@ class FleetController(Node):
 
         # Attributes
         self.system_state = SystemState()
+        self.fleet_state = []
         self.schedule = Schedule()
 
         self.fleet_init()
@@ -96,20 +99,21 @@ class FleetController(Node):
         amr1.name = "nexus1"
         amr1.state = "FREE"
         amr1.physical_location = [0.0, 0.0, 0.0]
-        self.system_state.mobile_robots.append(amr1) # Only one AMR for now
+        self.fleet_state.append(amr1)
+        self.system_state.mobile_robots = self.fleet_state
         self.system_state_publisher.publish(self.system_state)
 
     def system_state_handler(self, msg):
-        self.system_state = msg # Update local system state
-        # self.assign_fleet()
+        self.system_state = msg
+        if len(self.system_state.mobile_robots) == 0:
+            self.system_state.mobile_robots = self.fleet_state
         
     def schedule_handler(self, msg):
         self.schedule = msg     
-        # self.assign_fleet()
 
     def nexus1_aruco_tf_handler(self, msg):
         # Here, we update the location of the AMR in the system state
-        for amr_state in self.system_state.mobile_robots:
+        for amr_state in self.fleet_state:
             if amr_state.name == "nexus1":
                 map_odom_tf = [1.77, 1.015, 0]
                 amr_state.physical_location = [msg.x + map_odom_tf[0],
@@ -119,6 +123,7 @@ class FleetController(Node):
                 break
         
         # Publish the new system state
+        self.system_state.mobile_robots = self.fleet_state
         self.system_state_publisher.publish(self.system_state)
 
 
@@ -130,12 +135,12 @@ class FleetController(Node):
         n = len(parts_schedule)
 
         free_amrs = []
-        for amr_sending in self.system_state.mobile_robots:
+        for amr_sending in self.fleet_state:
             if amr_sending.state == "FREE":
                 free_amrs.append(amr_sending)
 
         if len(free_amrs) != 0: # If there are free AMRs
-            # self.get_logger().info("There are free AMRs! - Assigning them now")
+            self.get_logger().info("There are free AMRs! - Assigning them now")
             for i in range(n):
                 part = parts_schedule[i]
                 subprocess = subprocesses_schedule[i]
@@ -171,23 +176,14 @@ class FleetController(Node):
 
                 # Set the AMR to busy
                 # Find the amr in the system state
-                for amr_state in self.system_state.mobile_robots:
+                for amr_state in self.fleet_state:
                     if amr_state.name == amr_sending.name:
                         amr_state.state = "BUSY"
                         break
                 # Publish the new system state
+                self.system_state.mobile_robots = self.fleet_state
                 self.system_state_publisher.publish(self.system_state)
                 break
-
-
-                
-
-        
-        
-
-
-
-
 
 
 def main(args=None):

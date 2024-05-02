@@ -13,6 +13,23 @@ class Scheduler(Node):
         self.temp_job_log_path = "./src/scheduler/scheduler/tempJobLog.csv"  # Relative so that it works on any machine
         self.get_logger().info('Scheduler node has been started')
 
+
+        self.state_publisher = self.create_publisher(
+            SystemState,
+            'system_state',
+            10
+        )
+        self.schedule_publisher = self.create_publisher(
+            Schedule,
+            'schedule',
+            10
+        )
+
+        self.parts_state = []
+        self.system_state = SystemState()
+        self.recieved_system_state = SystemState()
+
+
         # clear job log here
         with open(self.job_log_path, 'w') as f:
             f.truncate()
@@ -30,22 +47,10 @@ class Scheduler(Node):
         )
         self.state_subscriber = self.create_subscription(
             SystemState,
-            'system_state',
+            '/system_state',
             self.system_state_callback,
             10
         )
-        self.state_publisher = self.create_publisher(
-            SystemState,
-            'system_state',
-            10
-        )
-        self.schedule_publisher = self.create_publisher(
-            Schedule,
-            'schedule',
-            10
-        )
-        self.system_state = SystemState()
-
         
         self.update_active_job_list() # Update active job list from job log
 
@@ -99,32 +104,27 @@ class Scheduler(Node):
         return job
 
     def job_message_callback(self, msg):
-
         if msg.status == 'REMOVED':
             self.remove_job_from_log(msg)
-            print("range ", range(len(self.system_state.parts)))
-            print("len of parts: ", len(self.system_state.parts))
-            for i in range(len(self.system_state.parts)):
+            # print("range ", range(len(self.parts_state)))
+            # print("len of parts: ", len(self.parts_state))
+            for i in range(len(self.parts_state)):
                 print("Parts loop iteration: ", i)
-                if self.system_state.parts[i].job_id == msg.job_id:
-                    removedPart = self.system_state.parts.pop(i)
+                if self.parts_state[i].job_id == msg.job_id:
+                    removedPart = self.parts_state.pop(i)
                     print("REMOVED PART = ", removedPart.part_id)
                     #print("i = ", i)
-                    #print("list of parts = ", self.system_state.parts)
-                    #print("job_id of part = ", self.system_state.parts[i].job_id)
-                    #self.get_logger().info('Part corresponding to removed job of job_id: ' + self.system_state.parts[i].job_id + 'has been removed from system state with part_id: ' + removedPart.part_id)
+                    #print("list of parts = ", self.parts_state)
+                    #print("job_id of part = ", self.parts_state[i].job_id)
+                    #self.get_logger().info('Part corresponding to removed job of job_id: ' + self.parts_state[i].job_id + 'has been removed from system state with part_id: ' + removedPart.part_id)
                     break
         else:
             self.save_job_to_log(msg) # Add Job to Job Log
             self.active_job_list.append(msg)
             self.get_logger().info('Job message has been added to the active job list, which now has ' + str(len(self.active_job_list)) + ' jobs')
-            self.system_state.parts.append(msg.part) # Add parts to system state parts list
-
-        #if msg.status == 'PENDING' or msg.status == 'IN PROGRESS':
-        #    self.active_job_list.append(msg)
-        #    self.get_logger().info('Job message has been added to the active job list, which now has ' + str(len(self.active_job_list)) + ' jobs')
-
-        #self.system_state.parts.append(msg.part) # Add parts to system state parts list
+            self.parts_state.append(msg.part) # Add parts to system state parts list
+    
+        self.system_state.parts = self.parts_state
         self.state_publisher.publish(self.system_state) # Publish /SystemState message
         self.update_active_job_list()
 
@@ -160,32 +160,20 @@ class Scheduler(Node):
         #self.update_active_job_list()                   # Update active job list from job log
 
     def system_state_callback(self, msg):
-        # self.get_logger().info('System state message received')
+        # Check if the system states are the same:
+        if msg.parts == self.system_state.parts and msg.workstations == self.system_state.workstations:
+            return
         self.system_state = msg
+        # 
+        if len(self.system_state.parts) == 0:  # Other checks needed here as well
+            self.system_state.parts = self.parts_state
 
-        # Create some fake workstations for now
-        workstation1 = Workstation()
-        workstation1.workstation_id = 1
-        workstation1.state = 'FREE'
-        workstation1.available_operations = ['DRILLING']
-        workstation2 = Workstation()
-        workstation2.workstation_id = 2
-        workstation2.state = 'BUSY'
-        workstation2.available_operations = ['MILLING']
-        workstation3 = Workstation()
-        workstation3.workstation_id = 3
-        workstation3.state = 'FREE'
-        workstation3.available_operations = ['LOADING','UNLOADING']
-
-        self.system_state.workstations = [workstation1, workstation2, workstation3]
-
-        # "Update Job Log with Timings" ??? 
-        
-        # Sort parts with no current subprocesses into a priority list
+        # Sort parts with no current subprocesses into a priority list (i.e. parts that need moving)
         priority_list = []
-        for part in self.system_state.parts: 
-            if part.current_subprocess_id == 0:
+        for part in self.parts_state: 
+            if part.current_subprocess_id == 0: # ID 0 means no current subprocess (i.e. part needs moving)
                 priority_list.append(part)
+        # self.get_logger().info('Priority list: ' + str(priority_list))
         
         # Update the parts with their next current subprocesses, if any.
         job_job_id_mapping = {job.job_id: job for job in self.active_job_list} # This is a dictionary that maps job_id to job
@@ -195,7 +183,7 @@ class Scheduler(Node):
             for sub in parts_job.subprocesses:
                 if part.previous_subprocess_id == 0: # If the part has no previous subprocess, then the first subprocess is the current one
                     part.next_subprocess_id = parts_job.subprocesses[0].sub_process_id
-                elif sub.sub_process_id == part.previous_subprocess_id: # If the part has no previous subprocess, then the first subprocess is the current one
+                elif sub.sub_process_id == part.previous_subprocess_id: # If the part has a previous subprocess, then the next subprocess is the one after the previous one
                     # Find the next subprocess
                     prev_sub_index = parts_job.subprocesses.index(sub)
                     # If the previous subprocess was the last one, then the part is done, the job in job log needs changing to FINISHED
@@ -213,11 +201,10 @@ class Scheduler(Node):
                         # remove the job from the active job list and the priority list and the system state parts list
                         self.active_job_list.remove(parts_job)
                         priority_list.remove(part)
-                        self.system_state.parts.remove(part)
+                        self.parts_state.remove(part)
                         self.get_logger().info('Job ' + str(parts_job.job_id) + ' has been removed from the active job list and the priority list')
                     else:
-                        part.next_subprocess_id = parts_job.subprocesses[prev_sub_index + 1].sub_process_id
-                # Every part should have a current_subprocess_id now
+                        part.next_subprocess_id = parts_job.subprocesses[prev_sub_index + 1].sub_process_id # If the part has a previous subprocess, then the next subprocess is the one after the previous one
                                         
         job_priority_mapping = {job.job_id: job.priority for job in self.active_job_list} # This is a dictionary that maps job_id to priority
         job_start_time_mapping = {job.job_id: job.start_time for job in self.active_job_list} # This is a dictionary that maps job_id to start time
@@ -228,6 +215,7 @@ class Scheduler(Node):
 
         free_workstations = [workstation for workstation in self.system_state.workstations if workstation.state == 'FREE']
         # self.get_logger().info('Free workstations: ' + str(free_workstations))
+
         # Go down the priority list, matching subprocesses with workstations that are both free and can perform the correct part operations
         schedule_msg = Schedule()
         schedule_parts = []
@@ -259,7 +247,8 @@ class Scheduler(Node):
 
         # Publish Schedule message   
         self.schedule_publisher.publish(schedule_msg)
-        # self.get_logger().info('Schedule message has been published')
+
+        # Publish new system state
 
 
 def main(args=None):

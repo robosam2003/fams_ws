@@ -2,10 +2,10 @@ string part_id
 
 string location
 
-uint32 next_subprocess_id
+int32 next_subprocess_id
 
-uint32 current_subprocess_id
+int32 current_subprocess_id
 
-uint32 previous_subprocess_id
+int32 previous_subprocess_id
 
-uint32 job_id
+int32 job_id

@@ -74,12 +74,44 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.UnloadedButton.clicked.connect(self.UnloadedButtonHandler)
        
     def LoadedButtonhandler(self):
-        print("Loaded")
-        # self.partWidgetItem.text()
-        #self.partObj.part_id
+        selected_part_id = self.partWidgetItem.text()
+        if selected_part_id == None:
+            self.rosnode.get_logger().warn('No part selected')
+            return
+        
+        system_state = self.rosnode.system_state
+        parts = system_state.parts
+        for part in parts:
+            if part.part_id == selected_part_id:
+                # part is the chosen part
+                # If the current subprocess is 0, then the part needs moving, double check that the part is "NEW" (has no previous subprocess)
+                if part.current_subprocess_id == 0 and part.previous_subprocess_id == 0: 
+                    # The button is clicked, so the part is loaded onto the robot
+                    part.previous_subprocess_id = 1 # 1 is the id for loading                    
+                    # Scheduler will handle the rest
+        
+        # Publish the updated system state
+        self.rosnode.system_state_publisher.publish(system_state)
 
     def UnloadedButtonHandler(self):
-        print("Unloaded")
+        selected_part_id = self.partWidgetItem.text()
+        if selected_part_id == None:
+            self.rosnode.get_logger().warn('No part selected')
+            return
+        system_state = self.rosnode.system_state
+        parts = system_state.parts
+        for part in parts:
+            if part.part_id == selected_part_id:
+                # part is the chosen part
+                # If the current subprocess is 0, then the part needs moving, double check that the part is not "new" (has a previous subprocess)
+                if part.current_subprocess_id == 0 and parts.previous_subprocess_id != 0: 
+                    # The button is clicked, so the part is loaded onto the robot
+                    part.previous_subprocess_id = -1 # -1 is the id for unloading    
+                    part.next_subprocess_id = 0 # i.e. the part is finished, it has been unloaded - Scheduler will handle the removal of the part from the system                
+                    # Scheduler will handle the rest
+        
+        # Publish the updated system state
+        self.rosnode.system_state_publisher.publish(system_state)
         
     def jobListWidgetHandler(self, text):
         #self.jobListWidget.takeItem(self.jobListWidget.currentRow())
@@ -227,7 +259,7 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
 
 
         sub1=SubProcess()   #create subprocess object
-        sub1.sub_process_id=0
+        sub1.sub_process_id=-1
         sub1.operation_type='UNLOADING'
         sub1.start_time=0
         sub1.end_time=0
@@ -289,26 +321,43 @@ class InterfaceNode(Node):
         #)
 
         #Vid_subscriber
-        self.subscription = self.create_subscription(
-            CompressedImage, 
-            'video_stream', 
-            self.listener_callback, 
-            10
-        )
-        self.subscription # prevent unused variable warning
+        # self.subscription = self.create_subscription(
+        #     CompressedImage, 
+        #     'video_stream', 
+        #     self.listener_callback, 
+        #     10
+        # )
+        # self.subscription # prevent unused variable warning
 
-        self.subscription = self.create_subscription(
+        self.active_jobs_subscription = self.create_subscription(
             JobList,
             'active_jobs',
             self.jobList_callback,
             10
         )
+
+        self.system_state_subscription = self.create_subscription(
+            SystemState,
+            '/system_state',
+            self.system_state_callback,
+            10
+        )
+
+        self.system_state_publisher = self.create_publisher(
+            SystemState,
+            '/system_state',
+            10
+        )
       
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()
+        self.system_state = SystemState()
         
         self.interface = Interface(self)
         self.interface.show()
+
+    def system_state_callback(self, msg: SystemState):
+        self.system_state = msg
 
     def listener_callback(self, data):
         """
