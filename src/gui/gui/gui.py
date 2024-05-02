@@ -6,7 +6,7 @@ import gui.Interface_ui as ui
 import time
 import random
 import numpy as np
-from fams_interfaces.msg import Job, JobList, SubProcess, Part, SystemState, EmergencyControl
+from fams_interfaces.msg import Job, JobList, SubProcess, Part, SystemState, EmergencyControl, LoadUnload
 
 from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
@@ -78,40 +78,46 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         if selected_part_id == None:
             self.rosnode.get_logger().warn('No part selected')
             return
+        # system_state = self.rosnode.system_state
+        # parts = system_state.parts
+        # for part in parts:
+        #     if part.part_id == selected_part_id:
+        #         # part is the chosen part
+        #         # If the current subprocess is 0, then the part needs moving, double check that the part is "NEW" (has no previous subprocess)
+        #         if part.current_subprocess_id == 0 and part.previous_subprocess_id == 0: 
+        #             # The button is clicked, so the part is loaded onto the robot
+        #             part.previous_subprocess_id = 1 # 1 is the id for loading                    
+        #             # Scheduler will handle the rest
         
-        system_state = self.rosnode.system_state
-        parts = system_state.parts
-        for part in parts:
-            if part.part_id == selected_part_id:
-                # part is the chosen part
-                # If the current subprocess is 0, then the part needs moving, double check that the part is "NEW" (has no previous subprocess)
-                if part.current_subprocess_id == 0 and part.previous_subprocess_id == 0: 
-                    # The button is clicked, so the part is loaded onto the robot
-                    part.previous_subprocess_id = 1 # 1 is the id for loading                    
-                    # Scheduler will handle the rest
-        
-        # Publish the updated system state
-        self.rosnode.system_state_publisher.publish(system_state)
+        # # Publish the updated system state
+        # self.rosnode.system_state_publisher.publish(system_state)
+        load_unload_msg = LoadUnload()
+        load_unload_msg.part_id = selected_part_id
+        load_unload_msg.command = "LOAD"
+        self.rosnode.load_unload_publisher.publish(load_unload_msg)
 
     def UnloadedButtonHandler(self):
         selected_part_id = self.partWidgetItem.text()
         if selected_part_id == None:
             self.rosnode.get_logger().warn('No part selected')
             return
-        system_state = self.rosnode.system_state
-        parts = system_state.parts
-        for part in parts:
-            if part.part_id == selected_part_id:
-                # part is the chosen part
-                # If the current subprocess is 0, then the part needs moving, double check that the part is not "new" (has a previous subprocess)
-                if part.current_subprocess_id == 0 and parts.previous_subprocess_id != 0: 
-                    # The button is clicked, so the part is loaded onto the robot
-                    part.previous_subprocess_id = -1 # -1 is the id for unloading    
-                    part.next_subprocess_id = 0 # i.e. the part is finished, it has been unloaded - Scheduler will handle the removal of the part from the system                
-                    # Scheduler will handle the rest
-        
-        # Publish the updated system state
-        self.rosnode.system_state_publisher.publish(system_state)
+        # system_state = self.rosnode.system_state
+        # parts = system_state.parts
+        # for part in parts:
+        #     if part.part_id == selected_part_id:
+        #         # part is the chosen part
+        #         # If the current subprocess is 0, then the part needs moving, double check that the part is not "new" (has a previous subprocess)
+        #         if part.current_subprocess_id == 0 and parts.previous_subprocess_id != 0: 
+        #             # The button is clicked, so the part is loaded onto the robot
+        #             part.previous_subprocess_id = -1 # -1 is the id for unloading    
+        #             part.next_subprocess_id = 0 # i.e. the part is finished, it has been unloaded - Scheduler will handle the removal of the part from the system                
+        #             # Scheduler will handle the rest
+        # # Publish the updated system state
+        # self.rosnode.system_state_publisher.publish(system_state)
+        load_unload_msg = LoadUnload()
+        load_unload_msg.part_id = selected_part_id
+        load_unload_msg.command = "UNLOAD"
+        self.rosnode.load_unload_publisher.publish(load_unload_msg)
         
     def jobListWidgetHandler(self, text):
         #self.jobListWidget.takeItem(self.jobListWidget.currentRow())
@@ -343,9 +349,15 @@ class InterfaceNode(Node):
             10
         )
 
-        self.system_state_publisher = self.create_publisher(
-            SystemState,
-            '/system_state',
+        # self.system_state_publisher = self.create_publisher(
+        #     SystemState,
+        #     '/system_state',
+        #     10
+        # )
+
+        self.load_unload_publisher = self.create_publisher(
+            LoadUnload,
+            'load_unload',
             10
         )
       

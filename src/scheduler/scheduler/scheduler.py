@@ -1,7 +1,7 @@
 import rclpy
 import csv
 from rclpy.node import Node
-from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Schedule, Workstation, JobList
+from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Schedule, Workstation, JobList, LoadUnload
 from rosidl_runtime_py import *
 
 
@@ -51,8 +51,44 @@ class Scheduler(Node):
             self.system_state_callback,
             10
         )
+
+        self.load_unload_subscriber = self.create_subscription(
+            LoadUnload,
+            "load_unload",
+            self.load_unload_callback,
+            10
+        )
         
         self.update_active_job_list() # Update active job list from job log
+
+    def load_unload_callback(self, msg):
+        selected_part_id = msg.part_id
+        if msg.command == "LOAD":
+            for part in self.parts_state:
+                if part.part_id == selected_part_id:
+                    # part is the chosen part
+                    # If the current subprocess is 0, then the part needs moving, double check that the part is "NEW" (has no previous subprocess)
+                    if part.current_subprocess_id == 0 and part.previous_subprocess_id == 0: 
+                        # The button is clicked, so the part is loaded onto the robot
+                        part.previous_subprocess_id = 1 # 1 is the id for loading                    
+                        # Scheduler will handle the rest
+                        break
+        elif msg.command == "UNLOAD":
+            for part in self.parts_state:
+                if part.part_id == selected_part_id:
+                    # Part is the chosen part
+                    # If the current subprocess is 0, then the part needs moving, double check that the part is not "new"
+                    if part.current_subprocess_id == 0 and part.previous_subprocess_id != 0: 
+                        # The button is clicked, so the part is unloaded from the robot
+                        part.previous_subprocess_id = -1 # -1 is the id for unloading    
+                        part.next_subprocess_id = 0 # i.e. the part is finished, it has been unloaded - Scheduler will handle the removal of the part from the system                
+                        # Scheduler will handle the rest
+                        break
+                    
+        # Publish system state so that the schedule get's updated.
+        self.system_state.parts = self.parts_state
+        self.state_publisher.publish(self.system_state)
+
 
     def update_active_job_list(self):
         # For all the jobs in the job log, if they are IN PROGRESS or PENDING, add them to the active job list
@@ -158,7 +194,7 @@ class Scheduler(Node):
                     f.write(line)                       # writes each line of tempJobLog to JobLog
                 #f.write('\n')
         #self.update_active_job_list()                   # Update active job list from job log
-
+    
     def system_state_callback(self, msg):
         # Check if the system states are the same:
         if msg.parts == self.system_state.parts and msg.workstations == self.system_state.workstations:

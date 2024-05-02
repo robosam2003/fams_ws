@@ -35,6 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EmergencyControl.msg"
   "msg/JobList.msg"
   "msg/PiControl.msg"
+  "msg/LoadUnload.msg"
   
   DEPENDENCIES std_msgs geometry_msgs
 )
