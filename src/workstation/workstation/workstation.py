@@ -51,8 +51,17 @@ Workstation 2:
 class Workstation(Node):
     def __init__(self):
         super().__init__('workstation')
-        self.workstationName='Workstation1'
         self.get_logger().info('Workstation node has been started')
+        
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('workstation_name', 'workstationX'),
+            ]
+        )
+
+        self.workstationName = self.get_parameter('workstation_name').value
+        self.workstation_id = int(self.workstationName[-1])
 
         # Subscriptions
         self.SystemStateSubscription=self.create_subscription(SystemState,
@@ -60,7 +69,7 @@ class Workstation(Node):
                                                                 self.system_state_callback,
                                                                 10 )
         self.vision_locations_subscription = self.create_subscription(Vision,
-                                                                '/workstation2/VisionLocations', # Absolute path to the topic - we are in a namespace! 
+                                                                'VisionLocations', # Namespaced
                                                                     self.vision_callback,
                                                                     10)
         
@@ -106,12 +115,16 @@ class Workstation(Node):
 
         self.my_chain = ikpy.chain.Chain.from_urdf_file("src/mover6_description/src/description/CPRMover6WithGripperIKModel.urdf.xacro")
 
+        
         self.place_location = [0.36, -0.05, 0.15]
         self.rfid_scan_location = [-0.05, 0.41, 0.15]
         self.idle_position = [0.30, -0.30, 0.30]
         self.previous_pickup_location = [0.3, 0.3, 0.3]
         self.zero_point = [0.34594893, 0.01, 0.44677551]
         self.current_point = None
+
+        if self.workstation_id == 1:
+            self.rfid_scan_location = [-0.05, -0.41, 0.15] # Scan the other way please
 
 
         # self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
@@ -197,7 +210,7 @@ class Workstation(Node):
         self.move_robot(self.zero_point[0], self.zero_point[1], self.zero_point[2])
         
 
-
+    
         
 #         parts=msg.parts
 #         for i in parts:
