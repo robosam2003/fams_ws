@@ -44,7 +44,7 @@ def quaternion_from_euler(ai, aj, ak):
 """
 To launch a workstation, with a mover6, use:
 Workstation 2:
-    ros2 launch mover6_description mover6_launch.py robot_name:=mover62 initial_base_link_pos:="3.31 2.05 -1.57079"
+    ros2 launch mover6_description mover6_launch.py robot_name:=workstation2 initial_base_link_pos:="3.31 2.05 -1.57079"
 """
 
 

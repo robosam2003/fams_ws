@@ -38,7 +38,7 @@ class ArucoReader(Node):
     
     self.vidIndex=int(self.get_parameter('vidIndex').value)
     self.get_logger().info(f"VID INDEX: {self.vidIndex}")
-     # Before running, it should be verfied that, maincam=0, workBcam=2, workAcam=4
+     # Before running, it should be verfied that, maincam=0, workBcam=2, workAcam=4 by pluggling them in, in this order
 
     self.xpart=[]
     self.ypart=[]
@@ -148,8 +148,8 @@ class ArucoReader(Node):
     return newx
 
   def ScreenArucoInfo(self,frame,newx,y,yaw,corners):
-    x_sum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
-    y_sum = corners[0][0][0][1]+ corners[0][0][1][1]+ corners[0][0][2][1]+ corners[0][0][3][1]
+    x_sum = corners[0][0][0]+ corners[0][1][0]+ corners[0][2][0]+ corners[0][3][0]
+    y_sum = corners[0][0][1]+ corners[0][1][1]+ corners[0][2][1]+ corners[0][3][1]
     x_centerPixel = int(x_sum*.25)
     y_centerPixel = int(y_sum*.25)
     msg1="x: "+ str(round(newx,3)) + "m"
@@ -286,7 +286,6 @@ class ArucoReader(Node):
         match self.vidIndex:
           case 0: # For Mobile Robot Detection (Main Cam)
             if ids[i,0]==0:
-              
               id_msg.append(int(ids[i,0]))
               errorfix=(0.146*x**4+0.04*x**3-1.11195*x**2+2.9528*x)/100
               newx=round(x-errorfix,5)
@@ -296,7 +295,7 @@ class ArucoReader(Node):
               mobilelocation0_msg.x=newx
               mobilelocation0_msg.y=y
               mobilelocation0_msg.z=yaw
-              self.ScreenArucoInfo(frame,newx,y,yaw,corners)
+              self.ScreenArucoInfo(frame,newx,y,yaw,corners[i])
             if ids[i,0]==1:
               # self.ScreenArucoInfo(frame,'Mobile Robot 1',corners)
               id_msg.append(int(ids[i,0]))
@@ -308,7 +307,7 @@ class ArucoReader(Node):
               mobilelocation1_msg.x=newx
               mobilelocation1_msg.y=y
               mobilelocation1_msg.z=yaw
-              self.ScreenArucoInfo(frame,newx,y,yaw,corners)
+              self.ScreenArucoInfo(frame,newx,y,yaw,corners[i])
             vmsg.part_id=id_msg
             vmsg.part_location=loc_msg
           case 2 | 4:
@@ -365,8 +364,7 @@ class ArucoReader(Node):
       # cv2.putText(frame, '+y  +-pi rads',(970,1000),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
       # cv2.putText(frame, '-x -pi/2 rads',(20,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
       # cv2.putText(frame, '-x +pi/2 rads',(1800,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
-      # cv2.line(frame, (0,540),(1920,540),(255,0,0),2)
-      # cv2.line(frame, (953,0),(953,1080),(255,0,0),2)
+      
       
     else:
       locations=0
@@ -394,7 +392,7 @@ class ArucoReader(Node):
         cx = (cxi-960)*scale
         cy = (cyi-540)*scale
         
-        if cxi>20 and cyi< 530 and cxi<900:
+        if cxi>190 and cyi< 530 and cxi<900:
           cv2.circle(frame,(int(cxi),int(cyi)),5,(255,0,0),-1)
           rect = cv2.minAreaRect(cnt)
           box = cv2.boxPoints(rect)
@@ -440,7 +438,7 @@ class ArucoReader(Node):
     while self.cap.isOpened():
       match self.vidIndex:
         case 0:
-          os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=130')
+          os.system('v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=130')     # Has to loop through these to 'fight' back against camera reseting to default
           os.system('v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=3700')
           os.system('v4l2-ctl -d /dev/video0 --set-ctrl=gain=30')
           os.system('v4l2-ctl -d /dev/video0 --set-ctrl=focus_absolute=0')
@@ -464,7 +462,6 @@ class ArucoReader(Node):
         output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],self.Cam_Mtrx, self.Distort,self.markerSize,self.detectObstacles)
         if self.detectObstacles!=0:
           FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
-        
         cv2.namedWindow(self.windowname,cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.windowname,1728,972)
         cv2.imshow(self.windowname, output)
@@ -476,12 +473,10 @@ class ArucoReader(Node):
     self.cap.release()
     cv2.destroyAllWindows()
     
-
 ARUCO_DICT = {
 	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
 	"DICT_4X4_100": cv2.aruco.DICT_4X4_100
 }
-
 
 def main(args=None):
   rclpy.init(args=args)
@@ -492,4 +487,3 @@ def main(args=None):
    
 if __name__ == '__main__':
   main()
-
