@@ -44,7 +44,8 @@ def quaternion_from_euler(ai, aj, ak):
 """
 To launch a workstation, with a mover6, use:
 Workstation 2:
-    ros2 launch mover6_description mover6_launch.py robot_name:=workstation2 initial_base_link_pos:="3.31 2.05 -1.57079"
+    ros2 launch mover6_description mover6_launch.py robot_name:=workstation2 initial_base_link_pos:="3.13 2.05 -1.57079"
+    ros2 launch mover6_description mover6_launch.py robot_name:=workstation2 initial_base_link_pos:="0.47 2.05 -1.57079"
 """
 
 
@@ -59,9 +60,16 @@ class Workstation(Node):
                 ('workstation_name', 'workstationX'),
             ]
         )
-
+        self.previous_cmd="OUTPUT"
         self.workstationName = self.get_parameter('workstation_name').value
-        self.workstation_id = int(self.workstationName[-1])
+        self.workstation_id_str = self.workstationName[-1]
+        self.workstation_id = 0
+        if self.workstation_id_str == "2":
+            self.workstation_id = 2
+        else:
+            self.workstation_id = 1
+
+        self.get_logger().info(f"Workstation ID={self.workstation_id}")
 
         # Subscriptions
         self.SystemStateSubscription=self.create_subscription(SystemState,
@@ -103,12 +111,18 @@ class Workstation(Node):
             10
         )
 
+        self.part_done_publisher=self.create_publisher(
+            String,
+            'part_is_done',
+            10
+        )
+
+        
         self.x = 0.0
         self.y = 0.0
         self.vision_locations = Vision()
         self.system_state = SystemState()
         self.joint_states = JointState()
-        self.workstation_id = 0
         self.available_operations = []
         self.status = 'FREE'  # Add a 'status' attribute with default value 'FREE'
 
@@ -124,7 +138,7 @@ class Workstation(Node):
         self.current_point = None
 
         if self.workstation_id == 1:
-            self.rfid_scan_location = [-0.05, -0.41, 0.15] # Scan the other way please
+            self.rfid_scan_location = [0.0, -0.41, 0.15] # Scan the other way please
 
 
         self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
@@ -132,12 +146,12 @@ class Workstation(Node):
 
         self.rfid_publisher = self.create_publisher(
             RFID,
-            'rfid_tag',
+            '/rfid_tag',
             10
         )
         
     
-        self.rfid_timer=self.create_timer(0.5,
+        self.rfid_timer=self.create_timer(0.1,
                                           self.read_rfid)
 
     def system_state_callback(self,msg):
@@ -170,8 +184,8 @@ class Workstation(Node):
         self.get_logger().info('Excecuting Part Input')
         part_location = location_array_2D[0]
         part_location = [float(i) for i in part_location]
-        part_location[0] = part_location[0] - 0.04
-        part_location[1] = part_location[1] + 0.035
+        part_location[0] = part_location[0] - 0.06
+        part_location[1] = part_location[1] + 0.02
         # part_location = [0.3, 0.3, 1.57] # FAKE LOCATION
         self.get_logger().info(f'Part Location: {part_location}')
         self.previous_pickup_location = part_location
@@ -190,7 +204,16 @@ class Workstation(Node):
         self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
         self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], self.rfid_scan_location[2])
-        time.sleep(15)
+        self.done_timer = self.create_timer(10, self.done_handler)
+        self.previous_cmd="INPUT"
+
+    def done_handler(self):
+        msg=String()
+        msg.data="DONE"
+        self.part_done_publisher.publish(msg)
+        self.done_timer.cancel()
+        # self.done_timer.reset()
+        self.done_timer.destroy()
 
     def handle_part_output(self,msg):
         # self.read_rfid()
@@ -201,7 +224,7 @@ class Workstation(Node):
         # locations = self.vision_locations.part_location
         # print(locations)
         # location_array_2D=np.reshape(locations,(int(len(locations)/3),3))
-        
+        self.get_logger().info('Output Started')
         delay_between_operations = 1
         self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], self.rfid_scan_location[2]+0.2)
         time.sleep(delay_between_operations)
@@ -214,7 +237,7 @@ class Workstation(Node):
         self.move_robot(self.previous_pickup_location[0], self.previous_pickup_location[1], 0.3)
         time.sleep(delay_between_operations)
         self.move_robot(self.zero_point[0], self.zero_point[1], self.zero_point[2])
-
+        self.previous_cmd="OUTPUT"
         # Update the part location to amr0
         msg = RFID()
         msg.workstation_id = 0 # 0 indicates that this is a loading onto amr (output) event
@@ -274,11 +297,12 @@ class Workstation(Node):
     def workstation_cmd_callback(self, msg):
         command = msg.command
         self.get_logger().info(f'Received Command: {command}' )
-        if command == "INPUT":
+        if command == "INPUT" and self.previous_cmd=="OUTPUT":
             self.handle_part_input()
-        elif command == "OUTPUT":
+        elif command == "OUTPUT" and self.previous_cmd=="INPUT":
             self.handle_part_output(msg)
-    
+        
+        
     def read_rfid(self):
         # msg = RFID()
         a = self.ser.readline().strip()  # Remove leading/trailing whitespace
@@ -286,14 +310,15 @@ class Workstation(Node):
         if len(a) > 0:
             self.get_logger().info(rfid_code)
             #var = var[len("Tag ID:"):].strip()
-            if rfid_code != None:
-                self.rfid_tag=rfid_code
-                print(self.rfid_tag)
-                print("update current rfid tag")
-                msg = RFID()
-                msg.workstation_id = self.workstation_id
-                msg.rfid_code = self.rfid_tag
-                self.rfid_publisher.publish(msg)
+            
+            self.rfid_tag=rfid_code
+            print(self.rfid_tag)
+            self.get_logger().info("update current rfid tag")
+            msg = RFID()
+            msg.workstation_id = self.workstation_id
+            msg.rfid_code = self.rfid_tag
+            self.rfid_publisher.publish(msg)
+            self.get_logger().info("published rfid")
 
 def main(args=None):
     rclpy.init(args=args)
