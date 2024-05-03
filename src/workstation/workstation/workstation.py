@@ -62,6 +62,7 @@ class Workstation(Node):
 
         self.workstationName = self.get_parameter('workstation_name').value
         self.workstation_id = int(self.workstationName[-1])
+        self.get_logger().info(f'Workstation ID: {self.workstation_id}')
 
         # Subscriptions
         self.SystemStateSubscription=self.create_subscription(SystemState,
@@ -290,7 +291,7 @@ class Workstation(Node):
                 print(self.rfid_tag)
                 print("update current rfid tag")
                 msg = RFID()
-                msg.workstation_id = self.workstation_id
+                msg.workstation_id = self.workstation_id    
                 msg.rfid_code = self.rfid_tag
                 self.rfid_publisher.publish(msg)
 

@@ -104,7 +104,31 @@ class WorkstationController(Node):
             10
         )
 
+        self.part_is_done_subscriber1 = self.create_subscription( # For workspace 1
+            String,
+            '/workstation1/part_is_done',
+            self.part_is_done_handler1,
+            10
+        )
+
+        self.part_is_done_subscriber2 = self.create_subscription( # For workspace 2
+            String,
+            '/workstation2/part_is_done',
+            self.part_is_done_handler2,
+            10
+        )
+
         self.init_workstations()
+
+    def part_is_done_handler1(self, msg):
+        if msg.data == "DONE":
+            self.get_logger().info("PART IS DONE: 1")
+            self.workstations_state[0].state = 'FREE'
+    
+    def part_is_done_handler2(self, msg):
+        if msg.data == "DONE":
+            self.get_logger().info("PART IS DONE: 2")
+            self.workstations_state[1].state = 'FREE'
 
     def init_workstations(self):
         # Create some fake workstations for now
@@ -147,7 +171,7 @@ class WorkstationController(Node):
                 # If the AMR is close enough to the docking pose
                 if distance <= 0.13 and amr_location[2] - docking_pose.z <= 0.18: # There could be a better way of checking that the robot is at the docking location. 
                     # The AMR is close enough and aligned with the docking pose of the workstation
-                    self.get_logger().info("WE ARE AT A WORKSTATION YESSSSS")
+                    # self.get_logger().info("WE ARE AT A WORKSTATION YESSSSS")
                     time.sleep(1)
                     parts_schedule = self.schedule.parts
                     subprocesses_schedule = self.schedule.subprocesses
@@ -161,18 +185,19 @@ class WorkstationController(Node):
                     amr_id = self.vision_locations.part_id[i] # "Part ID" here is actually the AMR ids
                     for part in parts_schedule:
                         if part.location.startswith("workstation"): # If the part is at a workstation, the robot is coming to pick it up
-                            index = parts_schedule.index(part)
-                            state_workstation = self.workstations_state # The workstation that the part is at
+                            workstation = self.workstations_state[int(part.location[-1])-1]
+                            self.get_logger().info(f"Part is at workstation {workstation}")
+                            
+                            # if workstation.workstation_id == j+1: # If the workstation id in the schedule matches the workstation id of the docking pose that matches (to avoid running this as soon as a part is placed)
 
-                            # for state_workstation in self.system_state.workstations: # State workstation contains the actual state of the workstations
-                                # if state_workstation.workstation_id == workstation.workstation_id: # Match the actual workstation id with the workstation id in the schedule
-                            if state_workstation.state == 'BUSY':
+                            if workstation.state == 'FREE':
+                                self.get_logger().info("WORKSTATION IS FREE")
                                 # If the workstation is free, the robot is coming to pick up a part
-                                self.send_workstation_command(state_workstation.workstation_id, "OUTPUT")
-                                self.workstations_state[state_workstation.workstation_id-1].state = 'FREE'
+                                self.send_workstation_command(workstation.workstation_id, "OUTPUT")
+
+                                self.workstations_state[workstation.workstation_id-1].state = 'FREE'
                                 break
                             # elif state_workstation.state == 'FREE':
-                                
                             #     self.send_workstation_command(workstation.id, "INPUT")
                             #     break
                             else:
@@ -190,14 +215,15 @@ class WorkstationController(Node):
                                             # If the workstation is free, and the part is on the robot, the robot is coming to drop off a part
                                             time.sleep(1)
                                             self.send_workstation_command(workstation.workstation_id, "INPUT")
-                                            time.sleep(10)
+                                            # time.sleep(10)
                                             self.workstations_state[workstation.workstation_id-1].state = 'BUSY' # Workstation is now busy, processing the part.
-                                            # PROCESS THE PART.
-                                            self.get_logger().info("PROCESSING THE PART")
-                                            time.sleep(15) # This is the time it takes to process the part
-                                            self.send_workstation_command(workstation.workstation_id, "OUTPUT")
-                                            time.sleep(10) # This is the time it takes to drop off the part
-                                            self.workstations_state[workstation.workstation_id-1].state = 'FREE' # Workstation is now free
+                                            
+                                            # # PROCESS THE PART.
+                                            # self.get_logger().info("PROCESSING THE PART")
+                                            # time.sleep(15) # This is the time it takes to process the part
+                                            # self.send_workstation_command(workstation.workstation_id, "OUTPUT")
+                                            # time.sleep(10) # This is the time it takes to drop off the part
+                                            # self.workstations_state[workstation.workstation_id-1].state = 'FREE' # Workstation is now free
                                             break
                                         # elif state_workstation.state == 'BUSY':
                                         #     self.send_workstation_command(workstation.id, "INPUT")

@@ -3,6 +3,7 @@ import csv
 from rclpy.node import Node
 from fams_interfaces.msg import Job, SubProcess, Part, SystemState, Schedule, Workstation, JobList, LoadUnload, RFID
 from rosidl_runtime_py import *
+from std_msgs.msg import String
 
 
 
@@ -61,17 +62,60 @@ class Scheduler(Node):
 
         self.rfid_subscriber = self.create_subscription(
             RFID,
-            "rfid_tag",
+            '/rfid_tag',
             self.rfid_callback,
+            10
+        )
+
+        self.part_is_done_1 = self.create_subscription(
+            String,
+            '/workstation1/part_is_done',
+            self.part_is_done_callback1,
+            10
+        )
+
+        self.part_is_done_2 = self.create_subscription(
+            String,
+            '/workstation2/part_is_done',
+            self.part_is_done_callback2,
             10
         )
         
         self.update_active_job_list() # Update active job list from job log
 
+    def part_is_done_callback1(self, msg):
+        self.get_logger().info('Part is done from scheduler')
+        if msg.data == "DONE":
+            # Look for the part that is at workstation 1, and set it's current_subprocess_id to 0
+            for part in self.parts_state:
+                if part.location == "workstation1":
+                    part.previous_subprocess_id = part.current_subprocess_id
+                    part.current_subprocess_id = 0
+                    self.get_logger().info('Part ' + str(part.part_id) + ' has been set to 0')
+                    break
+                # Publish system state so that the schedule get's updated.
+        self.system_state.parts = self.parts_state
+        self.state_publisher.publish(self.system_state)
+
+    def part_is_done_callback2(self, msg):
+        self.get_logger().info('Part is done from scheduler')
+        if msg.data == "DONE":
+            # Look for the part that is at workstation 2, and set it's current_subprocess_id to 0
+            for part in self.parts_state:
+                if part.location == "workstation2":
+                    part.previous_subprocess_id = part.current_subprocess_id
+                    part.current_subprocess_id = 0
+                    self.get_logger().info('Part ' + str(part.part_id) + ' has been set to 0')
+                    break
+                # Publish system state so that the schedule get's updated.
+        self.system_state.parts = self.parts_state
+        self.state_publisher.publish(self.system_state)
+    
+
     def rfid_callback(self, msg):
         self.get_logger().info('RFID callback has been called')
         workstation_id = msg.workstation_id
-        rfid_id = msg.rfid_code
+        rfid_id = msg.rfid_code 
 
         if workstation_id == 0:
             # This is a load event onto the AMR
@@ -81,17 +125,26 @@ class Scheduler(Node):
                     part.current_subprocess_id = 0
                     job_job_id_mapping = {job.job_id: job for job in self.active_job_list} # This is a dictionary that maps job_id to job
                     parts_job = job_job_id_mapping[part.job_id]
-                    part.next_subprocess_id = parts_job.subprocesses[parts_job.subprocesses.index(part.current_subprocess_id) + 1].sub_process_id
-                    break
+                    # set the next subprocess id:
+                    for sub in parts_job.subprocesses:
+                        if sub.sub_process_id == part.current_subprocess_id:
+                            part.next_subprocess_id = parts_job.subprocesses[parts_job.subprocesses.index(sub) + 1].sub_process_id
+                    self.get_logger().info('Part ' + str(part.part_id) + ' has been loaded onto the AMR')
                     break
         else:
             for part in self.parts_state:
                 if part.part_id == rfid_id:
                     part.location = "workstation" + str(workstation_id)
                     part.current_subprocess_id = part.next_subprocess_id
+                    self.get_logger().info('part: ' + str(part.part_id) + ' is now on subprocess: ' + str(part.current_subprocess_id))
                     job_job_id_mapping = {job.job_id: job for job in self.active_job_list} # This is a dictionary that maps job_id to job
                     parts_job = job_job_id_mapping[part.job_id]
-                    part.next_subprocess_id = parts_job.subprocesses[parts_job.subprocesses.index(part.current_subprocess_id) + 1].sub_process_id
+                    self.get_logger().info('parts_job subprocesses ' + str(parts_job.subprocesses))
+                    # set the next subprocess id:
+                    for sub in parts_job.subprocesses:
+                        if sub.sub_process_id == part.current_subprocess_id:
+                            part.next_subprocess_id = parts_job.subprocesses[parts_job.subprocesses.index(sub) + 1].sub_process_id
+                    self.get_logger().info('Part ' + str(part.part_id) + ' has changed location to workstation ' + str(workstation_id))
                     break
         self.system_state.parts = self.parts_state
         self.state_publisher.publish(self.system_state)                
