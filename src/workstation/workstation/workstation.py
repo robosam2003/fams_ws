@@ -117,7 +117,7 @@ class Workstation(Node):
 
         
         self.place_location = [0.36, -0.05, 0.15]
-        self.rfid_scan_location = [-0.05, 0.41, 0.15]
+        self.rfid_scan_location = [0.0, 0.41, 0.15]
         self.idle_position = [0.30, -0.30, 0.30]
         self.previous_pickup_location = [0.3, 0.3, 0.3]
         self.zero_point = [0.34594893, 0.01, 0.44677551]
@@ -128,7 +128,7 @@ class Workstation(Node):
 
 
         self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
-        self.rfid_tag=0
+        self.rfid_tag="0"
 
         self.rfid_publisher = self.create_publisher(
             RFID,
@@ -170,7 +170,8 @@ class Workstation(Node):
         self.get_logger().info('Excecuting Part Input')
         part_location = location_array_2D[0]
         part_location = [float(i) for i in part_location]
-        part_location[0] = part_location[0] - 0.07
+        part_location[0] = part_location[0] - 0.04
+        part_location[1] = part_location[1] + 0.035
         # part_location = [0.3, 0.3, 1.57] # FAKE LOCATION
         self.get_logger().info(f'Part Location: {part_location}')
         self.previous_pickup_location = part_location
@@ -189,7 +190,7 @@ class Workstation(Node):
         self.move_robot(part_location[0], part_location[1], 0.3)
         time.sleep(delay_between_operations)
         self.move_robot(self.rfid_scan_location[0], self.rfid_scan_location[1], self.rfid_scan_location[2])
-
+        time.sleep(15)
 
     def handle_part_output(self,msg):
         # self.read_rfid()
