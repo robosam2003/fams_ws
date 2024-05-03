@@ -69,6 +69,7 @@ class Scheduler(Node):
         self.update_active_job_list() # Update active job list from job log
 
     def rfid_callback(self, msg):
+        self.get_logger().info('RFID callback has been called')
         workstation_id = msg.workstation_id
         rfid_id = msg.rfid_code
 
@@ -77,11 +78,20 @@ class Scheduler(Node):
             for part in self.parts_state:
                 if part.part_id == rfid_id:
                     part.location = "amr0"
+                    part.current_subprocess_id = 0
+                    job_job_id_mapping = {job.job_id: job for job in self.active_job_list} # This is a dictionary that maps job_id to job
+                    parts_job = job_job_id_mapping[part.job_id]
+                    part.next_subprocess_id = parts_job.subprocesses[parts_job.subprocesses.index(part.current_subprocess_id) + 1].sub_process_id
+                    break
                     break
         else:
             for part in self.parts_state:
                 if part.part_id == rfid_id:
                     part.location = "workstation" + str(workstation_id)
+                    part.current_subprocess_id = part.next_subprocess_id
+                    job_job_id_mapping = {job.job_id: job for job in self.active_job_list} # This is a dictionary that maps job_id to job
+                    parts_job = job_job_id_mapping[part.job_id]
+                    part.next_subprocess_id = parts_job.subprocesses[parts_job.subprocesses.index(part.current_subprocess_id) + 1].sub_process_id
                     break
         self.system_state.parts = self.parts_state
         self.state_publisher.publish(self.system_state)                
@@ -313,6 +323,8 @@ class Scheduler(Node):
         self.schedule_publisher.publish(schedule_msg)
 
         # Publish new system state
+        self.system_state.parts = self.parts_state
+        self.state_publisher.publish(self.system_state)
 
 
 def main(args=None):

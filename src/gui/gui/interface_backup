@@ -62,6 +62,7 @@ class Ui_MainWindow(object):
         xSubWidget2=xSubWidget1+wSubWidget+10
         xPartIdList = xLineEdit
         xPartListNames = 10 + wJobFrame - wPartWidget - 10
+        xRightAlign = 10 + wJobFrame + 10
 
         mainWindowSize=[850, yDeleteJob + 2*yDefaultSpacing]
         MainWindow.resize(mainWindowSize[0],mainWindowSize[1])
@@ -177,13 +178,21 @@ class Ui_MainWindow(object):
         self.PartSelectButton.setGeometry(QRect(xLineEdit, yPartSelect, 10 + wJobFrame - 10 - xLineEdit, 25))
         self.LoadedButton = QPushButton(self.centralwidget)
         self.LoadedButton.setObjectName(u"LoadedButton")
-        self.LoadedButton.setGeometry(QRect(10 + wJobFrame + 10, yPartLists, 140, 25))
+        self.LoadedButton.setGeometry(QRect(xRightAlign, yPartLists, 140, 25))
         self.UnloadedButton = QPushButton(self.centralwidget)
         self.UnloadedButton.setObjectName(u"UnloadedButton")
-        self.UnloadedButton.setGeometry(QRect(10 + wJobFrame + 10, yPartLists + yDefaultSpacing, 140, 25))
+        self.UnloadedButton.setGeometry(QRect(xRightAlign, yPartLists + yDefaultSpacing, 140, 25))
         self.LoadPresetButton = QPushButton(self.centralwidget)
         self.LoadPresetButton.setObjectName(u"LoadPresetButton")
-        self.LoadPresetButton.setGeometry(QRect(10 + wJobFrame + 10, 15, 140, 25))
+        self.LoadPresetButton.setGeometry(QRect(xRightAlign, 15, 140, 25))
+
+        self.LayoutButton1 = QPushButton(self.centralwidget)
+        self.LayoutButton1.setObjectName(u"LayoutButton1")
+        self.LayoutButton1.setGeometry(QRect(xRightAlign + 140 - 25 - 35, yDeleteJob, 25, 25))
+        self.LayoutButton2 = QPushButton(self.centralwidget)
+        self.LayoutButton2.setObjectName(u"LayoutButton2")
+        self.LayoutButton2.setGeometry(QRect(xRightAlign + 140 - 25, yDeleteJob, 25, 25))
+
         self.SubprocessList = QLabel(self.centralwidget)
         self.SubprocessList.setObjectName(u"SubprocessList")
         self.SubprocessList.setGeometry(QRect(xSubWidget1, yLowerListWidgetLabels, 110, 17))
@@ -265,6 +274,8 @@ class Ui_MainWindow(object):
         self.LoadedButton.raise_()
         self.UnloadedButton.raise_()
         self.LoadPresetButton.raise_()
+        self.LayoutButton1.raise_()
+        self.LayoutButton2.raise_()
         self.subprocessListWidget_1.raise_()
         self.subprocessListWidget_2.raise_()
         self.subprocessListWidget_3.raise_()
@@ -308,5 +319,7 @@ class Ui_MainWindow(object):
         self.LoadedButton.setText(QCoreApplication.translate("MainWindow", u"Loaded", None))
         self.UnloadedButton.setText(QCoreApplication.translate("MainWindow", u"Unloaded", None))
         self.LoadPresetButton.setText(QCoreApplication.translate("MainWindow", u"Load Preset", None))
+        self.LayoutButton1.setText("")
+        self.LayoutButton2.setText("")
     # retranslateUi
 

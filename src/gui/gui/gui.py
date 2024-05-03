@@ -29,6 +29,8 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.partIdCheck = 0
         self.addToListCheck = 0
         self.preset_path = "./src/gui/gui/preset.csv"  # Relative so that it works on any machine
+        self.Layout1Toggle = 0
+        self.Layout2Toggle = 0
         #self.stopButton.clicked.connect(self.rosnode.start) # if stopButton is clicked
         
         # jobListWidget testing vvv
@@ -74,7 +76,26 @@ class Interface(QMainWindow, ui.Ui_MainWindow, QWidget):
         self.LoadedButton.clicked.connect(self.LoadedButtonhandler)
         self.UnloadedButton.clicked.connect(self.UnloadedButtonHandler)
         self.LoadPresetButton.clicked.connect(self.LoadPresetButtonHandler)
-       
+        self.LayoutButton1.clicked.connect(self.LayoutButton1handler)
+        self.LayoutButton2.clicked.connect(self.LayoutButton2handler)
+
+    def LayoutButton1handler(self):
+        if self.Layout1Toggle == 0:
+            self.Layout1Toggle = 1
+            self.stopButton.setStyleSheet("background-color: rgb(255, 64, 0)")
+            self.frame1.setStyleSheet("background-color: rgb(96, 129, 99)")
+            self.frame.setStyleSheet("background-color: rgb(131, 175, 134)")
+            self.addToList.setStyleSheet("background-color: rgb(139, 185, 142)")
+        else:
+            self.Layout1Toggle = 0
+            self.stopButton.setStyleSheet("background-color: rgb(255, 0, 0)")
+            self.frame1.setStyleSheet("background-color: rgb(100, 100, 120)")
+            self.frame.setStyleSheet("background-color: rgb(125, 155, 200)")
+            self.addToList.setStyleSheet("background-color: rgb(70, 100, 200)")
+
+    def LayoutButton2handler(self):
+        self.csv_to_lineEdits()
+
     def LoadPresetButtonHandler(self):
         self.csv_to_lineEdits()
     
