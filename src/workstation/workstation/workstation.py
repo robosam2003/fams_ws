@@ -187,8 +187,8 @@ class Workstation(Node):
         part_location = location_array_2D[0]
         part_location = [float(i) for i in part_location]
         if self.workstation_id == 1:
-            part_location[0] = part_location[0] + 0.01
-            part_location[1] = part_location[1] + 0.02
+            part_location[0] = part_location[0] 
+            part_location[1] = part_location[1] + 0.03
         else:
             part_location[0] = part_location[0] - 0.06
             part_location[1] = part_location[1] + 0.02
