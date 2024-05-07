@@ -154,6 +154,22 @@ Visualization Manager:
     - Alpha: 0.8999999761581421
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /workstation1/robot_description
+      Enabled: true
+      Name: Mover6_1 Model
+      TF Prefix: workstation1
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 0.8999999761581421
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
       Description File: ""
       Description Source: Topic
       Description Topic:
