@@ -212,24 +212,6 @@ class mover6(Node):
         return X, Y, Z
 
 
-    def mover6_pose_control_callback(self, msg):
-        target_point = [msg.position.x, msg.position.y, msg.position.z]
-        orientation_quat = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
-        # Convert the orientation to euler angles
-        orientation_euler = [0, 0, -1] #self.quaternion_to_euler(orientation_quat)
-        orientation_axis = "Z"
-
-        # Do the inverse kinematics
-        ik = self.my_chain.inverse_kinematics(target_position=target_point)
-                                            #   target_orientation=orientation_euler,
-                                            #   orientation_mode=orientation_axis) # , orientation_euler)  # Uncommment to include orientation
-        angles = [ik[i+1] for i in range(6)] # Skip the first angle, it's for the joint from the base_link to the first joint
-        angles[0] = angles[0]
-        angles[1] = -angles[1]
-        angles[2] = angles[2]
-        angles[3] = angles[3]
-        angles[4] = angles[4]
-        angles[5] = 0
         
     
     def mover6_pose_control_callback(self, msg):
@@ -253,7 +235,7 @@ class mover6(Node):
         
 
         angles = [np.rad2deg(a) for a in angles]
-        print("IK angles: ", angles)
+        # print("IK angles: ", angles)
         # Set the desired joint angles to calculated joint angles from the IK
         self.desired_joint_angles = angles        
 
@@ -263,13 +245,13 @@ class mover6(Node):
             self.gripper_state = False
             self.joint_states.position[6] = 0.5
             self.joint_states.position[7] = 0.5
-            print("Gripper state: ", self.gripper_state)
+            # print("Gripper state: ", self.gripper_state)
 
         elif msg.command == "GRIPPER CLOSED":
             self.gripper_state = True
             self.joint_states.position[6] = 0.0
             self.joint_states.position[7] = 0.0
-            print("Gripper state: ", self.gripper_state)
+            # print("Gripper state: ", self.gripper_state)
         if msg.command == "ZERO":
             joint_no = msg.joint_no
             self.joints[joint_no-1].set_zero_position()

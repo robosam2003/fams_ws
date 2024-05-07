@@ -113,14 +113,14 @@ class InterfaceNode(Node):
         # Add subscription and publishers
         self.joint_positions_subscription = self.create_subscription(
             JointState,
-            '/workstation2/mover6_joint_states',
+            '/workstation1/mover6_joint_states',
             self.joint_positions_callback,
             10
         )
 
         self.joint_control_publisher = self.create_publisher(
             Mover6Control,
-            '/workstation2/mover6_control',
+            '/workstation1/mover6_control',
             10
         )
         self.joint_states = JointState()
