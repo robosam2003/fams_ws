@@ -43,9 +43,11 @@ def quaternion_from_euler(ai, aj, ak):
 
 """
 To launch a workstation, with a mover6, use:
+Workstation 1:
+    ros2 launch mover6_description mover6_launch.py robot_name:=workstation1 initial_base_link_pos:="0.47 2.05 -1.57079"
+
 Workstation 2:
     ros2 launch mover6_description mover6_launch.py robot_name:=workstation2 initial_base_link_pos:="3.13 2.05 -1.57079"
-    ros2 launch mover6_description mover6_launch.py robot_name:=workstation2 initial_base_link_pos:="0.47 2.05 -1.57079"
 """
 
 
@@ -138,7 +140,7 @@ class Workstation(Node):
         self.current_point = None
 
         if self.workstation_id == 1:
-            self.rfid_scan_location = [0.0, -0.41, 0.15] # Scan the other way please
+            self.rfid_scan_location = [0.05, -0.41, 0.15] # Scan the other way please
 
 
         self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
@@ -184,8 +186,12 @@ class Workstation(Node):
         self.get_logger().info('Excecuting Part Input')
         part_location = location_array_2D[0]
         part_location = [float(i) for i in part_location]
-        part_location[0] = part_location[0] - 0.06
-        part_location[1] = part_location[1] + 0.02
+        if self.workstation_id == 1:
+            part_location[0] = part_location[0] - 0.06
+            part_location[1] = part_location[1]
+        else:
+            part_location[0] = part_location[0] - 0.06
+            part_location[1] = part_location[1] + 0.02
         # part_location = [0.3, 0.3, 1.57] # FAKE LOCATION
         self.get_logger().info(f'Part Location: {part_location}')
         self.previous_pickup_location = part_location
