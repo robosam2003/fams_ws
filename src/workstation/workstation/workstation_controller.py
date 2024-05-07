@@ -35,7 +35,7 @@ class WorkstationController(Node):
 
         # Directly copied from fleet controller
         self.workstation_goal_poses = {  # CHANGE TO ACTUAL VALUES
-            'workstation1': [0.8, 1.6903, np.pi-0.72],
+            'workstation1': [0.732, 1.75, np.pi-0.72],
             # 'workstation2': [1.0093, -0.6753, -0.72],
             'workstation2': [2.88, 1.75, 0.72],
             'workstation3': [1.77, 1.75, 1.57]

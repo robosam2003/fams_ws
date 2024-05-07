@@ -140,7 +140,7 @@ class Workstation(Node):
         self.current_point = None
 
         if self.workstation_id == 1:
-            self.rfid_scan_location = [0.05, -0.41, 0.15] # Scan the other way please
+            self.rfid_scan_location = [0.0, -0.41, 0.15] # Scan the other way please
 
 
         self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.05)
@@ -187,8 +187,8 @@ class Workstation(Node):
         part_location = location_array_2D[0]
         part_location = [float(i) for i in part_location]
         if self.workstation_id == 1:
-            part_location[0] = part_location[0] - 0.06
-            part_location[1] = part_location[1]
+            part_location[0] = part_location[0] + 0.01
+            part_location[1] = part_location[1] + 0.02
         else:
             part_location[0] = part_location[0] - 0.06
             part_location[1] = part_location[1] + 0.02
@@ -257,6 +257,7 @@ class Workstation(Node):
         return unit_vector, magnitude
 
     def move_robot(self,x,y,z):
+        self.get_logger().info("Moving robot to: " + str(x) + ", " + str(y) + ", " + str(z))
         overall_target_point = [x, y, z]
 
         link_angles = [0,
@@ -280,14 +281,14 @@ class Workstation(Node):
             # Calculate unit vector between the current and target points
             unit_vector, magnitude = self.calculate_unit_vector(self.current_point, overall_target_point)
             target_point = self.current_point + unit_vector * (magnitude/num_points) * (i+1)
-            self.get_logger().info("Target point: " + str(target_point))
+            # self.get_logger().info("Target point: " + str(target_point))
             mover6_pose_msg = Pose()
             mover6_pose_msg.position.x = target_point[0]
             mover6_pose_msg.position.y = target_point[1]
             mover6_pose_msg.position.z = target_point[2]
 
             self.mover6Publisher.publish(mover6_pose_msg)
-            self.get_logger().info("Published pose to mover6: " + str(mover6_pose_msg.position.x) + ", " + str(mover6_pose_msg.position.y) + ", " + str(mover6_pose_msg.position.z))
+            # self.get_logger().info("Published pose to mover6: " + str(mover6_pose_msg.position.x) + ", " + str(mover6_pose_msg.position.y) + ", " + str(mover6_pose_msg.position.z))
             time.sleep(0.06)
             self.current_point = target_point # Update the current point to the target point (it's moved)
         

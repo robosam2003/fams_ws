@@ -74,11 +74,11 @@ class Mover6(Node):
         self.joint_state_publisher.publish(self.joint_states)
 
     def mover6_pose_control_callback(self, msg):
-        self.get_logger().info("Received new target position")
+        # self.get_logger().info("Received new target position")
         self.target_position = [msg.position.x, -msg.position.y, msg.position.z] # sim node has inverted y for some reason
 
         ik = self.my_chain.inverse_kinematics(self.target_position)
-        self.get_logger().info(self.my_chain.__repr__())
+        # self.get_logger().info(self.my_chain.__repr__())
 
         
         # reverse it
@@ -94,7 +94,7 @@ class Mover6(Node):
             self.joint_states.position[6] = 0.5
             self.joint_states.position[7] = 0.5
         
-        self.get_logger().info("Angles:" + str(angles))
+        # self.get_logger().info("Angles:" + str(angles))
         # self.get_logger().info('Publishing: "%s"' % joint_state)
         self.joint_state_publisher.publish(self.joint_states)
 
