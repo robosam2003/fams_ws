@@ -137,7 +137,7 @@
       FollowPath:
         plugin: "nav2_rotation_shim_controller::RotationShimController"
         primary_controller: "dwb_core::DWBLocalPlanner"
-        angular_dist_threshold: 0.2
+        angular_dist_threshold: 0.1
         forward_sampling_distance: 0.5
         rotate_to_heading_angular_vel: 3.2
         max_angular_accel: 3.2
