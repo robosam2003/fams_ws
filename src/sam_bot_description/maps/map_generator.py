@@ -74,6 +74,7 @@ origin = [0.0, 0.0, 0.0] # Origin of the map in absolute coordinates
 map_size = (3.65, 2.06) # Size of the map in metres (width, height)
 rectangles = [
     Rectangle(0, 0, 3.6, 2.00, hollow=True), # Hollow rectangle, (x, y, w, h)
+    Rectangle(1.9+0.025, 2.06-(0.42 + 0.13), 0.2, 0.42), # Filled rectangle, (x, y, w, h)
     # Rectangle(3.6/2-0.2, 0, 0.4, 0.7) # Filled rectangle, (x, y, w, h)
 ] # Rectangles in absolute coordinates, (x, y, w, h)
 map_generator = MapGenerator(map_path, map_name, map_size, resolution, origin)

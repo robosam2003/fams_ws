@@ -132,7 +132,7 @@ class ArucoReader(Node):
         os.system('v4l2-ctl -d /dev/video4 --set-ctrl=auto_exposure=1')
         os.system('v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_automatic=0')
         os.system('v4l2-ctl -d /dev/video4 --set-ctrl=focus_automatic_continuous=0')
-        os.system('v4l2-ctl -d /dev/video4 --set-ctrl=focus_absolute=0')
+        os.system('v4l2-ctl -d /dev/video4 --set-ctrl=focus_absolute=25')
         os.system('v4l2-ctl -d /dev/video4 --set-ctrl=exposure_time_absolute=130')
         os.system('v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_temperature=3700')
         os.system('v4l2-ctl -d /dev/video4 --set-ctrl=gain=30')
@@ -161,17 +161,17 @@ class ArucoReader(Node):
 
   def convertboxpoints(self,box):
     scale=1/535
-    x1 = (box[0][0]-960)*scale
-    x1=self.errorFix_x(x1)
+    x1 = round((box[0][0]-960)*scale,2)
+    #x1=self.errorFix_x(x1)
     y1 = round((box[0][1]-540)*scale,2)
-    x2 = (box[1][0]-960)*scale
-    x2=self.errorFix_x(x2)
+    x2 = round((box[1][0]-960)*scale,2)
+    #x2=self.errorFix_x(x2)
     y2 = round((box[1][1]-540)*scale,2)
-    x3 = (box[2][0]-960)*scale
-    x3=self.errorFix_x(x3)
+    x3 = round((box[2][0]-960)*scale,2)
+    #x3=self.errorFix_x(x3)
     y3 = round((box[2][1]-540)*scale,2)
-    x4 = (box[3][0]-960)*scale
-    x4=self.errorFix_x(x4)
+    x4 = round((box[3][0]-960)*scale,2)
+    #x4=self.errorFix_x(x4)
     y4 = round((box[3][1]-540)*scale,2)
     p1=(x1,y1)
     p2=(x2,y2)
@@ -272,7 +272,7 @@ class ArucoReader(Node):
       for i in range(0, len(ids)):
         rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], markerSize, camera_matrix, distortion_vector)         
         cv2.aruco.drawDetectedMarkers(frame, corners,ids) 
-        cv2.aruco.drawAxis(frame, camera_matrix, distortion_vector, rvec, tvec, 0.05)  
+        cv2.aruco.drawAxis(frame, camera_matrix, distortion_vector, rvec, tvec, 0.03)  
         
         locations=tvec-self.Origin
         x=(round(locations[0,0,0],5))
@@ -333,7 +333,7 @@ class ArucoReader(Node):
                   print('Part Location: {}'.format([-aveY,aveX,aveYaw])) 
                   #print('Part Location: {}'.format([-x,-y,yaw])) 
                 elif self.vidIndex==4:
-                  part_loc_msg.extend([aveX,-aveY,aveYaw])
+                  part_loc_msg.extend([aveX,aveY,aveYaw])
                   print('Part Location: {}'.format([aveX,aveY,aveYaw]))
                 partlocation_msg.part_id=part_id_msg
                 partlocation_msg.part_location=part_loc_msg
@@ -383,7 +383,7 @@ class ArucoReader(Node):
     for cnt in contours:
       area=cv2.contourArea(cnt)
       
-      if area > 2500 and area < 12000:
+      if area > 2000:
         M=cv2.moments(cnt)
         scale=1/535
         cxi=int(M['m10']/M['m00'])
@@ -392,16 +392,12 @@ class ArucoReader(Node):
         cx = (cxi-960)*scale
         cy = (cyi-540)*scale
         
-        if cxi>190 and cyi< 530 and cxi<900:
-          cv2.circle(frame,(int(cxi),int(cyi)),5,(255,0,0),-1)
+        if cxi>990 and cyi<1050 and cyi>550 and cxi<1500:
           rect = cv2.minAreaRect(cnt)
           box = cv2.boxPoints(rect)
           box = np.int0(box)
           p1,p2,p3,p4=self.convertboxpoints(box)
-          cv2.putText(frame, str(p1),box[0],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
-          cv2.putText(frame, str(p2),box[1],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
-          cv2.putText(frame, str(p3),box[2],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
-          cv2.putText(frame, str(p4),box[3],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
+          
           
           match len(anti_ob_flag):
             case 1:
@@ -412,6 +408,11 @@ class ArucoReader(Node):
                 FilteredContours.append(cnt)
                 FilteredBoxes.append(box)
                 cv2.drawContours(frame,[box],0,(0,0,255),1)
+                if cxi>990 and cyi<1050 and cyi>550 and cxi<1500:
+                  cv2.putText(frame, str(p1),box[0],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
+                  cv2.putText(frame, str(p2),box[1],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
+                  cv2.putText(frame, str(p3),box[2],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
+                  cv2.putText(frame, str(p4),box[3],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
             case 2:
               Mark_x1=anti_ob_flag[0][0][0][0]
               Mark_y1=anti_ob_flag[0][0][0][1]
@@ -423,13 +424,23 @@ class ArucoReader(Node):
                 FilteredContours.append(cnt)
                 FilteredBoxes.append(box)
                 cv2.drawContours(frame,[box],0,(0,0,255),1)
+                if cxi>990 and cyi<1050 and cyi>550 and cxi<1500:
+                  cv2.putText(frame, str(p1),box[0],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
+                  cv2.putText(frame, str(p2),box[1],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
+                  cv2.putText(frame, str(p3),box[2],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
+                  cv2.putText(frame, str(p4),box[3],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 255, 255),2)
             case 0:
               FilteredContours.append(cnt)
               FilteredBoxes.append(box)
               cv2.drawContours(frame,[box],0,(0,0,255),1)
+              if cxi>990 and cyi<1050 and cyi>550 and cxi<1500:
+                  cv2.putText(frame, str(p1),box[0],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
+                  cv2.putText(frame, str(p2),box[1],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
+                  cv2.putText(frame, str(p3),box[2],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
+                  cv2.putText(frame, str(p4),box[3],cv2.FONT_HERSHEY_SIMPLEX,0.6, (255, 0, 0),2)
             case _:
               print("Anti-Obstacle Flag length error")
-    cv2.drawContours(frame, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+    cv2.drawContours(frame, contours=FilteredContours, contourIdx=-1, color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
     return FilteredBoxes
     
 
@@ -451,7 +462,7 @@ class ArucoReader(Node):
           os.system('v4l2-ctl -d /dev/video4 --set-ctrl=exposure_time_absolute=120')
           os.system('v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_temperature=3700')
           os.system('v4l2-ctl -d /dev/video4 --set-ctrl=gain=30')
-          os.system('v4l2-ctl -d /dev/video4 --set-ctrl=focus_absolute=0')
+          os.system('v4l2-ctl -d /dev/video4 --set-ctrl=focus_absolute=25')
       
       
       ret, img = self.cap.read()
@@ -462,6 +473,13 @@ class ArucoReader(Node):
         output, location, ObFlag = self.pose_estimation(img,ARUCO_DICT[aruco_type],self.Cam_Mtrx, self.Distort,self.markerSize,self.detectObstacles)
         if self.detectObstacles!=0:
           FilteredContourBoxes= self.obstacle_detector(img,ObFlag)
+          cv2.putText(output, '-y',(970,25),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+          cv2.putText(output, '+y',(970,1055),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+          cv2.putText(output, '-x',(20,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+          cv2.putText(output, '+x yaw=0',(1800,520),cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 255, 0))
+          cv2.putText(output, 'Workstation 1',(200,30),cv2.FONT_HERSHEY_SIMPLEX,0.7, (0, 255, 0),2)
+          cv2.putText(output, 'Workstation 2',(1700,30),cv2.FONT_HERSHEY_SIMPLEX,0.7, (0, 255, 0),2)
+          cv2.putText(output, 'Loading Area',(890,60),cv2.FONT_HERSHEY_SIMPLEX,0.7, (0, 255, 0),2)
         cv2.namedWindow(self.windowname,cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.windowname,1728,972)
         cv2.imshow(self.windowname, output)
